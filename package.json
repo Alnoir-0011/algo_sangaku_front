@@ -6,7 +6,9 @@
     "dev": "next dev -p 4020 --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test-ct": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -23,6 +25,8 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/experimental-ct-react": "^1.50.0",
+    "@playwright/test": "^1.50.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
