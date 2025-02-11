@@ -5,32 +5,32 @@ test.describe('header', () => {
   test.describe('desktop', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
 
-    test('has Logo', async ({ mount }) => {
-      const component = await mount(<Header />);
-      const LogoImg = component.getByAltText('Logo image');
-      expect(LogoImg).toBeVisible();
+    test('has Icon', async ({ mount }) => {
+      const component = await mount(<Header drawerWidth={240} handleDrawerToggle={() => { }} />);
+      const IconImg = component.getByAltText('Icon image');
+      await expect(IconImg).toBeVisible();
     });
 
     test('has not hamberger-menu-button', async ({ mount }) => {
-      const component = await mount(<Header />);
+      const component = await mount(<Header drawerWidth={240} handleDrawerToggle={() => { }} />);
       const button = component.getByRole("button");
-      expect(button).not.toBeVisible();
+      await expect(button).not.toBeVisible();
     });
   });
 
   test.describe('mobile', () => {
     test.use({ viewport: { width: 599, height: 720 } });
 
-    test('has Logo', async ({ mount }) => {
-      const component = await mount(<Header />);
-      const LogoImg = component.getByAltText('Logo image');
-      expect(LogoImg).toBeVisible();
+    test('has Icon', async ({ mount }) => {
+      const component = await mount(<Header drawerWidth={240} handleDrawerToggle={() => { }} />);
+      const IconImg = component.getByAltText('Icon image');
+      await expect(IconImg).toBeVisible();
     });
 
     test('has not hamberger-menu-button', async ({ mount }) => {
-      const component = await mount(<Header />);
+      const component = await mount(<Header drawerWidth={240} handleDrawerToggle={() => { }} />);
       const button = component.getByRole("button");
-      expect(button).toBeVisible();
+      await expect(button).toBeVisible();
     });
   })
 })
