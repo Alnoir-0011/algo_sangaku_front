@@ -5,8 +5,8 @@ test.describe('footer', () => {
   test.use({ viewport: { width: 1024, height: 768 } });
 
   test('has copyright text', async ({ mount }) => {
-    const component = await mount(<Footer />);
-    const copyright = component.getByRole("paragraph", { name: '©アルゴ算額' });
-    expect(copyright).toBeVisible();
+    const component = await mount(<Footer drawerWidth={240} />);
+    const copyright = component.getByText('AlgoSangaku');
+    await expect(copyright).toBeVisible();
   });
 });

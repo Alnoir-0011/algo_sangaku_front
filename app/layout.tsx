@@ -4,8 +4,10 @@ import { Roboto } from 'next/font/google';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from '@/theme';
 import { Box, CssBaseline, Toolbar } from "@mui/material";
+import Grid from '@mui/material/Grid2';
 import ResponsiveNav from "@/app/ui/navigation/ResponsiveNav";
 import '@fontsource-variable/noto-serif-jp';
+import Footer from "@/app/ui/navigation/Footer";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -34,13 +36,22 @@ export default function RootLayout({
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
               <ResponsiveNav drawerWidth={240} />
-              <Box
-                component="main"
-                sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+              <Grid
+                direction="column"
+                sx={{
+                  flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh',
+                  justifyContent: 'flex-start'
+                }}
               >
-                <Toolbar />
-                {children}
-              </Box>
+                <Box
+                  component="main"
+                  sx={{ p: 3 }}
+                >
+                  <Toolbar />
+                  {children}
+                </Box>
+                <Footer drawerWidth={240} />
+              </Grid>
             </Box>
           </ThemeProvider>
         </AppRouterCacheProvider>
