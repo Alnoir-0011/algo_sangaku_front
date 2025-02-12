@@ -1,10 +1,11 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-react';
+import path from 'node:path';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './',
+  testDir: './tests',
   /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
   snapshotDir: './__snapshots__',
   /* Maximum time one test can run for. */
@@ -20,12 +21,26 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  webServer: {
+    command: 'rm -rf .next && pnpm run build && pnpm run start -p 4030',
+    url: 'http://localhost:4030',
+    reuseExistingServer: !process.env.CI,
+  },
   use: {
+    baseURL: 'http://localhost:4030',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
+
+    ctViteConfig: {
+      resolve: {
+        alias: {
+          '@/': path.join(__dirname, './'),
+        }
+      }
+    }
   },
 
   /* Configure projects for major browsers */
