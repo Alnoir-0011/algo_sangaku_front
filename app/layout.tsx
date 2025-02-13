@@ -37,10 +37,11 @@ export default function RootLayout({
               <CssBaseline />
               <ResponsiveNav drawerWidth={240} />
               <Grid
+                container
                 direction="column"
                 sx={{
                   flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh',
-                  justifyContent: 'flex-start'
+                  justifyContent: 'space-between'
                 }}
               >
                 <Box
@@ -50,7 +51,7 @@ export default function RootLayout({
                   <Toolbar />
                   {children}
                 </Box>
-                <Footer drawerWidth={240} />
+                <Footer />
               </Grid>
             </Box>
           </ThemeProvider>
