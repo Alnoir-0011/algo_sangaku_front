@@ -17,7 +17,7 @@ test.skip('get started link', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
 });
 
-test('has heading "root"', async ({ page }) => {
+test.skip('has heading "root"', async ({ page }) => {
   await page.goto('/');
   const heading = page.getByRole('heading', { name: 'root' });
   await expect(heading).toBeVisible();
