@@ -19,7 +19,7 @@ export default function Home() {
         </Typography>
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: "3rem" }}>
-        <Ema width={27}>
+        <Ema width={21}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: '1rem' }}>
             <Typography variant="h4" component="h3">
               算額とは
@@ -32,15 +32,27 @@ export default function Home() {
           </Typography>
         </Ema>
       </Box>
-      <Grid2 container spacing={2} sx={{ display: "flex", justifyContent: "space-around" }}>
+      <Grid2
+        container
+        rowSpacing={1}
+        columnSpacing={2}
+        sx={{
+          display: "flex",
+          justifyContent: "space-around"
+        }}
+      >
         {linkContent.map(({ name, href }) => (
-          <Link href={href} key={name}>
-            <Ema width={12}>
-              <Box sx={{ display: "flex", justifyContent: "center", height: '100%', alignItems: "center", color: "black" }}>
-                {name}
-              </Box>
-            </Ema>
-          </Link>
+          <Grid2 size={6} key={name} sx={{ display: "flex", justifyContent: "center" }}>
+            <Link href={href} sx={{ mb: 2 }}>
+              <Ema width={10}>
+                <Box sx={{ display: "flex", justifyContent: "center", height: '100%', alignItems: "center", color: "black" }}>
+                  <Typography variant="h6" component="h4">
+                    {name}
+                  </Typography>
+                </Box>
+              </Ema>
+            </Link>
+          </Grid2>
         ))}
       </Grid2>
     </Box >
