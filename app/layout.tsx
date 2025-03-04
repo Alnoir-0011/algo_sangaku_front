@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid2';
 import ResponsiveNav from "@/app/ui/navigation/ResponsiveNav";
 import '@fontsource-variable/noto-serif-jp';
 import Footer from "@/app/ui/navigation/Footer";
+import { SessionProvider } from "next-auth/react";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -29,34 +30,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body className={roboto.variable}>
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <Box sx={{ display: 'flex' }}>
-              <CssBaseline />
-              <ResponsiveNav drawerWidth={240} />
-              <Grid
-                container
-                direction="column"
-                sx={{
-                  flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Box
-                  component="main"
-                  sx={{ p: 3 }}
+    <SessionProvider>
+      <html lang="ja">
+        <body className={roboto.variable}>
+          <AppRouterCacheProvider>
+            <ThemeProvider theme={theme}>
+              <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                <ResponsiveNav drawerWidth={240} />
+                <Grid
+                  container
+                  direction="column"
+                  sx={{
+                    flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh',
+                    justifyContent: 'start'
+                  }}
                 >
                   <Toolbar />
-                  {children}
-                </Box>
-                <Footer />
-              </Grid>
-            </Box>
-          </ThemeProvider>
-        </AppRouterCacheProvider>
-      </body>
-    </html>
+                  <Box
+                    component="main"
+                    sx={{ p: 3, flexGrow: 1 }}
+                  >
+                    {children}
+                  </Box>
+                  <Footer />
+                </Grid>
+              </Box>
+            </ThemeProvider>
+          </AppRouterCacheProvider>
+        </body>
+      </html>
+    </SessionProvider>
   );
 }
