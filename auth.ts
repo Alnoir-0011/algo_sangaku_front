@@ -8,7 +8,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ account, user }) {
       const provider = account?.provider;
-      const uid = user?.id;
+      const uid = account?.providerAccountId;
       const name = user?.name;
       const email = user?.email;
 
@@ -20,6 +20,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (response.status == 200) {
+          const data = await response.json();
+          user.nickname = data.data.attributes.nickname;
           return true;
         } else {
           return false;
@@ -28,6 +30,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log(error);
         return false;
       }
+    },
+    jwt({ token, account, user }) {
+      if (account) {
+        token.idToken = account?.id_token;
+      }
+      if (user) {
+        token.nickname = user?.nickname;
+      }
+      return token;
+    },
+    async session({ token, session }) {
+      session.idToken = token.idToken as string;
+      session.user.nickname = token.nickname as string;
+      return session;
     },
   },
 });
