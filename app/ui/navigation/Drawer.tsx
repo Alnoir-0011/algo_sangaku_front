@@ -34,6 +34,11 @@ export default function ResponsiveDrawer({
   handleDrawerClose,
 }: Props) {
   const { data: session } = useSession();
+  const handleSignout = () => {
+    if (window.confirm("ログアウトしますか？")) {
+      signOut();
+    }
+  };
 
   const beforeSignIn = (
     <Grid
@@ -69,7 +74,7 @@ export default function ResponsiveDrawer({
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton href="/sign-in" sx={{ pl: "1.5rem" }}>
+            <ListItemButton href="/login" sx={{ pl: "1.5rem" }}>
               <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
                 サインイン
               </ListItemText>
@@ -145,12 +150,7 @@ export default function ResponsiveDrawer({
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => {
-                signOut();
-              }}
-              sx={{ pl: "1.5rem" }}
-            >
+            <ListItemButton onClick={handleSignout} sx={{ pl: "1.5rem" }}>
               <ListItemText primary="ログアウト" />
             </ListItemButton>
           </ListItem>
