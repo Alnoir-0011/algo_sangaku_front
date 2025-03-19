@@ -1,5 +1,10 @@
-import { auth } from '@/auth';
-import { authRoutes, publicRoutes, apiAuthPrefix, DEFAULT_LOGIN_REDIRECT } from '@/routes';
+import { auth } from "@/auth";
+import {
+  authRoutes,
+  publicRoutes,
+  apiAuthPrefix,
+  DEFAULT_LOGIN_REDIRECT,
+} from "@/routes";
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -9,24 +14,37 @@ export default auth((req) => {
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  if (isApiAuthRoute) {
-    return null;
-  }
+  // ↓元のコード、return null;がtypeエラーのため修正
+  // if (isApiAuthRoute) {
+  //   return null;
+  // }
+  //
+  // if (isAuthRoute) {
+  //   if (isLoggedIn) {
+  //     return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+  //   }
+  //   return null;
+  // }
+  //
+  // if (!isLoggedIn && !isPublicRoute) {
+  //   return Response.redirect(new URL('/login', nextUrl));
+  // }
+  //
+  // return null;
 
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+  if (!isApiAuthRoute) {
+    if (!isAuthRoute) {
+      if (!isLoggedIn && !isPublicRoute) {
+        return Response.redirect(new URL("/login", nextUrl));
+      }
+    } else {
+      if (isLoggedIn) {
+        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+      }
     }
-    return null;
   }
-
-  if (!isLoggedIn && !isPublicRoute) {
-    return Response.redirect(new URL('/login', nextUrl));
-  }
-
-  return null;
-})
+});
 
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };

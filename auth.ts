@@ -1,10 +1,28 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { JWTDecodeParams, JWTEncodeParams } from "next-auth/jwt";
+import type { JWT } from "next-auth/jwt";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+const providers = [Google];
+
+const jwtTestEnv = {
+  async encode(params: JWTEncodeParams<JWT>): Promise<string> {
+    return btoa(JSON.stringify(params.token));
+  },
+  async decode(params: JWTDecodeParams): Promise<JWT | null> {
+    if (!params.token) return {};
+    return JSON.parse(atob(params.token));
+  },
+};
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  session: {
+    strategy: "jwt",
+  },
+  ...(process.env.APP_ENV === "test" ? { jwt: jwtTestEnv } : {}),
+  providers,
   callbacks: {
     async signIn({ account, user }) {
       const provider = account?.provider;
@@ -46,4 +64,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
+  pages: {
+    signIn: "/login",
+  },
+  trustHost: true,
 });
