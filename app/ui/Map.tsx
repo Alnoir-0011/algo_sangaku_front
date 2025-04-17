@@ -7,9 +7,15 @@ import { renderToString } from "react-dom/server";
 import Infowindow from "@/app/ui/Infowindow";
 
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅
+const activedistance = 0.1; //km
 
 interface Props {
   mapApiKey: string;
+}
+
+interface locationCircle {
+  circle: google.maps.Circle;
+  innerDot: google.maps.Circle;
 }
 
 export default function Map({ mapApiKey }: Props) {
@@ -17,6 +23,7 @@ export default function Map({ mapApiKey }: Props) {
   const [markers, setMarkers] = useState<
     google.maps.marker.AdvancedMarkerElement[]
   >([]);
+  const [circle, setCircle] = useState<locationCircle | null>(null);
 
   const loader = new Loader({
     apiKey: mapApiKey,
@@ -54,7 +61,6 @@ export default function Map({ mapApiKey }: Props) {
         const { Map } = await loader.importLibrary("maps");
         const center = await getLocation();
 
-        console.log(center);
         const newMap = new Map(document.getElementById("map")!, {
           center,
           zoom: 16,
@@ -65,7 +71,6 @@ export default function Map({ mapApiKey }: Props) {
       const map = mapRef.current!;
 
       google.maps.event.addListenerOnce(map, "bounds_changed", async () => {
-        console.log("boundsEvent");
         setShrineMarkers();
       });
     })();
@@ -83,12 +88,11 @@ export default function Map({ mapApiKey }: Props) {
 
     const map = mapRef.current!;
     const bounds = map.getBounds();
-    console.log("boundsNE", bounds?.getNorthEast().toJSON());
     const boundsNE = bounds!.getNorthEast().toJSON();
     const boundsSW = bounds!.getSouthWest().toJSON();
     const request: google.maps.places.SearchByTextRequest = {
       textQuery: "神社 -寺",
-      fields: ["displayName", "location", "formattedAddress", "id"],
+      fields: ["displayName", "location", "formattedAddress", "id", "types"],
       locationRestriction: {
         east: boundsNE.lng,
         north: boundsNE.lat,
@@ -101,10 +105,41 @@ export default function Map({ mapApiKey }: Props) {
       rankPreference: SearchByTextRankPreference.DISTANCE,
     };
     const { places } = await Place.searchByText(request);
-    console.log(places);
     markers.map((marker) => {
       marker.position = null;
     });
+
+    const location = await getLocation();
+
+    if (circle) {
+      circle.circle.setMap(null);
+      circle.innerDot.setMap(null);
+    }
+
+    const newCircle = new google.maps.Circle({
+      strokeColor: "#1e90ff",
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
+      fillColor: "#1e90ff",
+      fillOpacity: 0.4,
+      map,
+      center: location,
+      radius: activedistance * 1000,
+    });
+
+    const newInnerDot = new google.maps.Circle({
+      strokeColor: "#4169e1",
+      strokeOpacity: 1,
+      strokeWeight: 1,
+      fillColor: "#4169e1",
+      fillOpacity: 1,
+      map,
+      center: location,
+      radius: 8,
+    });
+
+    setCircle({ circle: newCircle, innerDot: newInnerDot });
+
     const newMarkers = places.map((place) => {
       const glyphImg = new Image(18);
       glyphImg.src = "/torii-icon.svg";
@@ -120,8 +155,16 @@ export default function Map({ mapApiKey }: Props) {
         position: place.location,
         content: glyphSvgPinElement.element,
       });
+
       const infowindow = new google.maps.InfoWindow({
-        content: renderToString(<Infowindow place={place} />),
+        headerContent: place.displayName,
+        content: renderToString(
+          <Infowindow
+            place={place}
+            location={location}
+            activeDistance={activedistance}
+          />,
+        ),
         ariaLabel: place.displayName,
       });
 
@@ -130,24 +173,30 @@ export default function Map({ mapApiKey }: Props) {
           anchor: marker,
           map,
         });
-        // map.setCenter(marker.position!);
       });
 
       return marker;
     });
+
     setMarkers(newMarkers);
   };
 
   return (
-    <div style={{ position: "relative" }}>
-      <div id="map" style={{ height: "40rem" }} />
-      <Button
-        variant="contained"
-        sx={{ position: "absolute", left: "50%", top: 0, zIndex: 2, m: 1 }}
-        onClick={setShrineMarkers}
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          marginBottom: "0.5rem",
+        }}
       >
-        このエリアで探す
-      </Button>
-    </div>
+        <Button variant="contained" onClick={setShrineMarkers}>
+          このエリアで探す
+        </Button>
+      </div>
+      <div>
+        <div id="map" style={{ height: "40rem" }} />
+      </div>
+    </>
   );
 }
