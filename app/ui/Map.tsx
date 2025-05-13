@@ -7,10 +7,11 @@ import { renderToString } from "react-dom/server";
 import Infowindow from "@/app/ui/Infowindow";
 
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅
-const activedistance = 0.1; //km
+const activedistance = 0.1; //km default: 0.1
 
 interface Props {
   mapApiKey: string;
+  apiUrl: string;
 }
 
 interface locationCircle {
@@ -18,7 +19,19 @@ interface locationCircle {
   innerDot: google.maps.Circle;
 }
 
-export default function Map({ mapApiKey }: Props) {
+interface shrine {
+  id: string;
+  type: "shrine";
+  attributes: {
+    name: string;
+    address: string;
+    latitude: string;
+    longitude: string;
+    place_id: string;
+  };
+}
+
+export default function Map({ mapApiKey, apiUrl }: Props) {
   const mapRef = useRef<google.maps.Map>(undefined);
   const [markers, setMarkers] = useState<
     google.maps.marker.AdvancedMarkerElement[]
@@ -28,7 +41,7 @@ export default function Map({ mapApiKey }: Props) {
   const loader = new Loader({
     apiKey: mapApiKey,
     version: "weekly",
-    libraries: ["marker", "places"],
+    libraries: ["marker"],
   });
 
   const getLocation = async () => {
@@ -72,39 +85,45 @@ export default function Map({ mapApiKey }: Props) {
 
       google.maps.event.addListenerOnce(map, "bounds_changed", async () => {
         setShrineMarkers();
+        // const bounds = map.getBounds();
+        // console.log(bounds);
       });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setShrineMarkers = async () => {
-    const [
-      { AdvancedMarkerElement, PinElement },
-      { Place, SearchByTextRankPreference },
-    ] = await Promise.all([
-      loader.importLibrary("marker"),
-      loader.importLibrary("places"),
-    ]);
+    const { AdvancedMarkerElement, PinElement } =
+      await loader.importLibrary("marker");
 
     const map = mapRef.current!;
     const bounds = map.getBounds();
     const boundsNE = bounds!.getNorthEast().toJSON();
     const boundsSW = bounds!.getSouthWest().toJSON();
-    const request: google.maps.places.SearchByTextRequest = {
-      textQuery: "神社 -寺",
-      fields: ["displayName", "location", "formattedAddress", "id", "types"],
-      locationRestriction: {
-        east: boundsNE.lng,
-        north: boundsNE.lat,
-        south: boundsSW.lat,
-        west: boundsSW.lng,
-      },
-      language: "ja",
-      maxResultCount: 10,
-      region: "JP",
-      rankPreference: SearchByTextRankPreference.DISTANCE,
-    };
-    const { places } = await Place.searchByText(request);
+
+    let shrines: shrine[] = [];
+    try {
+      const params = new URLSearchParams({ searchType: "Map" });
+      params.set("lowLat", boundsSW.lat.toString());
+      params.set("highLat", boundsNE.lat.toString());
+      params.set("lowLng", boundsSW.lng.toString());
+      params.set("highLng", boundsNE.lng.toString());
+
+      const res = await fetch(`${apiUrl}/api/v1/shrines?${params}`);
+
+      if (res.status == 200) {
+        const data = await res.json();
+        shrines = data["data"];
+        // console.log(shrines);
+      } else {
+        window.alert("神社を読み込めませんでした");
+      }
+    } catch (e) {
+      console.log(e);
+      window.alert("リクエストに失敗しました");
+    }
+
+    // console.log(places);
     markers.map((marker) => {
       marker.position = null;
     });
@@ -140,7 +159,11 @@ export default function Map({ mapApiKey }: Props) {
 
     setCircle({ circle: newCircle, innerDot: newInnerDot });
 
-    const newMarkers = places.map((place) => {
+    const newMarkers = shrines.map((place) => {
+      const name = place.attributes.name;
+      const lat = parseFloat(place.attributes.latitude);
+      const lng = parseFloat(place.attributes.longitude);
+
       const glyphImg = new Image(18);
       glyphImg.src = "/torii-icon.svg";
 
@@ -152,12 +175,12 @@ export default function Map({ mapApiKey }: Props) {
 
       const marker = new AdvancedMarkerElement({
         map,
-        position: place.location,
+        position: { lat, lng },
         content: glyphSvgPinElement.element,
       });
 
       const infowindow = new google.maps.InfoWindow({
-        headerContent: place.displayName,
+        headerContent: name,
         content: renderToString(
           <Infowindow
             place={place}
@@ -165,7 +188,7 @@ export default function Map({ mapApiKey }: Props) {
             activeDistance={activedistance}
           />,
         ),
-        ariaLabel: place.displayName,
+        ariaLabel: name,
       });
 
       marker.addListener("gmp-click", () => {

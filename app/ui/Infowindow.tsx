@@ -1,35 +1,56 @@
 import "@/app/ui/infowindow.css";
 
 interface Props {
-  place: google.maps.places.Place;
+  place: shrine;
   location: google.maps.LatLngLiteral | { lat: number; lng: number };
   activeDistance: number;
+}
+
+interface shrine {
+  id: string;
+  type: "shrine";
+  attributes: {
+    name: string;
+    address: string;
+    latitude: string;
+    longitude: string;
+    place_id: string;
+  };
 }
 
 export default function Infowindow({ place, location, activeDistance }: Props) {
   return (
     <>
-      <p className="infowindow-content">{place.formattedAddress}</p>
-      {distance(place.location!, location) < activeDistance && (
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <a
-            href={`/sangakus?shrine=${place.id}`}
-            className="infowindow-button"
-            style={{ marginRight: "0.5rem" }}
-          >
-            <span style={{ color: "white" }}>算額を見る</span>
-          </a>
-          <a
-            href={`/sangakus?shrine=${place.id}`}
-            className="infowindow-button"
-          >
-            <span style={{ color: "white" }}>算額を奉納する</span>
-          </a>
-        </div>
+      {/* <p className="infowindow-content">{place.formattedAddress}</p> */}
+      {distance(
+        place.attributes.latitude,
+        place.attributes.longitude,
+        location,
+      ) < activeDistance && (
+        <>
+          <p className="infowindow-content">算額の数: {0}</p>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <a
+              href={`/sangakus?shrine=${place.id}`}
+              className="infowindow-button"
+              style={{ marginRight: "0.5rem" }}
+            >
+              <span style={{ color: "white" }}>算額を見る</span>
+            </a>
+            <a
+              href={`/sangakus?shrine=${place.id}`}
+              className="infowindow-button"
+            >
+              <span style={{ color: "white" }}>算額を奉納する</span>
+            </a>
+          </div>
+        </>
       )}
-      {distance(place.location!, location) < activeDistance || (
-        <p>神社から離れています</p>
-      )}
+      {distance(
+        place.attributes.latitude,
+        place.attributes.longitude,
+        location,
+      ) < activeDistance || <p>神社から離れています</p>}
     </>
   );
 }
@@ -37,11 +58,12 @@ export default function Infowindow({ place, location, activeDistance }: Props) {
 const R = Math.PI / 180;
 
 function distance(
-  position1: google.maps.LatLng,
+  pos1lat: string,
+  pos1lng: string,
   currentPosition: { lat: number; lng: number },
 ) {
-  const lat1 = position1.lat() * R;
-  const lng1 = position1.lng() * R;
+  const lat1 = parseFloat(pos1lat) * R;
+  const lng1 = parseFloat(pos1lng) * R;
   const lat2 = currentPosition.lat * R;
   const lng2 = currentPosition.lng * R;
   return (
