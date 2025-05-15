@@ -14,7 +14,7 @@ import Grid from "@mui/material/Grid2";
 import { signOut } from "next-auth/react";
 
 const drawerContent = [
-  { text: "神社を探す", href: "#" },
+  { text: "神社を探す", href: "/shrines" },
   { text: "算額を作る", href: "#" },
   { text: "算額を解く", href: "#" },
   { text: "自分の算額を見る", href: "#" },
@@ -67,7 +67,7 @@ export default function ResponsiveDrawer({
         </Toolbar>
         <List>
           <ListItem disablePadding>
-            <ListItemButton href="#" sx={{ pl: "1.5rem" }}>
+            <ListItemButton href="/shrines" sx={{ pl: "1.5rem" }}>
               <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
                 神社を探す
               </ListItemText>

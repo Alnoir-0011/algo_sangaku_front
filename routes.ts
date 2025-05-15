@@ -1,7 +1,7 @@
-export const publicRoutes: string[] = ['/', '/unlogin'];
+export const publicRoutes: string[] = ["/", "/shrines"];
 
-export const authRoutes: string[] = ['/login'];
+export const authRoutes: string[] = ["/login"];
 
-export const apiAuthPrefix: string = '/api/auth';
+export const apiAuthPrefix: string = "/api/auth";
 
-export const DEFAULT_LOGIN_REDIRECT: string = '/';
+export const DEFAULT_LOGIN_REDIRECT: string = "/";
