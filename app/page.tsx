@@ -2,25 +2,27 @@ import { Box, Link, Typography, Grid2 } from "@mui/material";
 import Ema from "@/app/ui/Ema";
 
 const linkContent = [
-  { name: '算額を作る', href: "#" },
-  { name: '算額を確認', href: "#" },
-  { name: '神社を探す', href: "#" },
-  { name: '算額を解く', href: "#" },
-]
+  { name: "算額を作る", href: "#" },
+  { name: "算額を確認", href: "#" },
+  { name: "神社を探す", href: "/shrines" },
+  { name: "算額を解く", href: "#" },
+];
 
 export default function Home() {
   return (
     <Box>
-      <Box sx={{ display: 'flex', mb: "2rem" }}>
-        <Typography variant="h3" component="h1"
-          sx={{ mx: 'auto', fontFamily: 'Noto Serif JP Variable' }}
+      <Box sx={{ display: "flex", mb: "2rem" }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{ mx: "auto", fontFamily: "Noto Serif JP Variable" }}
         >
           アルゴ算額
         </Typography>
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: "3rem" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: "3rem" }}>
         <Ema width={21}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: '1rem' }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: "1rem" }}>
             <Typography variant="h4" component="h3">
               算額とは
             </Typography>
@@ -38,14 +40,26 @@ export default function Home() {
         columnSpacing={2}
         sx={{
           display: "flex",
-          justifyContent: "space-around"
+          justifyContent: "space-around",
         }}
       >
         {linkContent.map(({ name, href }) => (
-          <Grid2 size={6} key={name} sx={{ display: "flex", justifyContent: "center" }}>
+          <Grid2
+            size={6}
+            key={name}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Link href={href} sx={{ mb: 2 }}>
               <Ema width={10}>
-                <Box sx={{ display: "flex", justifyContent: "center", height: '100%', alignItems: "center", color: "black" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    height: "100%",
+                    alignItems: "center",
+                    color: "black",
+                  }}
+                >
                   <Typography variant="h6" component="h4">
                     {name}
                   </Typography>
@@ -55,6 +69,6 @@ export default function Home() {
           </Grid2>
         ))}
       </Grid2>
-    </Box >
+    </Box>
   );
 }
