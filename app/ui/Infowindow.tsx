@@ -31,16 +31,13 @@ export default function Infowindow({ place, location, activeDistance }: Props) {
           <p className="infowindow-content">算額の数: {0}</p>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <a
-              href={`/sangakus?shrine=${place.id}`}
+              href={"#"}
               className="infowindow-button"
               style={{ marginRight: "0.5rem" }}
             >
               <span style={{ color: "white" }}>算額を見る</span>
             </a>
-            <a
-              href={`/sangakus?shrine=${place.id}`}
-              className="infowindow-button"
-            >
+            <a href={"#"} className="infowindow-button">
               <span style={{ color: "white" }}>算額を奉納する</span>
             </a>
           </div>
