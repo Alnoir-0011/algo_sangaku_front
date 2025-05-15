@@ -32,7 +32,7 @@ test.describe("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "神社を探す" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/shrines");
     });
 
     test("has link to SignIn page", async ({ mount }) => {
@@ -118,7 +118,7 @@ test.describe("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "神社を探す" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/shrines");
     });
 
     test("has not link to SignIn page", async ({ mount }) => {
