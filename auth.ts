@@ -25,21 +25,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   callbacks: {
     async signIn({ account, user }) {
-      const provider = account?.provider;
-      const uid = account?.providerAccountId;
-      const name = user?.name;
-      const email = user?.email;
+      const idToken = account?.id_token;
 
       try {
         const response = await fetch(`${apiUrl}/api/v1/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user: { provider, uid, name, email } }),
+          body: JSON.stringify({ token: idToken }),
         });
 
         if (response.status == 200) {
           const data = await response.json();
+          // console.log(response.headers.get("accesstoken"));
           user.nickname = data.data.attributes.nickname;
+          user.accessToken = response.headers.get("accesstoken")!;
           return true;
         } else {
           return false;
@@ -51,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     jwt({ token, account, user }) {
       if (account) {
-        token.idToken = account?.id_token;
+        token.accessToken = user?.accessToken;
       }
       if (user) {
         token.nickname = user?.nickname;
@@ -59,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ token, session }) {
-      session.idToken = token.idToken as string;
+      session.accessToken = token.accessToken as string;
       session.user.nickname = token.nickname as string;
       return session;
     },
