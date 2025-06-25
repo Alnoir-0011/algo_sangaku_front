@@ -1,6 +1,6 @@
 export const publicRoutes: string[] = ["/", "/shrines"];
 
-export const authRoutes: string[] = ["/login"];
+export const authRoutes: string[] = ["/signin"];
 
 export const apiAuthPrefix: string = "/api/auth";
 

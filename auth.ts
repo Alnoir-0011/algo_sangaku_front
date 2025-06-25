@@ -43,7 +43,7 @@ export const providerMap = providers
   .filter((provider) => provider.id !== "credentials");
 
 // テスト時のサインイン画面切り替え用
-const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/login" };
+const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/signin" };
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {

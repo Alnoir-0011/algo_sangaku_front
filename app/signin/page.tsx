@@ -10,7 +10,7 @@ interface Props {
   searchParams: Promise<{ callbackUrl: string | undefined }>;
 }
 
-export default async function Login(props: Props) {
+export default async function Signin(props: Props) {
   const searchParams = await props.searchParams;
   return (
     <Box

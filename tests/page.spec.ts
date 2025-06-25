@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setSession } from "./__helpers__/login";
+import { setSession } from "./__helpers__/signin";
 
 test.describe("TopPage", () => {
   test.describe("mainNode", () => {
