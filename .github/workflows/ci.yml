@@ -17,6 +17,8 @@ jobs:
         run: npm install -g pnpm && pnpm install
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+      - name: Create AuthSecret
+        run: npx auth secret
       - name: Run Playwright tests
         run: pnpm run test-ct
       - uses: actions/upload-artifact@v4
