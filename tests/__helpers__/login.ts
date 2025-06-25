@@ -1,19 +1,12 @@
-import { Browser, Page } from "@playwright/test";
+import { Page } from "@playwright/test";
 import type { Session } from "next-auth";
 
-export const setSession = async (browser: Browser, data: Session) => {
-  const context = await browser.newContext();
-  await context.addCookies([
-    {
-      name: "authjs.session-token",
-      value: btoa(JSON.stringify(data)),
-      domain: "localhost:4020",
-      path: "/",
-    },
-  ]);
-
-  const page = await context.newPage();
-  return page;
+export const setSession = async (page: Page) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "サインイン" }).click();
+  await page.getByLabel("Email").fill("test_user@example.com");
+  await page.getByLabel("Password").fill("password");
+  await page.getByRole("button", { name: "Sign in with Credentials" }).click();
 };
 
 export const mockClientSession = async (page: Page, json: Session | null) => {

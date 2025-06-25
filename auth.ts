@@ -11,16 +11,14 @@ const providers: Provider[] = [Google];
 if (process.env.APP_ENV === "test") {
   providers.push(
     Credentials({
-      id: "password",
-      name: "Password",
       credentials: {
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
-        console.log(credentials);
+      authorize: (credentials) => {
         if (credentials.password === "password") {
           const user: User = {
-            email: "test_user@example.com",
+            email: credentials.email as string,
             name: "Test user",
             image: "https://avatars.githubusercontent.com/u/67470890?s=200&v=4",
           };
@@ -43,6 +41,9 @@ export const providerMap = providers
     }
   })
   .filter((provider) => provider.id !== "credentials");
+
+// テスト時のサインイン画面切り替え用
+const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/login" };
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
@@ -95,8 +96,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  pages: {
-    signIn: "/login",
-  },
+  pages,
   trustHost: true,
 });
