@@ -5,7 +5,7 @@ test.describe("/signin", () => {
   test.describe("before login", () => {
     test("has heading", async ({ page }) => {
       await page.goto("/signin");
-      const heading = page.getByRole("heading", { name: "ログイン" });
+      const heading = page.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
     });
   });

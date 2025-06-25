@@ -23,7 +23,7 @@ export default async function Signin(props: Props) {
     >
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>
-          ログイン
+          サインイン
         </Typography>
         {Object.values(providerMap).map((provider) => (
           <form
@@ -48,7 +48,7 @@ export default async function Signin(props: Props) {
               sx={{ bgcolor: "#4285F4" }}
             >
               {provider.id === "google" && <GoogleIcon sx={{ mr: 1 }} />}
-              <span>{provider.name}でログイン</span>
+              <span>{provider.name}でサインイン</span>
             </Button>
           </form>
         ))}
