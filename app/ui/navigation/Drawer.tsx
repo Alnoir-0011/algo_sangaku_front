@@ -1,5 +1,5 @@
 import React from "react";
-import { useSession } from "next-auth/react";
+import { signIn, useSession, signOut } from "next-auth/react";
 import {
   Box,
   Drawer,
@@ -11,7 +11,6 @@ import {
   Link,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { signOut } from "next-auth/react";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -74,7 +73,12 @@ export default function ResponsiveDrawer({
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton href="/login" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              onClick={() => {
+                signIn();
+              }}
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
                 サインイン
               </ListItemText>

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/experimental-ct-react";
 import Drawer from "@/app/ui/navigation/Drawer";
-import { mockClientSession } from "../__helpers__/login";
+import { mockClientSession } from "../__helpers__/signin";
 
 test.describe("Drawer", () => {
   test.describe("before login", () => {
@@ -35,7 +35,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
-    test("has link to SignIn page", async ({ mount }) => {
+    test("has button to SignIn page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -44,9 +44,8 @@ test.describe("Drawer", () => {
           handleDrawerClose={() => {}}
         />,
       );
-      const link = component.getByRole("link", { name: "サインイン" });
-      await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "/login");
+      const button = component.getByRole("button", { name: "サインイン" });
+      await expect(button).toBeVisible();
     });
 
     test("has link to Privacy Policy page", async ({ mount }) => {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setSession } from "./__helpers__/login";
+import { setSession } from "./__helpers__/signin";
 
 test.describe("TopPage", () => {
   test.describe("mainNode", () => {
@@ -48,20 +48,9 @@ test.describe("TopPage", () => {
     });
   });
 
-  const test_user = {
-    user: {
-      name: "testuser",
-      email: "test_user@example.com",
-      picture: "https://avatars.githubusercontent.com/u/000000",
-      nickname: "test nickname",
-    },
-    expires: "dummy",
-    idToken: "dummy",
-  };
-
   test.describe("Drawer", () => {
-    test("has appName", async ({ browser }) => {
-      const page = await setSession(browser, test_user);
+    test("has appName", async ({ page }) => {
+      await setSession(page);
       await page.goto("/");
 
       const drawer = page.locator("nav");
@@ -72,21 +61,22 @@ test.describe("TopPage", () => {
     test.describe("before login", () => {
       test("has link to SignIn", async ({ page }) => {
         await page.goto("/");
-        const link = page.getByRole("link", { name: "サインイン" });
-        await link.click();
-        await expect(page).toHaveURL("/login");
-        const heading = page.getByRole("heading", { name: "ログイン" });
-        await expect(heading).toBeVisible();
+        const button = page.getByRole("button", { name: "サインイン" });
+        await button.click();
+        const signinButton = page.getByRole("button", {
+          name: "Sign in with Credentials",
+        });
+        await expect(signinButton).toBeVisible();
       });
     });
 
     test.describe("after login", () => {
-      test("has not link to SignIn", async ({ browser }) => {
-        const page = await setSession(browser, test_user);
+      test("has not link to SignIn", async ({ page }) => {
+        await setSession(page);
         await page.goto("/");
         await page.waitForLoadState();
-        const link = page.getByRole("link", { name: "サインイン" });
-        await expect(link).not.toBeVisible();
+        const button = page.getByRole("button", { name: "サインイン" });
+        await expect(button).not.toBeVisible();
       });
     });
   });

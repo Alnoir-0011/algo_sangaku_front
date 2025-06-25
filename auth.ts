@@ -1,45 +1,77 @@
-import NextAuth from "next-auth";
+import NextAuth, { User } from "next-auth";
 import Google from "next-auth/providers/google";
-import { JWTDecodeParams, JWTEncodeParams } from "next-auth/jwt";
-import type { JWT } from "next-auth/jwt";
+import type { Provider } from "next-auth/providers";
+// テスト用
+import Credentials from "next-auth/providers/credentials";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-const providers = [Google];
+const providers: Provider[] = [Google];
 
-const jwtTestEnv = {
-  async encode(params: JWTEncodeParams<JWT>): Promise<string> {
-    return btoa(JSON.stringify(params.token));
-  },
-  async decode(params: JWTDecodeParams): Promise<JWT | null> {
-    if (!params.token) return {};
-    return JSON.parse(atob(params.token));
-  },
-};
+if (process.env.APP_ENV === "test") {
+  providers.push(
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: (credentials) => {
+        if (credentials.password === "password") {
+          const user: User = {
+            email: credentials.email as string,
+            name: "Test user",
+            image: "https://avatars.githubusercontent.com/u/67470890?s=200&v=4",
+          };
+          return user;
+        } else {
+          return null;
+        }
+      },
+    }),
+  );
+}
+
+export const providerMap = providers
+  .map((provider) => {
+    if (typeof provider === "function") {
+      const providerData = provider();
+      return { id: providerData.id, name: providerData.name };
+    } else {
+      return { id: provider.id, name: provider.name };
+    }
+  })
+  .filter((provider) => provider.id !== "credentials");
+
+// テスト時のサインイン画面切り替え用
+const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/signin" };
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  ...(process.env.APP_ENV === "test" ? { jwt: jwtTestEnv } : {}),
   providers,
   callbacks: {
     async signIn({ account, user }) {
-      const provider = account?.provider;
-      const uid = account?.providerAccountId;
-      const name = user?.name;
-      const email = user?.email;
+      // テスト用
+      if (process.env.APP_ENV === "test") {
+        user.nickname = "test_nickname";
+        user.accessToken = "dummy_token";
+        return true;
+      }
 
+      const idToken = account?.id_token;
       try {
         const response = await fetch(`${apiUrl}/api/v1/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user: { provider, uid, name, email } }),
+          body: JSON.stringify({ token: idToken }),
         });
 
         if (response.status == 200) {
           const data = await response.json();
+          // console.log(response.headers.get("accesstoken"));
           user.nickname = data.data.attributes.nickname;
+          user.accessToken = response.headers.get("accesstoken")!;
           return true;
         } else {
           return false;
@@ -51,7 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     jwt({ token, account, user }) {
       if (account) {
-        token.idToken = account?.id_token;
+        token.accessToken = user?.accessToken;
       }
       if (user) {
         token.nickname = user?.nickname;
@@ -59,13 +91,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ token, session }) {
-      session.idToken = token.idToken as string;
+      session.accessToken = token.accessToken as string;
       session.user.nickname = token.nickname as string;
       return session;
     },
   },
-  pages: {
-    signIn: "/login",
-  },
+  pages,
   trustHost: true,
 });
