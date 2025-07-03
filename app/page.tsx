@@ -2,7 +2,7 @@ import { Box, Link, Typography, Grid2 } from "@mui/material";
 import Ema from "@/app/ui/Ema";
 
 const linkContent = [
-  { name: "算額を作る", href: "#" },
+  { name: "算額を作る", href: "/sangakus/create" },
   { name: "算額を確認", href: "#" },
   { name: "神社を探す", href: "/shrines" },
   { name: "算額を解く", href: "#" },
