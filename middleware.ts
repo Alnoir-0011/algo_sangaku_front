@@ -35,7 +35,7 @@ export default auth((req) => {
   if (!isApiAuthRoute) {
     if (!isAuthRoute) {
       if (!isLoggedIn && !isPublicRoute) {
-        return Response.redirect(new URL("/login", nextUrl));
+        return Response.redirect(new URL("/signin", nextUrl));
       }
     } else {
       if (isLoggedIn) {
