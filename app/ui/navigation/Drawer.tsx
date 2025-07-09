@@ -1,20 +1,18 @@
 import React from "react";
 import { signIn, useSession, signOut } from "next-auth/react";
-import {
-  Box,
-  Drawer,
-  Toolbar,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Link,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
-  { text: "算額を作る", href: "#" },
+  { text: "算額を作る", href: "/sangakus/create" },
   { text: "算額を解く", href: "#" },
   { text: "自分の算額を見る", href: "#" },
 ];

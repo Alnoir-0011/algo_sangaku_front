@@ -129,7 +129,7 @@ test.describe("Drawer", () => {
           handleDrawerClose={() => {}}
         />,
       );
-      const link = component.getByRole("link", { name: "サインイン" });
+      const link = component.getByRole("button", { name: "サインイン" });
       await expect(link).not.toBeVisible();
       // await expect(link).toHaveAttribute("href", "/login");
     });
@@ -145,7 +145,7 @@ test.describe("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "算額を作る" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/sangakus/create");
     });
 
     test("has link to AnswerSangaku page", async ({ mount }) => {

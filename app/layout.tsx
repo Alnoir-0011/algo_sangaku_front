@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { Roboto } from 'next/font/google';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '@/theme';
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { Roboto } from "next/font/google";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "@/theme";
 import { Box, CssBaseline, Toolbar } from "@mui/material";
-import Grid from '@mui/material/Grid2';
+import Grid from "@mui/material/Grid2";
 import ResponsiveNav from "@/app/ui/navigation/ResponsiveNav";
-import '@fontsource-variable/noto-serif-jp';
+import "@fontsource-variable/noto-serif-jp";
 import Footer from "@/app/ui/navigation/Footer";
 import { SessionProvider } from "next-auth/react";
 
 const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto',
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
@@ -35,22 +35,21 @@ export default function RootLayout({
         <body className={roboto.variable}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: "flex" }}>
                 <CssBaseline />
                 <ResponsiveNav drawerWidth={240} />
                 <Grid
                   container
                   direction="column"
                   sx={{
-                    flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh',
-                    justifyContent: 'start'
+                    flexGrow: 1,
+                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    minHeight: "100vh",
+                    justifyContent: "start",
                   }}
                 >
                   <Toolbar />
-                  <Box
-                    component="main"
-                    sx={{ p: 3, flexGrow: 1 }}
-                  >
+                  <Box component="main" sx={{ p: 3, flexGrow: 1 }}>
                     {children}
                   </Box>
                   <Footer />

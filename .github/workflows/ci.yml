@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  componentstest:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -17,14 +17,39 @@ jobs:
         run: npm install -g pnpm && pnpm install
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Create AuthSecret
-        run: npx auth secret
+      - name: copy env.template
+        run: cp env.template .env.production
       - name: Run Playwright tests
-        run: pnpm run test-ct
+        run: pnpm run test:components
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-components
+          path: playwright-report/
+          retention-days: 30
+
+  e2etest:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install -g pnpm && pnpm install
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: copy env.template
+        run: cp env.template .env.production
+      - name: Create AuthSecret
+        run: npx auth secret
+      - name: Run Playwright tests
+        run: pnpm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-e2e
           path: playwright-report/
           retention-days: 30
 
