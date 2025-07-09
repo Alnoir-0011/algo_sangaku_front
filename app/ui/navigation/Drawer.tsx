@@ -1,15 +1,13 @@
 import React from "react";
 import { signIn, useSession, signOut } from "next-auth/react";
-import {
-  Box,
-  Drawer,
-  Toolbar,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Link,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
 
 const drawerContent = [
