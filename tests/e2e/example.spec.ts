@@ -28,7 +28,7 @@ test.skip('has heading "root"', async ({ page }) => {
 test.describe("mobile", () => {
   test.use({ viewport: { width: 430, height: 932 } });
 
-  test.only("has responsive drawer", async ({ page }) => {
+  test("has responsive drawer", async ({ page }) => {
     page.goto("/");
     await page.getByRole("button", { name: "open drawer" }).click();
     await page.waitForLoadState();
