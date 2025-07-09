@@ -60,6 +60,9 @@ export default function Page() {
       }}
       id="sangaku_form"
     >
+      {state.message && (
+        <Typography sx={{ color: "red" }}>{state.message}</Typography>
+      )}
       <Grid
         container
         spacing={2}
@@ -70,11 +73,21 @@ export default function Page() {
           <Box sx={{ mb: 1 }}>
             <label htmlFor="title">
               タイトル
-              <TextField fullWidth id="title" variant="outlined" name="title" />
+              <TextField
+                fullWidth
+                id="title"
+                variant="outlined"
+                name="title"
+                defaultValue={state.values?.title}
+              />
             </label>
             {state.errors?.title &&
               state.errors.title.map((error: string) => (
-                <Typography key={error} sx={{ color: "red" }}>
+                <Typography
+                  aria-label="titleError"
+                  key={error}
+                  sx={{ color: "red" }}
+                >
                   {error}
                 </Typography>
               ))}
@@ -89,11 +102,16 @@ export default function Page() {
                 variant="outlined"
                 rows={15}
                 name="description"
+                defaultValue={state.values?.description}
               />
             </label>
             {state.errors?.description &&
               state.errors.description.map((error: string) => (
-                <Typography key={error} sx={{ color: "red" }}>
+                <Typography
+                  aria-label="descriptionError"
+                  key={error}
+                  sx={{ color: "red" }}
+                >
                   {error}
                 </Typography>
               ))}
@@ -106,7 +124,11 @@ export default function Page() {
             />
             {state.errors?.fixed_inputs &&
               state.errors.fixed_inputs.map((error: string) => (
-                <Typography key={error} sx={{ color: "red" }}>
+                <Typography
+                  aria-label="fixedInputsError"
+                  key={error}
+                  sx={{ color: "red" }}
+                >
                   {error}
                 </Typography>
               ))}
@@ -127,7 +149,11 @@ export default function Page() {
             </label>
             {state.errors?.source &&
               state.errors.source.map((error: string) => (
-                <Typography key={error} sx={{ color: "red" }}>
+                <Typography
+                  aria-label="sourceError"
+                  key={error}
+                  sx={{ color: "red" }}
+                >
                   {error}
                 </Typography>
               ))}

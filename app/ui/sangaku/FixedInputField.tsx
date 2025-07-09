@@ -59,6 +59,9 @@ export default function FixedInputField({
               value={value}
               variant="standard"
               slotProps={{
+                htmlInput: {
+                  "aria-label": `fixedInput-${index + 1}`,
+                },
                 input: {
                   disableUnderline: true,
                   sx: { px: 1, py: 1, fontSize: "1rem" },
@@ -86,6 +89,7 @@ export default function FixedInputField({
       <Box sx={{ textAlign: "center", borderTop: "1px solid gray" }}>
         <IconButton
           onClick={addInputArea}
+          aria-label="addButton"
           sx={{ borderRadius: 0, width: "100%" }}
         >
           <AddIcon fontSize="small" />

@@ -49,7 +49,7 @@ export default function CheckPage({ useModal, source, fixedInputs }: Props) {
               value={source}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, sm: 6 }} aria-label="sourceResult">
             実行結果
             <SourceResult source={source} fixedInputs={fixedInputs} />
           </Grid>

@@ -69,7 +69,7 @@ export default function SourceResult({ source, fixedInputs }: Props) {
             {index + 1}
           </Box>
           <Box sx={{ flexGrow: 1, p: 1 }}>
-            <Typography>{value}</Typography>
+            <Typography aria-label={`result-${index + 1}`}>{value}</Typography>
           </Box>
         </Box>
       ))}

@@ -1,7 +1,7 @@
 "use server";
 
 import { auth, signOut } from "@/auth";
-import { revalidatePath } from "next/cache";
+// import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 
@@ -14,6 +14,10 @@ export type State = {
     source?: string[];
     fixed_inputs?: string[];
   };
+  values?: {
+    title?: string;
+    description?: string;
+  };
   message?: string;
 };
 
@@ -24,6 +28,8 @@ export const createSangaku = async (
   fixed_inputs: string[],
 ) => {
   const session = await auth();
+  const title = formData.get("title");
+  const description = formData.get("description");
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -31,8 +37,8 @@ export const createSangaku = async (
   };
   const params = {
     sangaku: {
-      title: formData.get("title"),
-      description: formData.get("description"),
+      title,
+      description,
       source,
     },
     fixed_inputs,
@@ -47,7 +53,7 @@ export const createSangaku = async (
 
     switch (res.status) {
       case 200:
-        revalidatePath("/sangakus");
+        // revalidatePath("/sangakus");
         redirect("/");
       case 401:
         await signOut({ redirectTo: "/signin" });
@@ -56,15 +62,23 @@ export const createSangaku = async (
         return {
           errors: Object.fromEntries(data.errors),
           message: "invalid params",
+          values: { title, description },
         } as State;
       default:
-        return { message: "リクエストに失敗しました" } as State;
+        return {
+          message: "リクエストに失敗しました",
+          values: { title, description },
+        } as State;
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
-    return { message: "予期せぬエラーが発生しました" } as State;
+    console.log(error);
+    return {
+      message: "予期せぬエラーが発生しました",
+      values: { title, description },
+    } as State;
   }
 };
 
