@@ -57,7 +57,6 @@ export const createSangaku = async (
         redirect("/");
       case 401:
         await signOut({ redirectTo: "/signin" });
-        break;
       case 400:
         const data = await res.json();
         return {
