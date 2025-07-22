@@ -173,7 +173,7 @@ test.describe("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "自分の算額を見る" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
     test("has link to Logout", async ({ mount }) => {
