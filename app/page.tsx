@@ -3,7 +3,7 @@ import Ema from "@/app/ui/Ema";
 
 const linkContent = [
   { name: "算額を作る", href: "/sangakus/create" },
-  { name: "算額を確認", href: "#" },
+  { name: "算額を確認", href: "/user/sangakus" },
   { name: "神社を探す", href: "/shrines" },
   { name: "算額を解く", href: "#" },
 ];

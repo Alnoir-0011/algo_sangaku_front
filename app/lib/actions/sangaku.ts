@@ -92,6 +92,12 @@ export const createSangaku = async (
   }
 };
 
+export const deleteSangaku = async (id: string) => {
+  // const session = auth();
+  console.log("delete action");
+  console.log(id);
+};
+
 export const runSource = async (source: string, fixedInputs: string[]) => {
   if (!fixedInputs.length) {
     fixedInputs.push("");
