@@ -1,6 +1,7 @@
 "use server";
 
 import { auth, signOut } from "@/auth";
+import { revalidatePath } from "next/cache";
 // import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
@@ -93,9 +94,32 @@ export const createSangaku = async (
 };
 
 export const deleteSangaku = async (id: string) => {
-  // const session = auth();
-  console.log("delete action");
-  console.log(id);
+  const session = await auth();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.accessToken}`,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+      method: "DELETE",
+      headers,
+    });
+
+    switch (res.status) {
+      case 200:
+        revalidatePath("/user/sangakus");
+        break;
+      case 401:
+        await signOut({ redirectTo: "/signin" });
+        break;
+      default:
+    }
+  } catch (e) {
+    if (isRedirectError(e)) {
+      throw e;
+    }
+  }
 };
 
 export const runSource = async (source: string, fixedInputs: string[]) => {

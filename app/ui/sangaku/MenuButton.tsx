@@ -24,7 +24,11 @@ export default function MenuButton({ sangaku }: Props) {
     setAnchorEl(null);
   };
 
-  const deleteSangakuWithId = deleteSangaku.bind(null, sangaku.id);
+  const deleteSangakuWithId = () => {
+    if (window.confirm("本当に削除しますか?")) {
+      deleteSangaku(sangaku.id);
+    }
+  };
 
   return (
     <Box sx={{ position: "relative", pl: 3 }}>
