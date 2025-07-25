@@ -46,7 +46,7 @@ export const createSangaku = async (
   };
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/sangakus`, {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus`, {
       method: "POST",
       headers,
       body: JSON.stringify(params),
