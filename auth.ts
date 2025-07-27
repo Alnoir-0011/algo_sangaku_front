@@ -4,6 +4,8 @@ import type { Provider } from "next-auth/providers";
 // テスト用
 import Credentials from "next-auth/providers/credentials";
 
+import { setFlash } from "@/app/lib/actions/flash";
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const providers: Provider[] = [Google];
@@ -72,6 +74,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // console.log(response.headers.get("accesstoken"));
           user.nickname = data.data.attributes.nickname;
           user.accessToken = response.headers.get("accesstoken")!;
+          await setFlash({
+            type: "success",
+            message: "サインインしました",
+          });
           return true;
         } else {
           return false;

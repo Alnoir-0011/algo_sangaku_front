@@ -5,8 +5,9 @@ import {
   apiAuthPrefix,
   DEFAULT_LOGIN_REDIRECT,
 } from "@/routes";
+import { setFlash } from "./app/lib/actions/flash";
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
@@ -38,6 +39,7 @@ export default auth((req) => {
   if (!isApiAuthRoute) {
     if (!isAuthRoute) {
       if (!isLoggedIn && !isPublicRoute) {
+        await setFlash({ type: "warning", message: "サインインしてください" });
         return Response.redirect(new URL("/signin", nextUrl));
       }
     } else {

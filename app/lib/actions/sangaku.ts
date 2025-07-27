@@ -4,6 +4,7 @@ import { auth, signOut } from "@/auth";
 // import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
+import { setFlash } from "@/app/lib/actions/flash";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -53,20 +54,28 @@ export const createSangaku = async (
 
     switch (res.status) {
       case 200:
+        await setFlash({ type: "success", message: "算額を作成しました" });
         // revalidatePath("/sangakus");
         redirect("/");
       case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度ログインしてください",
+        });
         await signOut({ redirectTo: "/signin" });
       case 400:
         const data = await res.json();
+        await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
           errors: Object.fromEntries(data.errors),
-          message: "invalid params",
+          // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
       default:
+        await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
-          message: "リクエストに失敗しました",
+          // message: "リクエストに失敗しました",
           values: { title, description },
         } as State;
     }
@@ -75,8 +84,9 @@ export const createSangaku = async (
       throw error;
     }
     console.log(error);
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
-      message: "予期せぬエラーが発生しました",
+      // message: "予期せぬエラーが発生しました",
       values: { title, description },
     } as State;
   }
