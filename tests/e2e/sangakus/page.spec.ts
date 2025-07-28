@@ -13,6 +13,8 @@ test.describe("/sangakus/create", () => {
     test("redirect to root", async ({ page }) => {
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
+      const flash = page.getByText("サインインしてください");
+      await expect(flash).toBeVisible();
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -100,6 +102,8 @@ test.describe("/sangakus/create", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
+      const flash = page.getByText("算額を作成しました");
+      await expect(flash).toBeVisible();
     });
 
     test("error message visible", async ({ page, msw }) => {
