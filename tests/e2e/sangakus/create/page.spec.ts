@@ -1,4 +1,4 @@
-import { setSession } from "../../__helpers__/signin";
+import { setSession } from "../../../__helpers__/signin";
 
 import {
   test,
@@ -73,7 +73,7 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post("http://localhost:3000/api/v1/sangakus", () => {
+        http.post("http://localhost:3000/api/v1/user/sangakus", () => {
           return HttpResponse.json(backendResponse, { status: 200 });
         }),
       );
@@ -119,7 +119,7 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post("http://localhost:3000/api/v1/sangakus", () => {
+        http.post("http://localhost:3000/api/v1/user/sangakus", () => {
           return HttpResponse.json(backendResponse, { status: 400 });
         }),
       );
