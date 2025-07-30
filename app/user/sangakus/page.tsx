@@ -4,9 +4,15 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import UserSangaku from "@/app/ui/sangaku/UserSangaku";
 import Typography from "@mui/material/Typography";
+import Pagination from "@/app/ui/Pagination";
 
-export default async function Page() {
-  const sangakus = await fetchUserSangakus();
+interface Props {
+  searchParams: Promise<{ page: string }>;
+}
+
+export default async function Page(props: Props) {
+  const page = (await props.searchParams).page || "1";
+  const { sangakus, totalPage } = await fetchUserSangakus(page);
 
   return (
     <Box>
@@ -19,9 +25,6 @@ export default async function Page() {
         </Box>
       </Box>
       <Box>
-        {typeof sangakus !== "undefined" && "message" in sangakus && (
-          <p>{sangakus.message}</p>
-        )}
         <Grid
           container
           direction="row"
@@ -44,6 +47,7 @@ export default async function Page() {
             </>
           )}
         </Grid>
+        <Pagination totalPage={totalPage} />
       </Box>
     </Box>
   );
