@@ -109,8 +109,14 @@ export const deleteSangaku = async (id: string) => {
     switch (res.status) {
       case 200:
         revalidatePath("/user/sangakus");
+        await setFlash({ type: "success", message: "算額を削除しました" });
         break;
       case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度ログインしてください",
+        });
         await signOut({ redirectTo: "/signin" });
         break;
       default:
