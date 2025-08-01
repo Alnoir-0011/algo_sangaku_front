@@ -23,7 +23,7 @@ export default function UserSangaku({ sangaku }: Props) {
 
   return (
     <Grid sx={{ position: "relative" }}>
-      <Ema width={19}>
+      <Ema width={18}>
         <Box
           sx={{
             display: "flex",
