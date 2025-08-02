@@ -4,6 +4,7 @@ import PageTab from "@/app/ui/sangaku/PageTab";
 import UserSangakuList from "@/app/ui/sangaku/UserSangakuList";
 import { Suspense } from "react";
 import { UserSangakuListSkeleton } from "@/app/ui/skeletons";
+import Link from "next/link";
 
 interface Props {
   searchParams: Promise<{ page: string; tab: string; query: string }>;
@@ -19,7 +20,11 @@ export default async function Page(props: Props) {
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <h2>自分の算額一覧</h2>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Button variant="contained" href="/sangakus/create">
+          <Button
+            LinkComponent={Link}
+            variant="contained"
+            href="/sangakus/create"
+          >
             算額を作る
           </Button>
         </Box>

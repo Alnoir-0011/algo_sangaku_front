@@ -1,5 +1,6 @@
 import { Box, Link, Typography, Grid2 } from "@mui/material";
 import Ema from "@/app/ui/Ema";
+import NextLink from "next/link";
 
 const linkContent = [
   { name: "算額を作る", href: "/sangakus/create" },
@@ -49,7 +50,7 @@ export default function Home() {
             key={name}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <Link href={href} sx={{ mb: 2 }}>
+            <Link component={NextLink} href={href} sx={{ mb: 2 }}>
               <Ema width={10}>
                 <Box
                   sx={{

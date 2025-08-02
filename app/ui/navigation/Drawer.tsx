@@ -9,6 +9,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
+import NextLink from "next/link";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -50,6 +51,7 @@ export default function ResponsiveDrawer({
       <div>
         <Toolbar>
           <Link
+            component={NextLink}
             href="/"
             color="inherit"
             variant="h4"
@@ -64,7 +66,11 @@ export default function ResponsiveDrawer({
         </Toolbar>
         <List>
           <ListItem disablePadding>
-            <ListItemButton href="/shrines" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              LinkComponent={NextLink}
+              href="/shrines"
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
                 神社を探す
               </ListItemText>
@@ -87,12 +93,20 @@ export default function ResponsiveDrawer({
       <div style={{ marginTop: "auto" }}>
         <List>
           <ListItem disablePadding>
-            <ListItemButton href="#" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              LinkComponent={NextLink}
+              href="#"
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText primary="利用規約" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton href="#" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              LinkComponent={NextLink}
+              href="#"
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText primary="プライバシーポリシー" />
             </ListItemButton>
           </ListItem>
@@ -114,6 +128,7 @@ export default function ResponsiveDrawer({
       <div>
         <Toolbar>
           <Link
+            component={NextLink}
             href="/"
             color="inherit"
             variant="h4"
@@ -129,7 +144,11 @@ export default function ResponsiveDrawer({
         <List>
           {drawerContent.map(({ text, href }) => (
             <ListItem key={text} disablePadding>
-              <ListItemButton href={href} sx={{ pl: "1.5rem" }}>
+              <ListItemButton
+                LinkComponent={NextLink}
+                href={href}
+                sx={{ pl: "1.5rem" }}
+              >
                 <ListItemText
                   primary={text}
                   slotProps={{ primary: { fontSize: "1.3rem" } }}
@@ -142,12 +161,20 @@ export default function ResponsiveDrawer({
       <div style={{ marginTop: "auto" }}>
         <List>
           <ListItem disablePadding>
-            <ListItemButton href="#" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              LinkComponent={NextLink}
+              href="#"
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText primary="利用規約" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton href="#" sx={{ pl: "1.5rem" }}>
+            <ListItemButton
+              LinkComponent={NextLink}
+              href="#"
+              sx={{ pl: "1.5rem" }}
+            >
               <ListItemText primary="プライバシーポリシー" />
             </ListItemButton>
           </ListItem>
