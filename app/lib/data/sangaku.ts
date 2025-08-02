@@ -4,7 +4,7 @@ import type { Sangaku } from "../definitions";
 import { setFlash } from "../actions/flash";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export async function fetchUserSangakus(page: string) {
+export async function fetchUserSangakus(page: string, query: string) {
   const session = await auth();
 
   const headers: HeadersInit = {
@@ -12,9 +12,17 @@ export async function fetchUserSangakus(page: string) {
     Authorization: `Bearer ${session?.accessToken}`,
   };
 
+  const params = new URLSearchParams();
+  params.set("page", page);
+  params.set("shrine_id", "");
+
+  if (query) {
+    params.set("title", query);
+  }
+
   try {
     const res = await fetch(
-      `${apiUrl}/api/v1/user/sangakus?shrine_id=&page=${page}`,
+      `${apiUrl}/api/v1/user/sangakus?${params.toString()}`,
       {
         headers,
       },

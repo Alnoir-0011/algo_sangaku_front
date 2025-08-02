@@ -8,9 +8,10 @@ import Pagination from "@/app/ui/Pagination";
 
 interface Props {
   page: string;
+  query: string;
 }
-export default async function UserSangakuList({ page }: Props) {
-  const { sangakus, totalPage } = await fetchUserSangakus(page);
+export default async function UserSangakuList({ page, query }: Props) {
+  const { sangakus, totalPage } = await fetchUserSangakus(page, query);
 
   return (
     <Box>
@@ -38,7 +39,9 @@ export default async function UserSangakuList({ page }: Props) {
           </>
         )}
       </Grid>
-      <Pagination totalPage={totalPage} />
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <Pagination totalPage={totalPage} />
+      </Box>
     </Box>
   );
 }

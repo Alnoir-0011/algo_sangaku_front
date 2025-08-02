@@ -6,12 +6,13 @@ import { Suspense } from "react";
 import { UserSangakuListSkeleton } from "@/app/ui/skeletons";
 
 interface Props {
-  searchParams: Promise<{ page: string; tab: string }>;
+  searchParams: Promise<{ page: string; tab: string; query: string }>;
 }
 
 export default async function Page(props: Props) {
   const page = (await props.searchParams).page || "1";
   const tab = (await props.searchParams).tab || "before_dedicate";
+  const query = (await props.searchParams).query || "";
 
   return (
     <Box>
@@ -27,8 +28,8 @@ export default async function Page(props: Props) {
       {tab === "already_dedicate" ? (
         <p>already_dedicate sangaku</p>
       ) : (
-        <Suspense key={page} fallback={<UserSangakuListSkeleton />}>
-          <UserSangakuList page={page} />
+        <Suspense key={page + query} fallback={<UserSangakuListSkeleton />}>
+          <UserSangakuList page={page} query={query} />
         </Suspense>
       )}
     </Box>
