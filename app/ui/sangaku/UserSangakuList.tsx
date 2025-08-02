@@ -19,7 +19,7 @@ export default async function UserSangakuList({ page }: Props) {
         direction="row"
         spacing={3}
         sx={{
-          justifyContent: "start",
+          justifyContent: "center",
           alignItems: "flex-start",
           mt: 3,
           mb: 2,

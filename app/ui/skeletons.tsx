@@ -7,7 +7,7 @@ export function UserSangakuListSkeleton() {
       direction="row"
       spacing={3}
       sx={{
-        justifyContent: "start",
+        justifyContent: "center",
         alignItems: "flex-start",
         mt: 3,
         mb: 2,
