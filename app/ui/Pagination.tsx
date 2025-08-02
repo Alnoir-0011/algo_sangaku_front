@@ -13,8 +13,6 @@ export default function Pagination({ totalPage }: Props) {
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
 
-  console.log(pathname);
-
   return (
     <MuiPagination
       page={currentPage}
