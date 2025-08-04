@@ -1,6 +1,7 @@
 "use server";
 
 import { auth, signOut } from "@/auth";
+import { revalidatePath } from "next/cache";
 // import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
@@ -46,7 +47,7 @@ export const createSangaku = async (
   };
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/sangakus`, {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus`, {
       method: "POST",
       headers,
       body: JSON.stringify(params),
@@ -89,6 +90,41 @@ export const createSangaku = async (
       // message: "予期せぬエラーが発生しました",
       values: { title, description },
     } as State;
+  }
+};
+
+export const deleteSangaku = async (id: string) => {
+  const session = await auth();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.accessToken}`,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+      method: "DELETE",
+      headers,
+    });
+
+    switch (res.status) {
+      case 200:
+        revalidatePath("/user/sangakus");
+        await setFlash({ type: "success", message: "算額を削除しました" });
+        break;
+      case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度ログインしてください",
+        });
+        await signOut({ redirectTo: "/signin" });
+        break;
+      default:
+    }
+  } catch (e) {
+    if (isRedirectError(e)) {
+      throw e;
+    }
   }
 };
 

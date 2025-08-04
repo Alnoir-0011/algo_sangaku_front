@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/experimental-ct-react";
 import Drawer from "@/app/ui/navigation/Drawer";
-import { mockClientSession } from "../__helpers__/signin";
+import { mockClientSession } from "../../__helpers__/signin";
 
 test.describe("Drawer", () => {
   test.describe("before login", () => {
@@ -173,7 +173,7 @@ test.describe("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "自分の算額を見る" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
     test("has link to Logout", async ({ mount }) => {
