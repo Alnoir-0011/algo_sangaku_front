@@ -5,6 +5,8 @@ import UserSangakuList from "@/app/ui/sangaku/UserSangakuList";
 import { Suspense } from "react";
 import { UserSangakuListSkeleton } from "@/app/ui/skeletons";
 import Link from "next/link";
+import Search from "@/app/ui/Search";
+import { Container } from "@mui/material";
 
 interface Props {
   searchParams: Promise<{ page: string; tab: string; query: string }>;
@@ -33,9 +35,14 @@ export default async function Page(props: Props) {
       {tab === "already_dedicate" ? (
         <p>already_dedicate sangaku</p>
       ) : (
-        <Suspense key={page + query} fallback={<UserSangakuListSkeleton />}>
-          <UserSangakuList page={page} query={query} />
-        </Suspense>
+        <>
+          <Container maxWidth="md">
+            <Search placeholder="タイトルで検索" />
+          </Container>
+          <Suspense key={page + query} fallback={<UserSangakuListSkeleton />}>
+            <UserSangakuList page={page} query={query} />
+          </Suspense>
+        </>
       )}
     </Box>
   );

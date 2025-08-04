@@ -20,7 +20,13 @@ export default function PageTab() {
   };
 
   return (
-    <Tabs centered variant="fullWidth" value={value} onChange={handleChange}>
+    <Tabs
+      centered
+      variant="fullWidth"
+      value={value}
+      onChange={handleChange}
+      sx={{ mb: 3 }}
+    >
       <Tab value="/user/sangakus" label="手持ちの算額" />
       <Tab value="/user/sangakus?tab=already_dedicate" label="奉納した算額" />
     </Tabs>

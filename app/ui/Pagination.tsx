@@ -18,8 +18,9 @@ export default function Pagination({ totalPage }: Props) {
       page={currentPage}
       count={totalPage}
       onChange={(_e, page) => {
-        console.log(page);
-        router.push(`${pathname}?page=${page}`);
+        const params = new URLSearchParams(searchParams);
+        params.set("page", String(page));
+        router.push(`${pathname}?${params.toString()}`);
       }}
     />
   );
