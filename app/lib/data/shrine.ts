@@ -1,0 +1,34 @@
+"use server";
+
+import { setFlash } from "../actions/flash";
+import { Shrine } from "../definitions";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+
+export async function fetchShrines(
+  lowLat: string,
+  highLat: string,
+  lowLng: string,
+  highLng: string,
+) {
+  try {
+    const params = new URLSearchParams({ searchType: "Map" });
+    params.set("lowLat", lowLat);
+    params.set("highLat", highLat);
+    params.set("lowLng", lowLng);
+    params.set("highLng", highLng);
+
+    const res = await fetch(`${apiUrl}/api/v1/shrines?${params}`);
+
+    if (res.status == 200) {
+      const data = await res.json();
+      return data.data as Shrine[];
+    } else {
+      await setFlash({ type: "error", message: "神社を読み込めませんでした" });
+      return [] as Shrine[];
+    }
+  } catch {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return [] as Shrine[];
+  }
+}
