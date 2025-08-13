@@ -4,23 +4,13 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import MenuButton from "@/app/ui/sangaku/MenuButton";
+import { difficultyTranslation } from "../utility";
 
 interface Props {
   sangaku: Sangaku;
 }
 
 export default function UserSangaku({ sangaku }: Props) {
-  const difficultyTranslation = (str: string) => {
-    switch (str) {
-      case "easy":
-        return "簡単";
-      case "nomal":
-        return "普通";
-      default:
-        return "難しい";
-    }
-  };
-
   return (
     <Grid sx={{ position: "relative" }}>
       <Ema width={18}>

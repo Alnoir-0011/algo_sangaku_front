@@ -1,6 +1,6 @@
 import { Box, Grid2, Skeleton } from "@mui/material";
 
-export function UserSangakuListSkeleton() {
+export function SangakuListSkeleton() {
   return (
     <Grid2
       container

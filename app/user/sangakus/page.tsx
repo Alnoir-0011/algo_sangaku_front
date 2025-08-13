@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import PageTab from "@/app/ui/sangaku/PageTab";
 import UserSangakuList from "@/app/ui/sangaku/UserSangakuList";
 import { Suspense } from "react";
-import { UserSangakuListSkeleton } from "@/app/ui/skeletons";
+import { SangakuListSkeleton } from "@/app/ui/skeletons";
 import Link from "next/link";
 import Search from "@/app/ui/Search";
 import { Container } from "@mui/material";
@@ -39,7 +39,7 @@ export default async function Page(props: Props) {
           <Container maxWidth="md">
             <Search placeholder="タイトルで検索" />
           </Container>
-          <Suspense key={page + query} fallback={<UserSangakuListSkeleton />}>
+          <Suspense key={page + query} fallback={<SangakuListSkeleton />}>
             <UserSangakuList page={page} query={query} />
           </Suspense>
         </>
