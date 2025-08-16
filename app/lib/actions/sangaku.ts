@@ -2,7 +2,6 @@
 
 import { auth, signOut } from "@/auth";
 import { revalidatePath } from "next/cache";
-// import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
@@ -56,7 +55,7 @@ export const createSangaku = async (
     switch (res.status) {
       case 200:
         await setFlash({ type: "success", message: "算額を作成しました" });
-        // revalidatePath("/sangakus");
+        revalidatePath("/user/sangakus");
         redirect("/");
       case 401:
         await setFlash({

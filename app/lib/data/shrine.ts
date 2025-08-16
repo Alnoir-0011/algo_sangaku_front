@@ -32,3 +32,24 @@ export async function fetchShrines(
     return [] as Shrine[];
   }
 }
+
+export async function fetchShrine(id: string) {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/shrines/${id}`, {
+      headers,
+    });
+
+    if (res.status == 200) {
+      const data = await res.json();
+      return data.data as Shrine;
+    } else {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
