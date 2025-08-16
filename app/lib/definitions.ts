@@ -28,3 +28,15 @@ type input = {
   id: number;
   content: string;
 };
+
+export type Shrine = {
+  id: string;
+  type: "shrine";
+  attributes: {
+    name: string;
+    address: string;
+    latitude: string;
+    longitude: string;
+    place_id: string;
+  };
+};

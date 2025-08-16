@@ -1,6 +1,6 @@
-import { Grid2, Skeleton } from "@mui/material";
+import { Box, Grid2, Skeleton } from "@mui/material";
 
-export function UserSangakuListSkeleton() {
+export function SangakuListSkeleton() {
   return (
     <Grid2
       container
@@ -35,5 +35,16 @@ export function UserSangakuListSkeleton() {
         </Grid2>
       ))}
     </Grid2>
+  );
+}
+
+export function MapSkeleton() {
+  return (
+    <>
+      <Box sx={{ display: "flex", justifyContent: "end", mb: "0.5rem" }}>
+        <Skeleton variant="rounded" width="9rem" height="36.5px" />
+      </Box>
+      <Skeleton variant="rectangular" height="40rem" />
+    </>
   );
 }

@@ -1,19 +1,30 @@
 import type { Sangaku } from "@/app/lib/definitions";
 import Ema from "@/app/ui/Ema";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid2";
-import Typography from "@mui/material/Typography";
-import MenuButton from "@/app/ui/sangaku/MenuButton";
-import { difficultyTranslation } from "../utility";
+import { Box, ButtonBase, Typography } from "@mui/material";
 
 interface Props {
-  sangaku: Sangaku;
+  data: Sangaku;
+  handleClick: (sangaku: Sangaku) => void;
 }
+export default function SangakuComponent({ data, handleClick }: Props) {
+  const difficultyTranslation = (str: string) => {
+    switch (str) {
+      case "easy":
+        return "簡単";
+      case "nomal":
+        return "普通";
+      default:
+        return "難しい";
+    }
+  };
 
-export default function UserSangaku({ sangaku }: Props) {
   return (
-    <Grid sx={{ position: "relative" }}>
-      <Ema width={18}>
+    <Ema width={18}>
+      <ButtonBase
+        onClick={() => {
+          handleClick(data);
+        }}
+      >
         <Box
           sx={{
             display: "flex",
@@ -35,7 +46,7 @@ export default function UserSangaku({ sangaku }: Props) {
               whiteSpace: "pre-line",
             }}
           >
-            {sangaku.attributes.title}
+            {data.attributes.title}
           </Typography>
           <Typography
             variant="inherit"
@@ -50,7 +61,7 @@ export default function UserSangaku({ sangaku }: Props) {
               whiteSpace: "pre-line",
             }}
           >
-            {sangaku.attributes.description}
+            {data.attributes.description}
           </Typography>
           <Box
             sx={{
@@ -69,14 +80,11 @@ export default function UserSangaku({ sangaku }: Props) {
                 textAlign: "right",
               }}
             >
-              {difficultyTranslation(sangaku.attributes.difficulty)}
+              {difficultyTranslation(data.attributes.difficulty)}
             </Typography>
           </Box>
         </Box>
-      </Ema>
-      <Box sx={{ position: "absolute", right: 0, top: 0 }}>
-        <MenuButton sangaku={sangaku} />
-      </Box>
-    </Grid>
+      </ButtonBase>
+    </Ema>
   );
 }

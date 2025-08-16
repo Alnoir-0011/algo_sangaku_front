@@ -1,10 +1,14 @@
+"use server";
+
 import { auth, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import type { Sangaku } from "../definitions";
-import { setFlash } from "../actions/flash";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export async function fetchUserSangakus(page: string, query: string) {
+export async function fetchUserSangakus(
+  page: string,
+  query: string,
+): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
   const session = await auth();
 
   const headers: HeadersInit = {
@@ -37,14 +41,20 @@ export async function fetchUserSangakus(page: string, query: string) {
       case 401:
         await signOut({ redirectTo: "/signin" });
       default:
-        await setFlash({ type: "error", message: "リクエストに失敗しました" });
-        return { sangakus: [], totalPage: 0, currentPage: 0 };
+        return {
+          sangakus: [],
+          totalPage: 0,
+          message: "リクエストに失敗しました",
+        };
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
-    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
-    return { sangakus: [], totalPage: 0, currentPage: 0 };
+    return {
+      sangakus: [],
+      totalPage: 0,
+      message: "予期せぬエラーが発生しました",
+    };
   }
 }

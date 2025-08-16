@@ -11,10 +11,15 @@ interface Props {
   query: string;
 }
 export default async function UserSangakuList({ page, query }: Props) {
-  const { sangakus, totalPage } = await fetchUserSangakus(page, query);
+  const { sangakus, totalPage, message } = await fetchUserSangakus(page, query);
 
   return (
     <Box>
+      {message && (
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Typography sx={{ color: "red", mt: 2 }}>{message}</Typography>
+        </Box>
+      )}
       <Grid
         container
         direction="row"
