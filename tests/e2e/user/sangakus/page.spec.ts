@@ -100,7 +100,7 @@ test.describe("/user/sangakus", () => {
   });
 
   test.describe("before signin", () => {
-    test("redirect to root", async ({ page }) => {
+    test("redirect to signin page", async ({ page }) => {
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");
