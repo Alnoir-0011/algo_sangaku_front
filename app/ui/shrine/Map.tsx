@@ -8,7 +8,7 @@ import ShrineMarker from "./ShrineMarker";
 import { fetchShrines } from "../../lib/data/shrine";
 import { MapSkeleton } from "../skeletons";
 
-export const activeDistance = 1;
+export const activeDistance = 0.1;
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅
 
 interface Props {
