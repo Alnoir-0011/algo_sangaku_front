@@ -16,10 +16,10 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
+import type { Difficulty } from "@/app/lib/definitions";
 
 const initialState: State = { errors: {} };
 const initilaSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
-type Difficulty = "easy" | "nomal" | "difficult";
 
 export default function Page() {
   const [state, formAction] = useActionState(postSangakuAction, initialState);
@@ -33,6 +33,7 @@ export default function Page() {
       prevState,
       formData,
       source,
+      difficulty,
       fixedInputs,
     );
     return result;
@@ -170,6 +171,7 @@ export default function Page() {
                 <MenuItem value={"easy"}>簡単</MenuItem>
                 <MenuItem value={"nomal"}>普通</MenuItem>
                 <MenuItem value={"difficult"}>難しい</MenuItem>
+                <MenuItem value={"very_difficult"}>とても難しい</MenuItem>
               </Select>
             </FormControl>
             <Box>

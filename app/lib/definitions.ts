@@ -5,7 +5,7 @@ export type Sangaku = {
     title: string;
     description: string;
     source: string;
-    difficulty: "easy" | "nomal" | "hard";
+    difficulty: Difficulty;
     inputs: input[];
   };
   relationships: {
@@ -23,6 +23,8 @@ export type Sangaku = {
     };
   };
 };
+
+export type Difficulty = "easy" | "nomal" | "difficult" | "very_difficult";
 
 type input = {
   id: number;

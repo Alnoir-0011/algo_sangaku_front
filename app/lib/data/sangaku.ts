@@ -58,3 +58,32 @@ export async function fetchUserSangakus(
     };
   }
 }
+
+export async function fetchUserSangaku(id: string) {
+  const session = await auth();
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.accessToken}`,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+      headers,
+    });
+
+    switch (res.status) {
+      case 200:
+        const body = await res.json();
+        return body.data as Sangaku;
+      case 401:
+        await signOut({ redirectTo: "/signin" });
+      default:
+        return null;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+  }
+}
