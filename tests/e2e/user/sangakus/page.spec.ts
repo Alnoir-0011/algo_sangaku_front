@@ -126,7 +126,7 @@ test.describe("/user/sangakus", () => {
       await menuButton.click();
       const editLink = page.getByRole("menuitem", { name: "編集" });
       await expect(editLink).toBeVisible();
-      await expect(editLink).toHaveAttribute("href", "#");
+      await expect(editLink).toHaveAttribute("href", "/user/sangakus/1/edit");
       const deleteButton = page.getByRole("menuitem", { name: "削除" });
       await expect(deleteButton).toBeVisible();
     });

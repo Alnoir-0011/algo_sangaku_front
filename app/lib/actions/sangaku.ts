@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
+import { Difficulty } from "../definitions";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -26,6 +27,7 @@ export const createSangaku = async (
   _prevState: State,
   formData: FormData,
   source: string,
+  difficulty: Difficulty,
   fixed_inputs: string[],
 ) => {
   const session = await auth();
@@ -41,6 +43,7 @@ export const createSangaku = async (
       title,
       description,
       source,
+      difficulty,
     },
     fixed_inputs,
   };
@@ -84,6 +87,79 @@ export const createSangaku = async (
       throw error;
     }
     console.log(error);
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return {
+      // message: "予期せぬエラーが発生しました",
+      values: { title, description },
+    } as State;
+  }
+};
+
+export const updateSangaku = async (
+  id: string,
+  _prevState: State,
+  formData: FormData,
+  source: string,
+  difficulty: Difficulty,
+  fixed_inputs: string[],
+) => {
+  const session = await auth();
+
+  const title = formData.get("title");
+  const description = formData.get("description");
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.accessToken}`,
+  };
+  const params = {
+    sangaku: {
+      title,
+      description,
+      source,
+      difficulty,
+    },
+    fixed_inputs,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(params),
+    });
+
+    switch (res.status) {
+      case 200:
+        await setFlash({ type: "success", message: "算額を更新しました" });
+        revalidatePath("/user/sangakus");
+        redirect("/user/sangakus");
+      case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度ログインしてください",
+        });
+        await signOut({ redirectTo: "/signin" });
+      case 400:
+        const data = await res.json();
+        await setFlash({ type: "error", message: "入力に誤りがあります" });
+        return {
+          errors: Object.fromEntries(data.errors),
+          // message: "入力に誤りがあります",
+          values: { title, description },
+        } as State;
+      default:
+        await setFlash({ type: "error", message: "リクエストに失敗しました" });
+        return {
+          // message: "リクエストに失敗しました",
+          values: { title, description },
+        } as State;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
       // message: "予期せぬエラーが発生しました",

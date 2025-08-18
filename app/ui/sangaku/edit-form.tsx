@@ -1,7 +1,8 @@
 "use client";
+
 import { useActionState, useState } from "react";
 import { Editor } from "@monaco-editor/react";
-import { createSangaku, State } from "@/app/lib/actions/sangaku";
+import { updateSangaku, State } from "@/app/lib/actions/sangaku";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
@@ -16,20 +17,32 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import type { Difficulty } from "@/app/lib/definitions";
+import type { Sangaku, Difficulty } from "@/app/lib/definitions";
 
-const initialState: State = { errors: {} };
-const initilaSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
+interface Props {
+  sangaku: Sangaku;
+}
 
-export default function Page() {
-  const [state, formAction] = useActionState(postSangakuAction, initialState);
-  const [source, setSource] = useState(initilaSource);
-  const [fixedInputs, setFixedInputs] = useState([""]);
-  const [difficulty, setDifficulty] = useState<Difficulty>("nomal");
+export default function Form({ sangaku }: Props) {
+  const initialState: State = {
+    values: {
+      title: sangaku.attributes.title,
+      description: sangaku.attributes.description,
+    },
+  };
+  const [state, formAction] = useActionState(updateSangakuAction, initialState);
+  const [source, setSource] = useState(sangaku.attributes.source);
+  const [fixedInputs, setFixedInputs] = useState(
+    sangaku.attributes.inputs.map((input) => input.content),
+  );
+  const [difficulty, setDifficulty] = useState<Difficulty>(
+    sangaku.attributes.difficulty,
+  );
   const [modalOpen, setModalOpen] = useState(false);
 
-  async function postSangakuAction(prevState: State, formData: FormData) {
-    const result = await createSangaku(
+  async function updateSangakuAction(prevState: State, formData: FormData) {
+    const result = await updateSangaku(
+      sangaku.id,
       prevState,
       formData,
       source,
