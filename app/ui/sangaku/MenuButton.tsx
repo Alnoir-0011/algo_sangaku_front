@@ -8,7 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
-// import ListItemButton from "@mui/material/ListItemButton";
+import NextLink from "next/link";
 
 interface Props {
   sangaku: Sangaku;
@@ -55,7 +55,10 @@ export default function MenuButton({ sangaku }: Props) {
           },
         }}
       >
-        <MenuItem component={"a"} href="#">
+        <MenuItem
+          component={NextLink}
+          href={`/user/sangakus/${sangaku.id}/edit`}
+        >
           編集
         </MenuItem>
         <MenuItem component="button" onClick={deleteSangakuWithId}>
