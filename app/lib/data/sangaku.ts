@@ -87,3 +87,44 @@ export async function fetchUserSangaku(id: string) {
     }
   }
 }
+
+export async function fetchShrineSangakus(
+  shrine_id: string,
+  page: string,
+  query: string,
+  difficulty: string,
+): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    const params = new URLSearchParams({ page, title: query, difficulty });
+
+    const res = await fetch(
+      `${apiUrl}/api/v1/shrines/${shrine_id}/sangakus?${params}`,
+      {
+        headers,
+      },
+    );
+
+    if (res.status === 200) {
+      const data = await res.json();
+      const sangakus = data.data as Sangaku[];
+      const totalPage = parseInt(res.headers.get("total-pages")!);
+      return { sangakus, totalPage };
+    } else {
+      return {
+        sangakus: [] as Sangaku[],
+        totalPage: 0,
+        message: "リクエストに失敗しました",
+      };
+    }
+  } catch {
+    return {
+      sangakus: [] as Sangaku[],
+      totalPage: 0,
+      message: "予期せぬエラーが発生しました",
+    };
+  }
+}
