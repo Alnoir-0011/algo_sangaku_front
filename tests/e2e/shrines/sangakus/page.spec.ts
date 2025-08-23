@@ -38,7 +38,7 @@ test.describe("/shrines/[id]/sangakus", () => {
         http.get("http://localhost:3000/api/v1/shrines/999", () => {
           return new HttpResponse({}, { status: 404 });
         }),
-        http.get("http://localhost:3000/api/v1/shrine/1/sangakus", () => {
+        http.get("http://localhost:3000/api/v1/shrines/1/sangakus", () => {
           return HttpResponse.json({
             data: [
               {
