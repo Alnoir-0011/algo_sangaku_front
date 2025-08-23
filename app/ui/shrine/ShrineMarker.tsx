@@ -56,7 +56,7 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
                 <Button
                   variant="contained"
                   LinkComponent={NextLink}
-                  href={"#"}
+                  href={`shrines/${shrine.id}/sangakus`}
                   sx={{ marginRight: "0.5rem" }}
                 >
                   算額を見る

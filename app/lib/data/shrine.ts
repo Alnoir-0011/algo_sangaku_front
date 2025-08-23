@@ -12,13 +12,16 @@ export async function fetchShrines(
   highLng: string,
 ) {
   try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
     const params = new URLSearchParams({ searchType: "Map" });
     params.set("lowLat", lowLat);
     params.set("highLat", highLat);
     params.set("lowLng", lowLng);
     params.set("highLng", highLng);
 
-    const res = await fetch(`${apiUrl}/api/v1/shrines?${params}`);
+    const res = await fetch(`${apiUrl}/api/v1/shrines?${params}`, { headers });
 
     if (res.status == 200) {
       const data = await res.json();
