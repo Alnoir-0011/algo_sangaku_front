@@ -1,5 +1,4 @@
-// import { setSession } from "../../../__helpers__/signin";
-
+import { setSession } from "../../../__helpers__/signin";
 import {
   test,
   expect,
@@ -69,6 +68,40 @@ test.describe("/shrines/[id]/sangakus", () => {
             ],
           });
         }),
+        http.post("http://localhost:3000/api/v1/sangakus/1/save", () => {
+          return HttpResponse.json(
+            {
+              data: [
+                {
+                  id: "1",
+                  type: "sangaku",
+                  attributes: {
+                    title: "test_title",
+                    description: "test_description",
+                    source: "put 'Hello world'",
+                    difficulty: "nomal",
+                    inputs: [],
+                  },
+                  relationships: {
+                    user: {
+                      data: {
+                        id: "2",
+                        type: "user",
+                      },
+                    },
+                    shrine: {
+                      data: {
+                        id: "1",
+                        type: "shrine",
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+            { status: 200 },
+          );
+        }),
         // allow all non-mocked routes to pass through
         http.all("*", () => {
           return passthrough();
@@ -77,6 +110,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       { scope: "test" }, // or 'worker'
     ],
   });
+
   test.describe("before signin", () => {
     test("should allow me to visit page", async ({ page }) => {
       await page.goto("/shrines/1/sangakus");
@@ -90,7 +124,17 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(sangakuTitle).toBeVisible();
     });
 
-    test.skip("should not allow me to create sangakuCopy", () => {});
+    test.skip("should not allow me to create sangakuCopy", async ({ page }) => {
+      await page.goto("/shrines/1/sangakus");
+      const heading = page.getByRole("heading", {
+        name: "test_shrineの算額一覧",
+      });
+      await expect(heading).toBeVisible();
+      const button = page.getByRole("button", { name: "算額を写す" });
+      await button.click();
+      const flash = page.getByText("サインインしてください");
+      await expect(flash).toBeVisible();
+    });
 
     test("should display notFound page", async ({ page }) => {
       await page.goto("/shrines/999/sangakus");
@@ -98,6 +142,26 @@ test.describe("/shrines/[id]/sangakus", () => {
         name: "This page could not be found.",
       });
       await expect(message).toBeVisible();
+    });
+
+    test.describe("after signin", () => {
+      test("should allow me to create sangakuSave", async ({ page }) => {
+        await setSession(page);
+
+        await page.goto("/shrines/1/sangakus");
+        const heading = page.getByRole("heading", {
+          name: "test_shrineの算額一覧",
+        });
+        await expect(heading).toBeVisible();
+        const sangakuTitle = page.getByRole("heading", {
+          name: "test_title",
+        });
+        await expect(sangakuTitle).toBeVisible();
+        const button = page.getByRole("button", { name: "算額を写す" });
+        await button.click();
+        const flash = page.getByText("算額の写しを作成しました");
+        await expect(flash).toBeVisible();
+      });
     });
   });
 });

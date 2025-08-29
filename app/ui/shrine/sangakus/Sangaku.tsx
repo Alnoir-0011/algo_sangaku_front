@@ -1,8 +1,9 @@
 import type { Sangaku } from "@/app/lib/definitions";
 import Grid from "@mui/material/Grid2";
 import Ema from "@/app/ui/Ema";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { difficultyTranslation } from "@/app/ui/utility";
+import { SangakuSaveButton } from "./buttons";
 
 interface Props {
   sangaku: Sangaku;
@@ -58,7 +59,7 @@ export default function Sangaku({ sangaku }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <Button variant="contained">算額を写す</Button>
+        <SangakuSaveButton id={sangaku.id} />
       </Box>
     </Grid>
   );
