@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { notFound } from "next/navigation";
 import SangakuList from "@/app/ui/shrine/sangakus/SangakuList";
 import { Suspense } from "react";
-import { ShrineSangakuListSkeleton } from "@/app/ui/skeletons";
+import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
 import Search from "@/app/ui/Search";
 
 interface Props {
@@ -35,7 +35,7 @@ export default async function Page(props: Props) {
       </Container>
       <Suspense
         key={page + query + difficulty}
-        fallback={<ShrineSangakuListSkeleton />}
+        fallback={<SangakuWithButtonListSkeleton width={102} />}
       >
         <SangakuList
           shrine_id={id}

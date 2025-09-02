@@ -128,3 +128,43 @@ export async function fetchShrineSangakus(
     };
   }
 }
+
+export async function fetchSavedSangakus(
+  page: string,
+  query: string,
+  difficulty: string,
+): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
+  const session = await auth();
+
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.accessToken}`,
+    };
+
+    const params = new URLSearchParams({ page, title: query, difficulty });
+
+    const res = await fetch(`${apiUrl}/api/v1/user/sangaku_saves?${params}`, {
+      headers,
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      const sangakus = data.data as Sangaku[];
+      const totalPage = parseInt(res.headers.get("total-pages")!);
+      return { sangakus, totalPage };
+    } else {
+      return {
+        sangakus: [] as Sangaku[],
+        totalPage: 0,
+        message: "リクエストに失敗しました",
+      };
+    }
+  } catch {
+    return {
+      sangakus: [] as Sangaku[],
+      totalPage: 0,
+      message: "予期せぬエラーが発生しました",
+    };
+  }
+}

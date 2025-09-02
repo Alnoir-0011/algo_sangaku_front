@@ -14,7 +14,7 @@ import NextLink from "next/link";
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
   { text: "算額を作る", href: "/sangakus/create" },
-  { text: "算額を解く", href: "#" },
+  { text: "算額を解く", href: "/solve" },
   { text: "自分の算額を見る", href: "/user/sangakus" },
 ];
 

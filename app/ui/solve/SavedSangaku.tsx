@@ -1,15 +1,15 @@
-import type { Sangaku } from "@/app/lib/definitions";
-import Grid from "@mui/material/Grid2";
+import { Sangaku } from "@/app/lib/definitions";
 import Ema from "@/app/ui/Ema";
-import { Box, Typography } from "@mui/material";
-import { difficultyTranslation } from "@/app/ui/utility";
-import { SangakuSaveButton } from "./buttons";
+import Grid from "@mui/material/Grid2";
+import { Box, Button, Typography } from "@mui/material";
+import { difficultyTranslation } from "../utility";
+import Link from "next/link";
 
 interface Props {
   sangaku: Sangaku;
 }
 
-export default function Sangaku({ sangaku }: Props) {
+export default function SavedSangaku({ sangaku }: Props) {
   return (
     <Grid key={sangaku.id}>
       <Ema width={18}>
@@ -39,10 +39,24 @@ export default function Sangaku({ sangaku }: Props) {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "end",
+              justifyContent: "space-between",
               marginTop: "auto",
             }}
           >
+            <Typography
+              sx={{
+                textAlign: "center",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+                textOverflow: "ellipsis",
+                whiteSpace: "pre-line",
+                alignContent: "center",
+              }}
+            >
+              {sangaku.attributes.author_name}
+            </Typography>
             <Typography
               component="p"
               sx={{
@@ -59,7 +73,9 @@ export default function Sangaku({ sangaku }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <SangakuSaveButton id={sangaku.id} />
+        <Button variant="contained" href="#" LinkComponent={Link}>
+          算額を解く
+        </Button>
       </Box>
     </Grid>
   );
