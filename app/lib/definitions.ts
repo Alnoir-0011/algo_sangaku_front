@@ -7,6 +7,7 @@ export type Sangaku = {
     source: string;
     difficulty: Difficulty;
     inputs: input[];
+    author_name: string;
   };
   relationships: {
     user: {

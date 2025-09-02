@@ -38,7 +38,11 @@ export function SangakuListSkeleton() {
   );
 }
 
-export function ShrineSangakuListSkeleton() {
+export function SangakuWithButtonListSkeleton({
+  width,
+}: {
+  width: string | number;
+}) {
   return (
     <Grid2
       container
@@ -73,7 +77,7 @@ export function ShrineSangakuListSkeleton() {
           <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
             <Skeleton
               variant="rectangular"
-              width={102}
+              width={width}
               height={36.5}
               sx={{ borderRadius: 1 }}
             />
