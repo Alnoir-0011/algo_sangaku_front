@@ -1,5 +1,5 @@
 import React from "react";
-import { signIn, useSession, signOut } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
@@ -10,6 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
 import NextLink from "next/link";
+import { costomSignOut } from "@/app/lib/actions/auth";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -32,9 +33,9 @@ export default function ResponsiveDrawer({
   handleDrawerClose,
 }: Props) {
   const { data: session } = useSession();
-  const handleSignout = () => {
-    if (window.confirm("ログアウトしますか？")) {
-      signOut();
+  const handleSignout = async () => {
+    if (window.confirm("サインアウトしますか？")) {
+      costomSignOut();
     }
   };
 
@@ -180,8 +181,9 @@ export default function ResponsiveDrawer({
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton onClick={handleSignout} sx={{ pl: "1.5rem" }}>
-              <ListItemText primary="ログアウト" />
+              <ListItemText primary="サインアウト" />
             </ListItemButton>
+            {/* </form> */}
           </ListItem>
         </List>
       </div>

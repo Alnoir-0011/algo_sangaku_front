@@ -1,11 +1,12 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { Difficulty } from "../definitions";
+import { costomSignOut } from "./auth";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -64,9 +65,10 @@ export const createSangaku = async (
         await setFlash({
           type: "error",
           message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+            "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await signOut({ redirectTo: "/signin" });
+        await costomSignOut();
+        return {} as State;
       case 400:
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
@@ -138,9 +140,10 @@ export const updateSangaku = async (
         await setFlash({
           type: "error",
           message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+            "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await signOut({ redirectTo: "/signin" });
+        await costomSignOut();
+        return {} as State;
       case 400:
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
@@ -190,9 +193,9 @@ export const deleteSangaku = async (id: string) => {
         await setFlash({
           type: "error",
           message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+            "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await signOut({ redirectTo: "/signin" });
+        await costomSignOut();
         break;
       default:
     }

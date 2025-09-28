@@ -23,6 +23,7 @@ if (process.env.APP_ENV === "test") {
             email: credentials.email as string,
             name: "Test user",
             image: "https://avatars.githubusercontent.com/u/67470890?s=200&v=4",
+            accessToken: "dummy_token",
           };
           return user;
         } else {
@@ -63,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       const idToken = account?.id_token;
       try {
-        const response = await fetch(`${apiUrl}/api/v1/users`, {
+        const response = await fetch(`${apiUrl}/api/v1/authenticate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: idToken }),
