@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import type { Sangaku } from "../definitions";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -39,7 +39,12 @@ export async function fetchUserSangakus(
         const sangakus = data.data as Sangaku[];
         return { sangakus, totalPage };
       case 401:
-        await signOut({ redirectTo: "/signin" });
+        return {
+          sangakus: [],
+          totalPage: 0,
+          message:
+            "セッションの有効期限が切れています。再度サインインしてください。 ",
+        };
       default:
         return {
           sangakus: [],
@@ -77,7 +82,7 @@ export async function fetchUserSangaku(id: string) {
         const body = await res.json();
         return body.data as Sangaku;
       case 401:
-        await signOut({ redirectTo: "/signin" });
+        return undefined;
       default:
         return null;
     }
@@ -148,17 +153,25 @@ export async function fetchSavedSangakus(
       headers,
     });
 
-    if (res.status === 200) {
-      const data = await res.json();
-      const sangakus = data.data as Sangaku[];
-      const totalPage = parseInt(res.headers.get("total-pages")!);
-      return { sangakus, totalPage };
-    } else {
-      return {
-        sangakus: [] as Sangaku[],
-        totalPage: 0,
-        message: "リクエストに失敗しました",
-      };
+    switch (res.status) {
+      case 200:
+        const data = await res.json();
+        const sangakus = data.data as Sangaku[];
+        const totalPage = parseInt(res.headers.get("total-pages")!);
+        return { sangakus, totalPage };
+      case 401:
+        return {
+          sangakus: [] as Sangaku[],
+          totalPage: 0,
+          message:
+            "セッションの有効期限が切れています。再度サインインしてください。",
+        };
+      default:
+        return {
+          sangakus: [] as Sangaku[],
+          totalPage: 0,
+          message: "リクエストに失敗しました",
+        };
     }
   } catch {
     return {

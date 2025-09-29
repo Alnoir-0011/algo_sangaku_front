@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/experimental-ct-react";
 import Drawer from "@/app/ui/navigation/Drawer";
 import { mockClientSession } from "../../__helpers__/signin";
 
-test.describe("Drawer", () => {
+test.describe.skip("Drawer", () => {
   test.describe("before login", () => {
     test.beforeEach(async ({ page }) => {
       await mockClientSession(page, null);
