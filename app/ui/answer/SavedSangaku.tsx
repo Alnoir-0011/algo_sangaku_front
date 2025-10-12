@@ -7,9 +7,10 @@ import Link from "next/link";
 
 interface Props {
   sangaku: Sangaku;
+  answerd?: boolean;
 }
 
-export default function SavedSangaku({ sangaku }: Props) {
+export default function SavedSangaku({ sangaku, answerd }: Props) {
   return (
     <Grid key={sangaku.id}>
       <Ema width={18}>
@@ -73,13 +74,24 @@ export default function SavedSangaku({ sangaku }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <Button
-          variant="contained"
-          href={`/saved_sangakus/${sangaku.id}/answer/create`}
-          LinkComponent={Link}
-        >
-          算額を解く
-        </Button>
+        {answerd || (
+          <Button
+            variant="contained"
+            href={`/saved_sangakus/${sangaku.id}/answer/create`}
+            LinkComponent={Link}
+          >
+            算額を解く
+          </Button>
+        )}
+        {answerd && (
+          <Button
+            variant="contained"
+            href={`/saved_sangakus/${sangaku.id}/answer`}
+            LinkComponent={Link}
+          >
+            結果を見る
+          </Button>
+        )}
       </Box>
     </Grid>
   );
