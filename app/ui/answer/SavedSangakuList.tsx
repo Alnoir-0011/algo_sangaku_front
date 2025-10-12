@@ -1,5 +1,5 @@
 import Grid from "@mui/material/Grid2";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { fetchSavedSangakus } from "@/app/lib/data/sangaku";
 import Pagination from "../Pagination";
 import SavedSangaku from "./SavedSangaku";
@@ -19,6 +19,7 @@ export default async function SavedSangakuList({
     page,
     query,
     difficulty,
+    "before_answer",
   );
 
   return (
@@ -39,9 +40,20 @@ export default async function SavedSangakuList({
           mb: 2,
         }}
       >
-        {sangakus.map((sangaku) => (
-          <SavedSangaku sangaku={sangaku} key={sangaku.id} />
-        ))}
+        {sangakus.length > 0 &&
+          sangakus.map((sangaku) => (
+            <SavedSangaku sangaku={sangaku} key={sangaku.id} />
+          ))}
+        {sangakus.length > 0 || (
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Typography variant="inherit" mr={1}>
+              算額がありません
+            </Typography>
+            <Button variant="contained" href="/shrines" sx={{ ml: 1 }}>
+              神社を探す
+            </Button>
+          </Box>
+        )}
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Pagination totalPage={totalPage} />

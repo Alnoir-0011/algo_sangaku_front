@@ -7,10 +7,10 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-test.describe("/solve", () => {
+test.describe("/saved_sangakus", () => {
   test.describe("before singin", () => {
-    test("should not allow me to visit /solve", async ({ page }) => {
-      await page.goto("/solve");
+    test("should not allow me to visit /saved_sangakus", async ({ page }) => {
+      await page.goto("/answers");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");
       await expect(flash).toBeVisible();
@@ -21,7 +21,7 @@ test.describe("/solve", () => {
     test.use({
       mswHandlers: [
         [
-          http.get("http://localhost:3000/api/v1/user/sangaku_saves", () => {
+          http.get("http://localhost:3000/api/v1/user/saved_sangakus", () => {
             return HttpResponse.json(
               {
                 data: [
@@ -78,8 +78,8 @@ test.describe("/solve", () => {
 
     test("should allow me to show saved_sangakus", async ({ page }) => {
       await setSession(page);
-      await page.goto("/solve");
-      await expect(page).toHaveURL("/solve");
+      await page.goto("/saved_sangakus");
+      await expect(page).toHaveURL("/saved_sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
       await expect(sangakuTitle).toBeVisible();
     });

@@ -1,0 +1,45 @@
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import Grid from "@mui/material/Grid2";
+import Box from "@mui/material/Box";
+import { fetchUserAnswerWithSangakuId } from "@/app/lib/data/answer";
+import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
+import Results from "@/app/ui/answer/Results";
+import SourceResult from "@/app/ui/answer/SourseResult";
+import ReadOnlyEditor from "@/app/ui/answer/ReadOnlyEditor";
+import { SourceResultLoading } from "@/app/ui/answer/LoadingCirclars";
+import { Typography } from "@mui/material";
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default async function Page(props: Props) {
+  const params = await props.params;
+  const id = params.id;
+  const answer = await fetchUserAnswerWithSangakuId(id);
+  const sangaku = await fetchSavedSangaku(id);
+
+  if (!answer) {
+    notFound();
+  }
+
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" mb={1}>
+        {sangaku?.attributes.title}の結果
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <ReadOnlyEditor value={answer.attributes.source} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Suspense fallback={<SourceResultLoading />}>
+            <SourceResult answer={answer} />
+          </Suspense>
+          <Results answer={answer} />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
