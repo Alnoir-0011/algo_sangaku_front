@@ -8,18 +8,20 @@ interface Props {
   page: string;
   query: string;
   difficulty: string;
+  type: "before_answer" | "answered";
 }
 
 export default async function SavedSangakuList({
   page,
   query,
   difficulty,
+  type,
 }: Props) {
   const { sangakus, totalPage, message } = await fetchSavedSangakus(
     page,
     query,
     difficulty,
-    "before_answer",
+    type,
   );
 
   return (
@@ -42,7 +44,11 @@ export default async function SavedSangakuList({
       >
         {sangakus.length > 0 &&
           sangakus.map((sangaku) => (
-            <SavedSangaku sangaku={sangaku} key={sangaku.id} />
+            <SavedSangaku
+              sangaku={sangaku}
+              key={sangaku.id}
+              answerd={type === "answered"}
+            />
           ))}
         {sangakus.length > 0 || (
           <Box display="flex" justifyContent="center" alignItems="center">

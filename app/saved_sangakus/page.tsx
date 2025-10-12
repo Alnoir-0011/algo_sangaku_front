@@ -3,9 +3,15 @@ import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
 import SavedSangakuList from "@/app/ui/answer/SavedSangakuList";
 import { Box, Container, Typography } from "@mui/material";
 import Search from "@/app/ui/Search";
+import PageTab from "../ui/answer/PageTab";
 
 interface Props {
-  searchParams: Promise<{ page: string; query: string; difficulty: string }>;
+  searchParams: Promise<{
+    page: string;
+    query: string;
+    difficulty: string;
+    tab: string;
+  }>;
 }
 
 export default async function Page(props: Props) {
@@ -13,21 +19,49 @@ export default async function Page(props: Props) {
   const page = searchParams.page || "1";
   const query = searchParams.query || "";
   const difficulty = searchParams.difficulty || "";
+  const tab = (await props.searchParams).tab || "before_answer";
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 6 }}>
+      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
         算額を解く
       </Typography>
-      <Container maxWidth="md">
-        <Search placeholder="タイトルで探す" difficulty />
-      </Container>
-      <Suspense
-        key={page + query + difficulty}
-        fallback={<SangakuWithButtonListSkeleton width={102} />}
-      >
-        <SavedSangakuList page={page} query={query} difficulty={difficulty} />
-      </Suspense>
+      <PageTab />
+      {tab === "answered" ? (
+        <>
+          <Container maxWidth="md">
+            <Search placeholder="タイトルで探す" difficulty />
+          </Container>
+          <Suspense
+            key={page + query + difficulty}
+            fallback={<SangakuWithButtonListSkeleton width={102} />}
+          >
+            <SavedSangakuList
+              page={page}
+              query={query}
+              difficulty={difficulty}
+              type="answered"
+            />
+          </Suspense>
+        </>
+      ) : (
+        <>
+          <Container maxWidth="md">
+            <Search placeholder="タイトルで探す" difficulty />
+          </Container>
+          <Suspense
+            key={page + query + difficulty}
+            fallback={<SangakuWithButtonListSkeleton width={102} />}
+          >
+            <SavedSangakuList
+              page={page}
+              query={query}
+              difficulty={difficulty}
+              type="before_answer"
+            />
+          </Suspense>
+        </>
+      )}
     </Box>
   );
 }
