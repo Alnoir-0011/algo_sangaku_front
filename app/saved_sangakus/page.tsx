@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
-import SavedSangakuList from "@/app/ui/solve/SavedSangakuList";
+import SavedSangakuList from "@/app/ui/answer/SavedSangakuList";
 import { Box, Container, Typography } from "@mui/material";
 import Search from "@/app/ui/Search";
 

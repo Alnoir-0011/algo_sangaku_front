@@ -15,7 +15,7 @@ import { costomSignOut } from "@/app/lib/actions/auth";
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
   { text: "算額を作る", href: "/sangakus/create" },
-  { text: "算額を解く", href: "/solve" },
+  { text: "算額を解く", href: "/saved_sangakus" },
   { text: "自分の算額を見る", href: "/user/sangakus" },
 ];
 

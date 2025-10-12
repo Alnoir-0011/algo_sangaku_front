@@ -88,7 +88,6 @@ export const createSangaku = async (
     if (isRedirectError(error)) {
       throw error;
     }
-    console.log(error);
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
       // message: "予期せぬエラーが発生しました",

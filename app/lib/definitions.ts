@@ -43,3 +43,46 @@ export type Shrine = {
     place_id: string;
   };
 };
+
+type answerResultArray = { id: string; type: "answer_result" }[];
+
+export type Answer = {
+  id: string;
+  type: "answer";
+  attributes: {
+    source: string;
+    status: "correct" | "incorrect" | "pending";
+  };
+  relationships: {
+    user_sangaku_save: {
+      data: {
+        id: string;
+        type: "user_sangaku_save";
+      };
+    };
+    answer_results: {
+      data: answerResultArray;
+    };
+  };
+};
+
+export type AnswerResult = {
+  id: string;
+  type: "answer_result";
+  attributes: {
+    status: "correct" | "incorrect" | "pending";
+    output: string;
+    fixed_input_content: string;
+  };
+  relationships: {
+    answer: {
+      data: {
+        id: string;
+        type: "answer";
+      };
+    };
+    fixed_input: {
+      data: { id: string; type: "fixed_input" } | null;
+    };
+  };
+};

@@ -73,7 +73,11 @@ export default function SavedSangaku({ sangaku }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <Button variant="contained" href="#" LinkComponent={Link}>
+        <Button
+          variant="contained"
+          href={`/saved_sangakus/${sangaku.id}/answer/create`}
+          LinkComponent={Link}
+        >
           算額を解く
         </Button>
       </Box>

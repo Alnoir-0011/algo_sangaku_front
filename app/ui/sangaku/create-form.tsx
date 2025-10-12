@@ -19,11 +19,11 @@ import {
 import type { Difficulty } from "@/app/lib/definitions";
 
 const initialState: State = { errors: {} };
-const initilaSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
+const initialSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
 
 export default function Page() {
   const [state, formAction] = useActionState(postSangakuAction, initialState);
-  const [source, setSource] = useState(initilaSource);
+  const [source, setSource] = useState(initialSource);
   const [fixedInputs, setFixedInputs] = useState([""]);
   const [difficulty, setDifficulty] = useState<Difficulty>("nomal");
   const [modalOpen, setModalOpen] = useState(false);

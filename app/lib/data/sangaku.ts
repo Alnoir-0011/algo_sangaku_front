@@ -55,12 +55,14 @@ export async function fetchUserSangakus(
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    } else {
+      console.log(error);
+      return {
+        sangakus: [],
+        totalPage: 0,
+        message: "予期せぬエラーが発生しました",
+      };
     }
-    return {
-      sangakus: [],
-      totalPage: 0,
-      message: "予期せぬエラーが発生しました",
-    };
   }
 }
 
@@ -89,6 +91,8 @@ export async function fetchUserSangaku(id: string) {
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    } else {
+      return null;
     }
   }
 }
@@ -138,6 +142,7 @@ export async function fetchSavedSangakus(
   page: string,
   query: string,
   difficulty: string,
+  type?: "before_answer" | "answered",
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
   const session = await auth();
 
@@ -149,7 +154,11 @@ export async function fetchSavedSangakus(
 
     const params = new URLSearchParams({ page, title: query, difficulty });
 
-    const res = await fetch(`${apiUrl}/api/v1/user/sangaku_saves?${params}`, {
+    if (type) {
+      params.set("type", type);
+    }
+
+    const res = await fetch(`${apiUrl}/api/v1/user/saved_sangakus?${params}`, {
       headers,
     });
 
@@ -179,5 +188,45 @@ export async function fetchSavedSangakus(
       totalPage: 0,
       message: "予期せぬエラーが発生しました",
     };
+  }
+}
+
+export async function fetchSavedSangaku(
+  id: string,
+  type?: "before_answer" | "answered",
+) {
+  const session = await auth();
+
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.accessToken}`,
+    };
+
+    const params = new URLSearchParams();
+    if (type) {
+      params.set("type", type);
+    }
+
+    const res = await fetch(
+      `${apiUrl}/api/v1/user/saved_sangakus/${id}?${params}`,
+      {
+        headers,
+      },
+    );
+
+    switch (res.status) {
+      case 200:
+        const body = await res.json();
+        return body.data as Sangaku;
+      case 401:
+        return undefined;
+      default:
+        return null;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
   }
 }
