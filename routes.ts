@@ -2,6 +2,8 @@ export const publicRoutes: (string | RegExp)[] = [
   "/",
   "/shrines",
   /\/shrines\/.*\/sangakus/,
+  "/privacy_policy",
+  "/terms_of_use",
 ];
 
 export const authRoutes: string[] = ["/signin"];
