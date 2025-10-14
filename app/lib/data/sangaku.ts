@@ -8,6 +8,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 export async function fetchUserSangakus(
   page: string,
   query: string,
+  shrine_id: "" | "any" | number,
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
   const session = await auth();
 
@@ -18,7 +19,12 @@ export async function fetchUserSangakus(
 
   const params = new URLSearchParams();
   params.set("page", page);
-  params.set("shrine_id", "");
+
+  if (typeof shrine_id === "number") {
+    params.set("shrine_id", String(shrine_id));
+  } else {
+    params.set("shrine_id", shrine_id);
+  }
 
   if (query) {
     params.set("title", query);

@@ -33,7 +33,14 @@ export default async function Page(props: Props) {
       </Box>
       <PageTab />
       {tab === "already_dedicate" ? (
-        <p>already_dedicate sangaku</p>
+        <>
+          <Container maxWidth="md">
+            <Search placeholder="タイトルで検索" />
+          </Container>
+          <Suspense key={page + query} fallback={<SangakuListSkeleton />}>
+            <UserSangakuList page={page} query={query} dedicated />
+          </Suspense>
+        </>
       ) : (
         <>
           <Container maxWidth="md">

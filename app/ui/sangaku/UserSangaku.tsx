@@ -8,9 +8,10 @@ import { difficultyTranslation } from "../utility";
 
 interface Props {
   sangaku: Sangaku;
+  dedicated?: boolean;
 }
 
-export default function UserSangaku({ sangaku }: Props) {
+export default function UserSangaku({ sangaku, dedicated }: Props) {
   return (
     <Grid sx={{ position: "relative" }}>
       <Ema width={18}>
@@ -74,9 +75,11 @@ export default function UserSangaku({ sangaku }: Props) {
           </Box>
         </Box>
       </Ema>
-      <Box sx={{ position: "absolute", right: 0, top: 0 }}>
-        <MenuButton sangaku={sangaku} />
-      </Box>
+      {dedicated || (
+        <Box sx={{ position: "absolute", right: 0, top: 0 }}>
+          <MenuButton sangaku={sangaku} />
+        </Box>
+      )}
     </Grid>
   );
 }
