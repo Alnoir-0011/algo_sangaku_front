@@ -1,4 +1,5 @@
 "use client";
+
 import type { Sangaku } from "@/app/lib/definitions";
 import { useEffect, useState } from "react";
 import Ema from "@/app/ui/Ema";
@@ -29,7 +30,7 @@ export default function SangakuList({ page, query }: Props) {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const data = await fetchUserSangakus(page, query);
+      const data = await fetchUserSangakus(page, query, "");
       setSangakusData(data);
       setIsLoading(false);
     })();

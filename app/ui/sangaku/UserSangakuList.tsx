@@ -9,9 +9,20 @@ import Pagination from "@/app/ui/Pagination";
 interface Props {
   page: string;
   query: string;
+  dedicated?: boolean;
 }
-export default async function UserSangakuList({ page, query }: Props) {
-  const { sangakus, totalPage, message } = await fetchUserSangakus(page, query);
+
+export default async function UserSangakuList({
+  page,
+  query,
+  dedicated,
+}: Props) {
+  const type = dedicated ? "any" : "";
+  const { sangakus, totalPage, message } = await fetchUserSangakus(
+    page,
+    query,
+    type,
+  );
 
   return (
     <Box>
@@ -31,17 +42,23 @@ export default async function UserSangakuList({ page, query }: Props) {
           mb: 2,
         }}
       >
-        {Array.isArray(sangakus) && sangakus.length != 0 ? (
+        {sangakus.length != 0 ? (
           sangakus.map((sangaku) => (
-            <UserSangaku sangaku={sangaku} key={sangaku.id} />
+            <UserSangaku
+              sangaku={sangaku}
+              key={sangaku.id}
+              dedicated={dedicated}
+            />
           ))
         ) : (
-          <>
-            <Typography variant="inherit">算額がありません</Typography>
-            <Button variant="contained" href="/sangakus/create">
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Typography variant="inherit" mr={1}>
+              算額がありません
+            </Typography>
+            <Button variant="contained" href="/sangakus/create" sx={{ ml: 1 }}>
               算額を作る
             </Button>
-          </>
+          </Box>
         )}
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
