@@ -3,6 +3,11 @@ import { providerMap, signIn } from "@/auth";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { AuthError } from "next-auth";
 import GoogleIcon from "@mui/icons-material/Google";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "サインイン",
+};
 
 const SIGNIN_ERROR_URL = "/error";
 

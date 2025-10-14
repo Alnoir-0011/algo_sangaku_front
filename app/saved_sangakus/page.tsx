@@ -5,6 +5,12 @@ import { Box, Container, Typography } from "@mui/material";
 import Search from "@/app/ui/Search";
 import PageTab from "../ui/answer/PageTab";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "算額を解く",
+};
+
 interface Props {
   searchParams: Promise<{
     page: string;

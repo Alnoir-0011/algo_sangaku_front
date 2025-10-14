@@ -1,6 +1,11 @@
 import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "利用規約",
+};
 
 export default function TermsOfService() {
   return (

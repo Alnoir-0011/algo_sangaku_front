@@ -6,10 +6,23 @@ import SangakuList from "@/app/ui/shrine/sangakus/SangakuList";
 import { Suspense } from "react";
 import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
 import Search from "@/app/ui/Search";
+import { Metadata } from "next";
 
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ page: string; query: string; difficulty: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = (await params).id;
+  const shrine = await fetchShrine(id);
+  return {
+    title: `${shrine?.attributes.name}の算額一覧`,
+  };
 }
 
 export default async function Page(props: Props) {

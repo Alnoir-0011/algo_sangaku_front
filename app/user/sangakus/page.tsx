@@ -7,6 +7,11 @@ import { SangakuListSkeleton } from "@/app/ui/skeletons";
 import Link from "next/link";
 import Search from "@/app/ui/Search";
 import { Container } from "@mui/material";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "自分の算額一覧",
+};
 
 interface Props {
   searchParams: Promise<{ page: string; tab: string; query: string }>;
