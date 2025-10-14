@@ -1,6 +1,11 @@
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "プライバシーポリシー",
+};
 
 export default function PrivacyPolicy() {
   return (

@@ -5,11 +5,25 @@ import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 // import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = (await params).id;
+  const shrine = await fetchShrine(id);
+  return {
+    title: `${shrine?.attributes.name}に算額を奉納する`,
+  };
+}
 
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ page: string; query: string }>;
 }
+
 export default async function Page(props: Props) {
   const params = await props.params;
   const id = params.id;

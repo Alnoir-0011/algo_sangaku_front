@@ -1,6 +1,19 @@
 import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/answer/create-form";
+import { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = (await params).id;
+  const sangaku = await fetchSavedSangaku(id);
+  return {
+    title: `${sangaku?.attributes.title}を解く`,
+  };
+}
 
 interface Props {
   params: Promise<{ id: string }>;

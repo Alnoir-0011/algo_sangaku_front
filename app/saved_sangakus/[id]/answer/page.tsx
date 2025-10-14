@@ -9,6 +9,19 @@ import SourceResult from "@/app/ui/answer/SourseResult";
 import ReadOnlyEditor from "@/app/ui/answer/ReadOnlyEditor";
 import { SourceResultLoading } from "@/app/ui/answer/LoadingCirclars";
 import { Typography } from "@mui/material";
+import { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = (await params).id;
+  const sangaku = await fetchSavedSangaku(id);
+  return {
+    title: `${sangaku?.attributes.title}の解答結果`,
+  };
+}
 
 interface Props {
   params: Promise<{ id: string }>;

@@ -19,7 +19,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "アルゴ算額",
+  title: { template: "%s  | アルゴ算額", default: "アルゴ算額" },
   description:
     "プログラミング×神社巡り　オリジナルのアルゴリズム問題を作成して神社に奉納、他のユーザーの作成した算額を解くことができます",
   keywords: [

@@ -2,6 +2,11 @@ import { fetchUserSangaku } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/sangaku/edit-form";
 import { Box } from "@mui/material";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "算額を編集する",
+};
 
 interface Props {
   params: Promise<{ id: string }>;
