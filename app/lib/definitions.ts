@@ -86,3 +86,15 @@ export type AnswerResult = {
     };
   };
 };
+
+export type User = {
+  id: string;
+  type: "user";
+  attributes: {
+    provider: "google";
+    uid: string;
+    name: string;
+    email: string;
+    nickname: string;
+  };
+};

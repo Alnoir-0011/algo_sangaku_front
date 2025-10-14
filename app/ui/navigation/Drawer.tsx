@@ -17,6 +17,7 @@ const drawerContent = [
   { text: "算額を作る", href: "/sangakus/create" },
   { text: "算額を解く", href: "/saved_sangakus" },
   { text: "自分の算額を見る", href: "/user/sangakus" },
+  { text: "プロフィール編集", href: "/user/profile" },
 ];
 
 interface Props {
