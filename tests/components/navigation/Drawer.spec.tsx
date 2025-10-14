@@ -176,6 +176,20 @@ test.describe.skip("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
+    test("has link to edit profile page", async ({ mount }) => {
+      const component = await mount(
+        <Drawer
+          drawerWidth={240}
+          mobileOpen={false}
+          handleDrawerTransitionEnd={() => {}}
+          handleDrawerClose={() => {}}
+        />,
+      );
+      const link = component.getByRole("link", { name: "プロフィール編集" });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", "/user/profile");
+    });
+
     test("has link to Logout", async ({ mount }) => {
       const component = await mount(
         <Drawer

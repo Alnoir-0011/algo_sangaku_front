@@ -48,7 +48,7 @@ export const providerMap = providers
 // テスト時のサインイン画面切り替え用
 const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/signin" };
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   session: {
     strategy: "jwt",
   },
@@ -88,13 +88,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
     },
-    jwt({ token, account, user }) {
+    jwt({ token, account, user, trigger, session }) {
       if (account) {
         token.accessToken = user?.accessToken;
       }
       if (user) {
         token.nickname = user?.nickname;
       }
+      if (trigger === "update") {
+        console.log(session);
+        token.nickname = session.user.nickname;
+      }
+
       return token;
     },
     async session({ token, session }) {
