@@ -61,7 +61,7 @@ test.describe.skip("Drawer", () => {
         name: "プライバシーポリシー",
       });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
     test("has link to Terms of use page", async ({ mount }) => {
@@ -75,7 +75,7 @@ test.describe.skip("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "利用規約" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/terms_of_use");
     });
   });
 
@@ -216,7 +216,7 @@ test.describe.skip("Drawer", () => {
         name: "プライバシーポリシー",
       });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
     test("has link to Terms of use page", async ({ mount }) => {
@@ -230,7 +230,7 @@ test.describe.skip("Drawer", () => {
       );
       const link = component.getByRole("link", { name: "利用規約" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "#");
+      await expect(link).toHaveAttribute("href", "/terms_of_use");
     });
   });
 });

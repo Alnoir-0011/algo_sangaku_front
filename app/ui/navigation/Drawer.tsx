@@ -97,7 +97,7 @@ export default function ResponsiveDrawer({
           <ListItem disablePadding>
             <ListItemButton
               LinkComponent={NextLink}
-              href="#"
+              href="/terms_of_use"
               sx={{ pl: "1.5rem" }}
             >
               <ListItemText primary="利用規約" />
@@ -106,7 +106,7 @@ export default function ResponsiveDrawer({
           <ListItem disablePadding>
             <ListItemButton
               LinkComponent={NextLink}
-              href="#"
+              href="/privacy_policy"
               sx={{ pl: "1.5rem" }}
             >
               <ListItemText primary="プライバシーポリシー" />
@@ -165,7 +165,7 @@ export default function ResponsiveDrawer({
           <ListItem disablePadding>
             <ListItemButton
               LinkComponent={NextLink}
-              href="#"
+              href="/terms_of_use"
               sx={{ pl: "1.5rem" }}
             >
               <ListItemText primary="利用規約" />
@@ -174,7 +174,7 @@ export default function ResponsiveDrawer({
           <ListItem disablePadding>
             <ListItemButton
               LinkComponent={NextLink}
-              href="#"
+              href="/privacy_policy"
               sx={{ pl: "1.5rem" }}
             >
               <ListItemText primary="プライバシーポリシー" />
