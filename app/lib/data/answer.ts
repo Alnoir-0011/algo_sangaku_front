@@ -28,6 +28,7 @@ export const fetchUserAnswer = async (id: string) => {
           } else {
             await new Promise((resolve) => setTimeout(resolve, 250));
           }
+          break;
         case 401:
           return undefined;
         case 404:

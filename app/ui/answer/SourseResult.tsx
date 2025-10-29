@@ -12,9 +12,9 @@ const size = 240;
 export default async function SourceResult({ answer }: Props) {
   let data = answer;
   if (answer.attributes.status === "pending") {
-    const ResultData = await fetchUserAnswer(answer.id);
-    if (ResultData) {
-      data = ResultData;
+    const resultData = await fetchUserAnswer(answer.id);
+    if (resultData) {
+      data = resultData;
     }
   }
 
