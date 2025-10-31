@@ -1,13 +1,15 @@
 // import { defineConfig, devices } from "@playwright/test";
 import { defineConfig, devices } from "next/experimental/testmode/playwright";
+import dotenv from "dotenv";
+import path from "path";
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({
+  path: path.resolve(__dirname, ".env"),
+});
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -26,6 +28,7 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+
   webServer: {
     command: "rm -rf .next && pnpm run build && pnpm run start -p 4020",
     url: "http://localhost:4020",
