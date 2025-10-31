@@ -31,8 +31,6 @@ export default auth(async (req) => {
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  console.log(nextUrl.pathname);
-
   // NOTE:↓参考URL
   // https://zenn.dev/tsuboi/books/3f7a3056014458/viewer/chapter3#%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E7%8A%B6%E6%85%8B%E3%81%AB%E5%BF%9C%E3%81%98%E3%81%9F%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E5%88%B6%E5%BE%A1%E3%81%AE%E5%AE%9F%E8%A3%85
   // ↓元のコード、return null;がtypeエラーのため修正

@@ -8,6 +8,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/sangakus/create", () => {
   test.describe("before signin", () => {
     test("redirect to signin page", async ({ page }) => {
@@ -29,7 +31,7 @@ test.describe("/sangakus/create", () => {
     test.use({
       mswHandlers: [
         [
-          http.get("http://localhost:3000/up", () => {
+          http.get(`${apiUrl}/up`, () => {
             return HttpResponse.json({
               message: "success",
             });
@@ -73,7 +75,7 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post("http://localhost:3000/api/v1/user/sangakus", () => {
+        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 200 });
         }),
       );
@@ -119,7 +121,7 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post("http://localhost:3000/api/v1/user/sangakus", () => {
+        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 400 });
         }),
       );

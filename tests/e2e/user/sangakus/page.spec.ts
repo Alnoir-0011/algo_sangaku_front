@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 const beforeDedicateSangakus = {
   data: [
     {
@@ -105,37 +107,34 @@ test.describe("/user/sangakus", () => {
   test.use({
     mswHandlers: [
       [
-        http.get(
-          "http://localhost:3000/api/v1/user/sangakus",
-          ({ request }) => {
-            const url = new URL(request.url);
-            const shrineId = url.searchParams.get("shrine_id");
-            if (shrineId === "") {
-              return new HttpResponse(JSON.stringify(beforeDedicateSangakus), {
-                status: 200,
-                headers: {
-                  "Content-Type": "application/json",
-                  "current-page": "1",
-                  "page-items": "20",
-                  "total-pages": "2",
-                  "total-count": "22",
-                },
-              });
-            } else {
-              return new HttpResponse(JSON.stringify(alreadyDedicateSangakus), {
-                status: 200,
-                headers: {
-                  "Content-Type": "application/json",
-                  "current-page": "1",
-                  "page-items": "20",
-                  "total-pages": "2",
-                  "total-count": "22",
-                },
-              });
-            }
-          },
-        ),
-        http.delete("http://localhost:3000/api/v1/user/sangakus/1", () => {
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const url = new URL(request.url);
+          const shrineId = url.searchParams.get("shrine_id");
+          if (shrineId === "") {
+            return new HttpResponse(JSON.stringify(beforeDedicateSangakus), {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "current-page": "1",
+                "page-items": "20",
+                "total-pages": "2",
+                "total-count": "22",
+              },
+            });
+          } else {
+            return new HttpResponse(JSON.stringify(alreadyDedicateSangakus), {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "current-page": "1",
+                "page-items": "20",
+                "total-pages": "2",
+                "total-count": "22",
+              },
+            });
+          }
+        }),
+        http.delete(`${apiUrl}/api/v1/user/sangakus/1`, () => {
           return new HttpResponse(JSON.stringify(deleteResponse), {
             status: 200,
           });
@@ -166,7 +165,7 @@ test.describe("/user/sangakus", () => {
   });
 
   test.describe("after signin", () => {
-    test("display signin user's sangakus", async ({ page }) => {
+    test("shuoud allow me to show own sangakus", async ({ page }) => {
       await setSession(page);
 
       await page.goto("/user/sangakus");

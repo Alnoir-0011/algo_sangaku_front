@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/user/sangakus", () => {
   test.describe("before singin", () => {
     test("should not allow me to visit edit profile page", async ({ page }) => {
@@ -28,7 +30,7 @@ test.describe("/user/sangakus", () => {
     test.use({
       mswHandlers: [
         [
-          http.patch("http://localhost:3000/api/v1/user/profile", () => {
+          http.patch(`${apiUrl}/api/v1/user/profile`, () => {
             return HttpResponse.json({
               data: {
                 id: "1",

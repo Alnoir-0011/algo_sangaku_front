@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Grid from "@mui/material/Grid2";
 import Box from "@mui/material/Box";
@@ -7,7 +6,6 @@ import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
 import Results from "@/app/ui/answer/Results";
 import SourceResult from "@/app/ui/answer/SourseResult";
 import ReadOnlyEditor from "@/app/ui/answer/ReadOnlyEditor";
-import { SourceResultLoading } from "@/app/ui/answer/LoadingCirclars";
 import { Typography } from "@mui/material";
 import { Metadata } from "next";
 
@@ -47,9 +45,7 @@ export default async function Page(props: Props) {
           <ReadOnlyEditor value={answer.attributes.source} />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <Suspense fallback={<SourceResultLoading />}>
-            <SourceResult answer={answer} />
-          </Suspense>
+          <SourceResult answer={answer} />
           <Results answer={answer} />
         </Grid>
       </Grid>

@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/saved_sangakus", () => {
   test.describe("before singin", () => {
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
@@ -21,104 +23,101 @@ test.describe("/saved_sangakus", () => {
     test.use({
       mswHandlers: [
         [
-          http.get(
-            "http://localhost:3000/api/v1/user/saved_sangakus",
-            ({ request }) => {
-              const url = new URL(request.url);
-              const type = url.searchParams.get("type");
-              if (type !== "answered") {
-                return HttpResponse.json(
-                  {
-                    data: [
-                      {
-                        id: "1",
-                        type: "sangaku",
-                        attributes: {
-                          title: "test_title",
-                          description: "test_desc",
-                          source: "puts 'hi'",
-                          difficulty: "nomal",
-                          inputs: [
-                            {
-                              id: 1,
-                              content: "input",
-                            },
-                          ],
-                          author_name: "another_user",
+          http.get(`${apiUrl}/api/v1/user/saved_sangakus`, ({ request }) => {
+            const url = new URL(request.url);
+            const type = url.searchParams.get("type");
+            if (type !== "answered") {
+              return HttpResponse.json(
+                {
+                  data: [
+                    {
+                      id: "1",
+                      type: "sangaku",
+                      attributes: {
+                        title: "test_title",
+                        description: "test_desc",
+                        source: "puts 'hi'",
+                        difficulty: "nomal",
+                        inputs: [
+                          {
+                            id: 1,
+                            content: "input",
+                          },
+                        ],
+                        author_name: "another_user",
+                      },
+                      relationships: {
+                        user: {
+                          data: {
+                            id: "1",
+                            type: "user",
+                          },
                         },
-                        relationships: {
-                          user: {
-                            data: {
-                              id: "1",
-                              type: "user",
-                            },
-                          },
-                          shrine: {
-                            data: null,
-                          },
+                        shrine: {
+                          data: null,
                         },
                       },
-                    ],
-                  },
-                  {
-                    status: 200,
-                    headers: {
-                      "Content-Type": "application/json",
-                      "current-page": "1",
-                      "page-items": "20",
-                      "total-pages": "1",
-                      "total-count": "1",
                     },
+                  ],
+                },
+                {
+                  status: 200,
+                  headers: {
+                    "Content-Type": "application/json",
+                    "current-page": "1",
+                    "page-items": "20",
+                    "total-pages": "1",
+                    "total-count": "1",
                   },
-                );
-              } else {
-                return HttpResponse.json(
-                  {
-                    data: [
-                      {
-                        id: "1",
-                        type: "sangaku",
-                        attributes: {
-                          title: "answered",
-                          description: "test_desc",
-                          source: "puts 'hi'",
-                          difficulty: "nomal",
-                          inputs: [
-                            {
-                              id: 1,
-                              content: "input",
-                            },
-                          ],
-                          author_name: "another_user",
+                },
+              );
+            } else {
+              return HttpResponse.json(
+                {
+                  data: [
+                    {
+                      id: "1",
+                      type: "sangaku",
+                      attributes: {
+                        title: "answered",
+                        description: "test_desc",
+                        source: "puts 'hi'",
+                        difficulty: "nomal",
+                        inputs: [
+                          {
+                            id: 1,
+                            content: "input",
+                          },
+                        ],
+                        author_name: "another_user",
+                      },
+                      relationships: {
+                        user: {
+                          data: {
+                            id: "1",
+                            type: "user",
+                          },
                         },
-                        relationships: {
-                          user: {
-                            data: {
-                              id: "1",
-                              type: "user",
-                            },
-                          },
-                          shrine: {
-                            data: null,
-                          },
+                        shrine: {
+                          data: null,
                         },
                       },
-                    ],
-                  },
-                  {
-                    status: 200,
-                    headers: {
-                      "Content-Type": "application/json",
-                      "current-page": "1",
-                      "page-items": "20",
-                      "total-pages": "1",
-                      "total-count": "1",
                     },
+                  ],
+                },
+                {
+                  status: 200,
+                  headers: {
+                    "Content-Type": "application/json",
+                    "current-page": "1",
+                    "page-items": "20",
+                    "total-pages": "1",
+                    "total-count": "1",
                   },
-                );
-              }
-            },
-          ),
+                },
+              );
+            }
+          }),
           // allow all non-mocked routes to pass through
           http.all("*", () => {
             return passthrough();

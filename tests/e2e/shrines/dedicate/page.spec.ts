@@ -8,6 +8,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/shrines/[id]/dedicate", () => {
   test.use({
     geolocation: { latitude: 35.70204829610801, longitude: 139.76789333814216 },
@@ -33,7 +35,7 @@ test.describe("/shrines/[id]/dedicate", () => {
   test.use({
     mswHandlers: [
       [
-        http.get("http://localhost:3000/api/v1/shrines/1", () => {
+        http.get(`${apiUrl}/api/v1/shrines/1`, () => {
           return HttpResponse.json(
             {
               data: {
@@ -51,7 +53,7 @@ test.describe("/shrines/[id]/dedicate", () => {
             { status: 200 },
           );
         }),
-        http.get("http://localhost:3000/api/v1/user/sangakus", () => {
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
           return HttpResponse.json(
             {
               data: [
@@ -87,44 +89,41 @@ test.describe("/shrines/[id]/dedicate", () => {
             { status: 200 },
           );
         }),
-        http.post(
-          "http://localhost:3000/api/v1/user/sangakus/1/dedicate",
-          () => {
-            return HttpResponse.json({
-              data: {
-                id: "1",
-                type: "sangaku",
-                attributes: {
-                  title: "before_dedicate",
-                  description: "test_description",
-                  source: "puts 'Hello world'",
-                  difficulty: "easy",
-                  inputs: [
-                    {
-                      id: "1",
-                      content: "test_input_1",
-                    },
-                  ],
-                },
-                relationships: {
-                  user: {
-                    data: {
-                      id: "1",
-                      type: "user",
-                    },
+        http.post(`${apiUrl}/api/v1/user/sangakus/1/dedicate`, () => {
+          return HttpResponse.json({
+            data: {
+              id: "1",
+              type: "sangaku",
+              attributes: {
+                title: "before_dedicate",
+                description: "test_description",
+                source: "puts 'Hello world'",
+                difficulty: "easy",
+                inputs: [
+                  {
+                    id: "1",
+                    content: "test_input_1",
                   },
-                  shrine: {
-                    data: {
-                      id: "1",
-                      type: "shrine",
-                    },
+                ],
+              },
+              relationships: {
+                user: {
+                  data: {
+                    id: "1",
+                    type: "user",
+                  },
+                },
+                shrine: {
+                  data: {
+                    id: "1",
+                    type: "shrine",
                   },
                 },
               },
-            });
-          },
-        ),
-        http.get("http://localhost:3000/api/v1/shrines/999", () => {
+            },
+          });
+        }),
+        http.get(`${apiUrl}/api/v1/shrines/999`, () => {
           return new HttpResponse({}, { status: 404 });
         }),
         // allow all non-mocked routes to pass through

@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/saved_sangakus/[id]/answer/create", () => {
   test.describe("before signin", () => {
     test("should not allow me to create answer", async ({ page }) => {
@@ -21,7 +23,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
     test.use({
       mswHandlers: [
         [
-          http.get("http://localhost:3000/api/v1/user/saved_sangakus/1", () => {
+          http.get(`${apiUrl}/api/v1/user/saved_sangakus/1`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -64,85 +66,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
               },
             );
           }),
-          http.post(
-            "http://localhost:3000/api/v1/user/sangakus/1/answers",
-            () => {
-              return HttpResponse.json(
-                {
-                  data: {
-                    id: "1",
-                    type: "answer",
-                    attributes: {
-                      source: "input = gets.chomp\nputs input",
-                      status: "correct",
-                    },
-                    relationships: {
-                      user_sangaku_save: {
-                        data: {
-                          id: "1",
-                          type: "user_sangaku_save",
-                        },
-                      },
-                      answer_result: {
-                        data: [
-                          {
-                            id: "1",
-                            type: "answer_result",
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-                {
-                  status: 200,
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                },
-              );
-            },
-          ),
-          http.get(
-            "http://localhost:3000/api/v1/user/saved_sangakus/1/answer",
-            () => {
-              return HttpResponse.json(
-                {
-                  data: {
-                    id: "1",
-                    type: "answer",
-                    attributes: {
-                      source: "input = gets.chomp\nputs input",
-                      status: "correct",
-                    },
-                    relationships: {
-                      user_sangaku_save: {
-                        data: {
-                          id: "1",
-                          type: "user_sangaku_save",
-                        },
-                      },
-                      answer_results: {
-                        data: [
-                          {
-                            id: "1",
-                            type: "answer_result",
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-                {
-                  status: 200,
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                },
-              );
-            },
-          ),
-          http.get("http://localhost:3000/api/v1/user/answers/1", () => {
+          http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -178,7 +102,79 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
               },
             );
           }),
-          http.get("http://localhost:3000/api/v1/user/answer_results/1", () => {
+          http.get(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, () => {
+            return HttpResponse.json(
+              {
+                data: {
+                  id: "1",
+                  type: "answer",
+                  attributes: {
+                    source: "input = gets.chomp\nputs input",
+                    status: "correct",
+                  },
+                  relationships: {
+                    user_sangaku_save: {
+                      data: {
+                        id: "1",
+                        type: "user_sangaku_save",
+                      },
+                    },
+                    answer_results: {
+                      data: [
+                        {
+                          id: "1",
+                          type: "answer_result",
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/answers/1`, () => {
+            return HttpResponse.json(
+              {
+                data: {
+                  id: "1",
+                  type: "answer",
+                  attributes: {
+                    source: "input = gets.chomp\nputs input",
+                    status: "correct",
+                  },
+                  relationships: {
+                    user_sangaku_save: {
+                      data: {
+                        id: "1",
+                        type: "user_sangaku_save",
+                      },
+                    },
+                    answer_result: {
+                      data: [
+                        {
+                          id: "1",
+                          type: "answer_result",
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/answer_results/1`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -253,18 +249,15 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         msw,
       }) => {
         msw.use(
-          http.post(
-            "http://localhost:3000/api/v1/user/sangakus/1/answers",
-            () => {
-              return HttpResponse.json(
-                {
-                  message: "Bad Request",
-                  errors: [["source", ["を入力してください"]]],
-                },
-                { status: 400 },
-              );
-            },
-          ),
+          http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+            return HttpResponse.json(
+              {
+                message: "Bad Request",
+                errors: [["source", ["を入力してください"]]],
+              },
+              { status: 400 },
+            );
+          }),
         );
         await setSession(page);
         await page.goto("/saved_sangakus/1/answer/create");

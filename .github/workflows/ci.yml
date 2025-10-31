@@ -18,7 +18,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: copy env.template
-        run: cp env.template .env.production
+        run: cp env.template .env
       - name: Run Playwright tests
         run: pnpm run test:components
       - uses: actions/upload-artifact@v4
@@ -41,7 +41,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: copy env.template
-        run: cp env.template .env.production
+        run: cp env.template .env
       - name: Create AuthSecret
         run: npx auth secret
       - name: Run Playwright tests

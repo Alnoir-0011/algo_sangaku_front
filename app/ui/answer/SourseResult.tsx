@@ -1,7 +1,11 @@
+"use client";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { Answer } from "@/app/lib/definitions";
 import { fetchUserAnswer } from "@/app/lib/data/answer";
+import { useEffect, useState } from "react";
+import { SourceResultLoading } from "./LoadingCirclars";
 
 interface Props {
   answer: Answer;
@@ -9,20 +13,35 @@ interface Props {
 
 const size = 240;
 
-export default async function SourceResult({ answer }: Props) {
-  let data = answer;
-  if (answer.attributes.status === "pending") {
-    const ResultData = await fetchUserAnswer(answer.id);
-    if (ResultData) {
-      data = ResultData;
-    }
-  }
+export default function SourceResult(props: Props) {
+  const [answer, setAnswer] = useState(props.answer);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const isCorrect = data.attributes.status === "correct";
+  const id = props.answer.id;
+
+  useEffect(() => {
+    setIsLoading(true);
+    const interval = setInterval(async () => {
+      const data = await fetchUserAnswer(id);
+      if (data && data.attributes.status !== "pending") {
+        setAnswer(data);
+        clearInterval(interval);
+        setIsLoading(false);
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [id]);
+
+  const isCorrect = () => answer.attributes.status === "correct";
+
+  if (isLoading) {
+    return <SourceResultLoading />;
+  }
 
   return (
     <Box display="flex" justifyContent="center">
-      {isCorrect && (
+      {isCorrect() && (
         <Box
           width={size}
           height={size}
@@ -39,7 +58,7 @@ export default async function SourceResult({ answer }: Props) {
           </Typography>
         </Box>
       )}
-      {isCorrect || (
+      {isCorrect() || (
         <Box
           width={size}
           height={size}
