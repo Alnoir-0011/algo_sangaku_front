@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/shrines/[id]/sangakus", () => {
   test.use({
     geolocation: { latitude: 35.70204829610801, longitude: 139.76789333814216 },
@@ -16,7 +18,7 @@ test.describe("/shrines/[id]/sangakus", () => {
   test.use({
     mswHandlers: [
       [
-        http.get("http://localhost:3000/api/v1/shrines/1", () => {
+        http.get(`${apiUrl}/api/v1/shrines/1`, () => {
           return HttpResponse.json(
             {
               data: {
@@ -34,10 +36,10 @@ test.describe("/shrines/[id]/sangakus", () => {
             { status: 200 },
           );
         }),
-        http.get("http://localhost:3000/api/v1/shrines/999", () => {
+        http.get(`${apiUrl}/api/v1/shrines/999`, () => {
           return new HttpResponse({}, { status: 404 });
         }),
-        http.get("http://localhost:3000/api/v1/shrines/1/sangakus", () => {
+        http.get(`${apiUrl}/api/v1/shrines/1/sangakus`, () => {
           return HttpResponse.json({
             data: [
               {
@@ -68,7 +70,7 @@ test.describe("/shrines/[id]/sangakus", () => {
             ],
           });
         }),
-        http.post("http://localhost:3000/api/v1/sangakus/1/save", () => {
+        http.post(`${apiUrl}/api/v1/sangakus/1/save`, () => {
           return HttpResponse.json(
             {
               data: [

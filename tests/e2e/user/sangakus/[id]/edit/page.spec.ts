@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/user/sangakus/[id]/edit", () => {
   test.describe("before signin", () => {
     test("redirect to signin page", async ({ page }) => {
@@ -22,12 +24,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
     test.use({
       mswHandlers: [
         [
-          http.get("http://localhost:3000/up", () => {
+          http.get(`${apiUrl}/up`, () => {
             return HttpResponse.json({
               message: "success",
             });
           }),
-          http.get("http://localhost:3000/api/v1/user/sangakus/1", () => {
+          http.get(`${apiUrl}/api/v1/user/sangakus/1`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -58,7 +60,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
               { status: 200 },
             );
           }),
-          http.get("http://localhost:3000/api/v1/user/sangaku/999", () => {
+          http.get(`${apiUrl}/api/v1/user/sangakus/999`, () => {
             return HttpResponse.json({}, { status: 404 });
           }),
           // allow all non-mocked routes to pass through
@@ -99,7 +101,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       };
 
       msw.use(
-        http.patch("http://localhost:3000/api/v1/user/sangakus/1", () => {
+        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
           return HttpResponse.json(backendResponse, { status: 200 });
         }),
       );

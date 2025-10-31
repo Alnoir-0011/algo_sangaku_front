@@ -7,6 +7,8 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 test.describe("/saved_sangakus/[id]/answer", () => {
   test.describe("before signin", () => {
     test("should not allow me to show answer", async ({ page }) => {
@@ -21,7 +23,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
     test.use({
       mswHandlers: [
         [
-          http.get("http://localhost:3000/api/v1/user/saved_sangakus/1", () => {
+          http.get(`${apiUrl}/api/v1/user/saved_sangakus/1`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -64,46 +66,43 @@ test.describe("/saved_sangakus/[id]/answer", () => {
               },
             );
           }),
-          http.get(
-            "http://localhost:3000/api/v1/user/saved_sangakus/1/answer",
-            () => {
-              return HttpResponse.json(
-                {
-                  data: {
-                    id: "1",
-                    type: "answer",
-                    attributes: {
-                      source: "input = gets.chomp\nputs input",
-                      status: "correct",
+          http.get(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, () => {
+            return HttpResponse.json(
+              {
+                data: {
+                  id: "1",
+                  type: "answer",
+                  attributes: {
+                    source: "input = gets.chomp\nputs input",
+                    status: "correct",
+                  },
+                  relationships: {
+                    user_sangaku_save: {
+                      data: {
+                        id: "1",
+                        type: "user_sangaku_save",
+                      },
                     },
-                    relationships: {
-                      user_sangaku_save: {
-                        data: {
+                    answer_results: {
+                      data: [
+                        {
                           id: "1",
-                          type: "user_sangaku_save",
+                          type: "answer_result",
                         },
-                      },
-                      answer_results: {
-                        data: [
-                          {
-                            id: "1",
-                            type: "answer_result",
-                          },
-                        ],
-                      },
+                      ],
                     },
                   },
                 },
-                {
-                  status: 200,
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
+              },
+              {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              );
-            },
-          ),
-          http.get("http://localhost:3000/api/v1/user/answers/1", () => {
+              },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/answers/1`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -139,7 +138,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
               },
             );
           }),
-          http.get("http://localhost:3000/api/v1/user/answer_results/1", () => {
+          http.get(`${apiUrl}/api/v1/user/answer_results/1`, () => {
             return HttpResponse.json(
               {
                 data: {
