@@ -1,9 +1,7 @@
 import Box from "@mui/material/Box";
 import Result from "./Result";
 import { Answer } from "@/app/lib/definitions";
-import { Suspense } from "react";
 import { Typography } from "@mui/material";
-import { ResultLoading } from "./LoadingCirclars";
 
 interface Props {
   answer: Answer;
@@ -58,9 +56,7 @@ export default function Results({ answer }: Props) {
         </Box>
       </Box>
       {resultIds.map((value, index) => (
-        <Suspense key={index} fallback={<ResultLoading index={index} />}>
-          <Result index={index} id={value} />
-        </Suspense>
+        <Result key={index} index={index} id={value} />
       ))}
     </Box>
   );

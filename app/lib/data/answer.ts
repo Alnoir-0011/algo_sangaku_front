@@ -15,25 +15,18 @@ export const fetchUserAnswer = async (id: string) => {
   };
 
   try {
-    while (true) {
-      const res = await fetch(`${apiUrl}/api/v1/user/answers/${id}`, {
-        headers,
-      });
+    const res = await fetch(`${apiUrl}/api/v1/user/answers/${id}`, {
+      headers,
+    });
 
-      switch (res.status) {
-        case 200:
-          const data = (await res.json()).data as Answer;
-          if (data.attributes.status !== "pending") {
-            return data;
-          } else {
-            await new Promise((resolve) => setTimeout(resolve, 250));
-          }
-          break;
-        case 401:
-          return undefined;
-        case 404:
-          return null;
-      }
+    switch (res.status) {
+      case 200:
+        const data = (await res.json()).data as Answer;
+        return data;
+      case 401:
+        return undefined;
+      case 404:
+        return null;
     }
   } catch (error) {
     if (isRedirectError(error)) {
@@ -90,6 +83,7 @@ export const fetchUserAnswerResult = async (id: string) => {
     while (true) {
       const res = await fetch(`${apiUrl}/api/v1/user/answer_results/${id}`, {
         headers,
+        cache: "no-store",
       });
 
       switch (res.status) {
