@@ -10,6 +10,7 @@ import "@fontsource-variable/noto-serif-jp";
 import Footer from "@/app/ui/navigation/Footer";
 import { SessionProvider } from "next-auth/react";
 import FlashMessage from "@/app/ui/flash/FlashMessageContainer";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
@@ -70,6 +71,9 @@ export default function RootLayout({
             </ThemeProvider>
           </AppRouterCacheProvider>
         </body>
+        {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+        )}
       </html>
     </SessionProvider>
   );
