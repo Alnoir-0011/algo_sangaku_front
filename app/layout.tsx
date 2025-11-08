@@ -30,6 +30,9 @@ export const metadata: Metadata = {
     "アルゴリズム",
     "プログラミング学習",
   ],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 };
 
 export const dynamic = "force-dynamic";
