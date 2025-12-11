@@ -7,6 +7,7 @@ import type { Shrine } from "@/app/lib/definitions";
 import ShrineMarker from "./ShrineMarker";
 import { fetchShrines } from "../../lib/data/shrine";
 import { MapSkeleton } from "../skeletons";
+import { useSearchParams } from "next/navigation";
 
 export const activeDistance = 0.1;
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅
@@ -34,17 +35,25 @@ function MapComponent() {
   const [completeLoadEvent, setCompleteLoadEvent] = useState(false);
   const [shrines, setShrines] = useState<Shrine[]>([]);
   const [circle, setCircle] = useState<locationCircle | null>(null);
+  const [zoom, setZoom] = useState(16);
+  const [location, setLocation] = useState(initialLatLng);
+  const searchParams = useSearchParams();
 
   const map = useMap();
 
   useLayoutEffect(() => {
     (async () => {
       setIsLoading(true);
-      const new_center = await getLocation();
-      setCenter(new_center);
+      const lat = Number(searchParams.get("lat"));
+      const lng = Number(searchParams.get("lng"));
+      if (lat && lng) setZoom(18);
+      const newLocation = await getLocation();
+      const newCenter = lat && lng ? { lat, lng } : newLocation;
+      setLocation(newLocation);
+      setCenter(newCenter);
       setIsLoading(false);
     })();
-  }, []);
+  }, [searchParams]);
 
   const loadShrines = async () => {
     const bounds = map?.getBounds();
@@ -109,7 +118,7 @@ function MapComponent() {
       </Box>
       <Map
         defaultCenter={center}
-        defaultZoom={16}
+        defaultZoom={zoom}
         onTilesLoaded={() => {
           if (!completeLoadEvent) {
             loadShrines();
@@ -123,7 +132,7 @@ function MapComponent() {
           <ShrineMarker
             key={shrine.id}
             shrine={shrine}
-            currentPosition={center}
+            currentPosition={location}
           />
         ))}
       </Map>
