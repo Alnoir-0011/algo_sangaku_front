@@ -18,7 +18,9 @@ test.describe("/shrines/[id]/dedicate", () => {
 
   test.describe("before login", () => {
     test("redirect to signin page", async ({ page }) => {
-      page.goto("/shrines/1/dedicate");
+      await page.goto("/");
+      await page.waitForLoadState();
+      await page.goto("/shrines/1/dedicate");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");
       await expect(flash).toBeVisible();
@@ -140,8 +142,7 @@ test.describe("/shrines/[id]/dedicate", () => {
     }) => {
       await setSession(page);
 
-      page.goto("/shrines/1/dedicate");
-      page.waitForLoadState();
+      await page.goto("/shrines/1/dedicate");
       const sangaku = page.getByRole("heading", { name: "before_dedicate" });
       await sangaku.click();
       const modal = page.getByLabel("confirm-modal");
@@ -149,9 +150,11 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(heading).toBeVisible();
       const button = modal.getByRole("button", { name: "この算額を奉納する" });
       await button.click();
-      await expect(page).toHaveURL("/shrines");
-      const flash = page.getByText("算額を奉納しました");
+      await expect(page).toHaveURL("/shrines/1/dedicate");
+      const flash = page.getByRole("alert").getByText("算額を奉納しました");
       await expect(flash).toBeVisible();
+      const shareButton = page.getByRole("link", { name: "でシェア" });
+      await expect(shareButton).toBeVisible();
     });
 
     test("should display notFound page", async ({ page }) => {

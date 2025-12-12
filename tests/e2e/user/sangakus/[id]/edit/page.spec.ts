@@ -12,8 +12,9 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 test.describe("/user/sangakus/[id]/edit", () => {
   test.describe("before signin", () => {
     test("redirect to signin page", async ({ page }) => {
+      await page.goto("/");
+      await page.waitForLoadState();
       await page.goto("/user/sangakus/1/edit");
-
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");
       await expect(flash).toBeVisible();

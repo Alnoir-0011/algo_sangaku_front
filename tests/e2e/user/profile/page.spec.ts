@@ -12,6 +12,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 test.describe("/user/sangakus", () => {
   test.describe("before singin", () => {
     test("should not allow me to visit edit profile page", async ({ page }) => {
+      await page.goto("/");
+      await page.waitForLoadState();
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");
