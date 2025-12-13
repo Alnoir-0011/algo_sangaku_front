@@ -12,6 +12,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 test.describe("/saved_sangakus/[id]/answer/create", () => {
   test.describe("before signin", () => {
     test("should not allow me to create answer", async ({ page }) => {
+      await page.goto("/");
+      await page.waitForLoadState();
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByText("サインインしてください");

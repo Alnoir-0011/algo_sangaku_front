@@ -150,9 +150,11 @@ test.describe("/user/sangakus", () => {
 
   test.describe("before signin", () => {
     test("redirect to signin page", async ({ page }) => {
+      await page.goto("/");
+      await page.waitForLoadState();
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByText("サインインしてください");
+      const flash = page.getByRole("alert").getByText("サインインしてください");
       await expect(flash).toBeVisible();
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });

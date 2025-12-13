@@ -42,7 +42,7 @@ export default async function Page(props: Props) {
         {shrine.attributes.name}に算額を奉納する
       </Typography>
       {/* <Suspense fallback={<SangakuListSkeleton />}> */}
-      <SangakuList page={page} query={query} />
+      <SangakuList page={page} query={query} shrine={shrine} />
       {/* </Suspense> */}
     </Box>
   );

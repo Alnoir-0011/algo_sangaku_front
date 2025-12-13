@@ -1,6 +1,6 @@
 "use client";
 
-import type { Sangaku } from "@/app/lib/definitions";
+import type { Sangaku, Shrine } from "@/app/lib/definitions";
 import { useEffect, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
@@ -14,11 +14,12 @@ import { SangakuListSkeleton } from "../../skeletons";
 interface Props {
   page: string;
   query: string;
+  shrine: Shrine;
 }
 
 const initialState = { sangakus: [], totalPage: 0 };
 
-export default function SangakuList({ page, query }: Props) {
+export default function SangakuList({ page, query, shrine }: Props) {
   const [sangakusData, setSangakusData] = useState<{
     sangakus: Sangaku[];
     totalPage: number;
@@ -133,7 +134,11 @@ export default function SangakuList({ page, query }: Props) {
             </ButtonBase>
           </div>
         ))}
-        <ConfirmModal data={modalData} handleClose={handleClose} />
+        <ConfirmModal
+          data={modalData}
+          handleClose={handleClose}
+          shrine={shrine}
+        />
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Pagination totalPage={sangakusData.totalPage} />

@@ -12,9 +12,11 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 test.describe("/saved_sangakus", () => {
   test.describe("before singin", () => {
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
+      await page.goto("/");
+      await page.waitForLoadState();
       await page.goto("/answers");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByText("サインインしてください");
+      const flash = page.getByRole("alert").getByText("サインインしてください");
       await expect(flash).toBeVisible();
     });
   });

@@ -2,7 +2,6 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { redirect } from "next/navigation";
 import { setFlash } from "./flash";
 import { revalidatePath } from "next/cache";
 import { costomSignOut } from "./auth";
@@ -36,7 +35,7 @@ export async function dedicateSangaku(
       case 200:
         await setFlash({ type: "success", message: "算額を奉納しました" });
         revalidatePath("/user/sangakus");
-        redirect("/shrines");
+        return true;
       case 401:
         await setFlash({
           type: "error",
@@ -44,15 +43,17 @@ export async function dedicateSangaku(
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
         await costomSignOut();
-        break;
+        return false;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
+        return false;
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return false;
   }
 }
 
