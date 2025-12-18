@@ -98,3 +98,11 @@ export type User = {
     nickname: string;
   };
 };
+
+export interface SangakuResult {
+  attributes: {
+    user_sangaku_save_count: number;
+    correct_count: number;
+    incorrect_count: number;
+  };
+}

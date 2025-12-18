@@ -66,7 +66,10 @@ const alreadyDedicateSangakus = {
           },
         },
         shrine: {
-          data: null,
+          data: {
+            id: "1",
+            type: "shrine",
+          },
         },
       },
     },
@@ -139,6 +142,38 @@ test.describe("/user/sangakus", () => {
             status: 200,
           });
         }),
+        http.get(`${apiUrl}/api/v1/user/sangakus/1/result`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                attributes: {
+                  user_sangaku_save_count: 10,
+                  correct_count: 7,
+                  incorrect_count: 3,
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+        http.get(`${apiUrl}/api/v1/shrines/1`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "shrine",
+                attributes: {
+                  name: "test_shrine",
+                  address: "test_address",
+                  latitude: 35.70204829610801,
+                  longitude: 139.76789333814216,
+                  place_id: "test_place_id_1",
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
         // allow all non-mocked routes to pass through
         http.all("*", () => {
           return passthrough();
@@ -196,6 +231,16 @@ test.describe("/user/sangakus", () => {
       await expect(editLink).not.toBeVisible();
       const deleteButton = page.getByRole("menuitem", { name: "削除" });
       await expect(deleteButton).not.toBeVisible();
+      await sangakuTitle.click();
+      await page.waitForLoadState();
+      const shrineName = page.getByRole("heading", { name: "test_shrine" });
+      await expect(shrineName).toBeVisible();
+      const copyCountText = page.getByText("算額が写された数:");
+      await expect(copyCountText).toBeVisible();
+      const SangakuDescription = page
+        .getByLabel("modal")
+        .getByText("test_desc");
+      await expect(SangakuDescription).toBeVisible();
     });
 
     test("can delete sangaku", async ({ page }) => {

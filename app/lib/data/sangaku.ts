@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import type { Sangaku } from "../definitions";
+import type { Sangaku, SangakuResult } from "../definitions";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchUserSangakus(
@@ -225,6 +225,35 @@ export async function fetchSavedSangaku(
       case 200:
         const body = await res.json();
         return body.data as Sangaku;
+      case 401:
+        return undefined;
+      default:
+        return null;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+  }
+}
+
+export async function fetchUserSangakuResult(id: string) {
+  const session = await auth();
+
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.accessToken}`,
+    };
+
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}/result`, {
+      headers,
+    });
+
+    switch (res.status) {
+      case 200:
+        const body = await res.json();
+        return body.data as SangakuResult;
       case 401:
         return undefined;
       default:
