@@ -8,6 +8,7 @@ import Link from "next/link";
 import Search from "@/app/ui/Search";
 import { Container } from "@mui/material";
 import { Metadata } from "next";
+import DedicatedSangakuList from "@/app/ui/sangaku/DedicatedSangakuList";
 
 export const metadata: Metadata = {
   title: "自分の算額一覧",
@@ -43,7 +44,7 @@ export default async function Page(props: Props) {
             <Search placeholder="タイトルで検索" />
           </Container>
           <Suspense key={page + query} fallback={<SangakuListSkeleton />}>
-            <UserSangakuList page={page} query={query} dedicated />
+            <DedicatedSangakuList page={page} query={query} />
           </Suspense>
         </>
       ) : (
