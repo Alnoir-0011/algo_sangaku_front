@@ -43,7 +43,7 @@ jobs:
       - name: copy env.template
         run: cp env.template .env
       - name: Create AuthSecret
-        run: npx auth secret
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
       - name: Run Playwright tests
         run: pnpm run test:e2e
       - uses: actions/upload-artifact@v4
