@@ -8,6 +8,7 @@ declare module "next-auth" {
 
   interface JWT extends DefaultJWT {
     accessToken?: string | null;
+    signedInAt?: number;
   }
 
   interface User extends DefaultUser {
