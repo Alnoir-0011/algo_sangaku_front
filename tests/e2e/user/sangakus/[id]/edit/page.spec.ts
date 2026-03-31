@@ -135,6 +135,96 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toBeVisible();
     });
 
+    test("generate button is disabled when description is empty", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+          return HttpResponse.json({}, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await page.waitForLoadState();
+
+      // 初期値（"test_description"）が入っているのでボタンは有効
+      const generateButton = page.getByRole("button", {
+        name: "問題文からコードを生成",
+      });
+      await expect(generateButton).toBeEnabled();
+
+      // 問題文を空にするとボタンが無効になる
+      await page.getByLabel("問題文").fill("");
+      await expect(generateButton).toBeDisabled();
+
+      // 再度入力するとボタンが有効になる
+      await page.getByLabel("問題文").fill("問題文を入力");
+      await expect(generateButton).toBeEnabled();
+    });
+
+    test("can generate source code from description", async ({ page, msw }) => {
+      const generatedSource =
+        "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
+      const backendUpdateResponse = {
+        data: {
+          id: "1",
+          type: "sangaku",
+          attributes: {
+            title: "before_edit",
+            description: "test_description",
+            source: generatedSource,
+            difficulty: "nomal",
+            inputs: [{ id: 1, content: "example" }],
+          },
+          relationships: { user: { data: { id: "1", type: "user" } } },
+        },
+      };
+
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+          return HttpResponse.json({ source: generatedSource }, { status: 200 });
+        }),
+        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+          return HttpResponse.json(backendUpdateResponse, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await page.waitForLoadState();
+
+      const generateButton = page.getByRole("button", {
+        name: "問題文からコードを生成",
+      });
+      await expect(generateButton).toBeEnabled();
+      await generateButton.click();
+
+      // ローディング完了後にボタンが再び有効になる
+      await expect(generateButton).toBeEnabled({ timeout: 10000 });
+
+      // 生成されたコードがMonaco Editorに反映されているか確認
+      const editorContent = await page.evaluate(() => {
+        const models =
+          (window as unknown as { monaco?: { editor?: { getModels?: () => { getValue?: () => string }[] } } }).monaco?.editor?.getModels?.() || [];
+        return models[0]?.getValue?.() || "";
+      });
+      expect(editorContent).toContain("対応言語: Ruby");
+
+      // 確認画面を通じて保存できる
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await page.waitForLoadState();
+      const readOnlyEditor = page
+        .locator(".MuiModal-root")
+        .locator(".monaco-editor");
+      await expect(readOnlyEditor).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+      await expect(page).toHaveURL("/user/sangakus");
+      const flash = page.getByText("算額を更新しました");
+      await expect(flash).toBeVisible();
+    });
+
     test("should display notFound page", async ({ page }) => {
       await setSession(page);
 

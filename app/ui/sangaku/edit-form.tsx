@@ -2,7 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { Editor } from "@monaco-editor/react";
-import { updateSangaku, State } from "@/app/lib/actions/sangaku";
+import {
+  updateSangaku,
+  generateSource,
+  State,
+} from "@/app/lib/actions/sangaku";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
@@ -10,6 +14,7 @@ import FixedInputField from "@/app/ui/sangaku/FixedInputField";
 import CheckPage from "@/app/ui/sangaku/CheckPage";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   FormControl,
   InputLabel,
@@ -32,6 +37,9 @@ export default function Form({ sangaku }: Props) {
   };
   const [state, formAction] = useActionState(updateSangakuAction, initialState);
   const [source, setSource] = useState(sangaku.attributes.source);
+  const [description, setDescription] = useState(
+    sangaku.attributes.description,
+  );
   const [fixedInputs, setFixedInputs] = useState(
     sangaku.attributes.inputs.map((input) => input.content),
   );
@@ -39,6 +47,7 @@ export default function Form({ sangaku }: Props) {
     sangaku.attributes.difficulty,
   );
   const [modalOpen, setModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   async function updateSangakuAction(prevState: State, formData: FormData) {
     const result = await updateSangaku(
@@ -64,6 +73,19 @@ export default function Form({ sangaku }: Props) {
 
   const openModal = () => {
     setModalOpen(true);
+  };
+
+  const handleGenerate = async () => {
+    if (!description.trim()) return;
+    setIsGenerating(true);
+    try {
+      const generated = await generateSource(description);
+      setSource(generated);
+    } catch {
+      // エラー時は何もしない（既存のソースコードを維持）
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -116,7 +138,8 @@ export default function Form({ sangaku }: Props) {
                 variant="outlined"
                 rows={15}
                 name="description"
-                defaultValue={state.values?.description}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </label>
             {state.errors?.description &&
@@ -150,17 +173,36 @@ export default function Form({ sangaku }: Props) {
         </Grid>
         <Grid size={6}>
           <Box sx={{ mb: 2 }}>
-            <label>
-              ソースコード
-              <Editor
-                theme="vs-dark"
-                height="60vh"
-                width="100%"
-                defaultLanguage="ruby"
-                value={source}
-                onChange={handleEditorChange}
-              />
-            </label>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography component="span">ソースコード</Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleGenerate}
+                disabled={isGenerating || !description.trim()}
+                aria-label="問題文からコードを生成"
+                startIcon={
+                  isGenerating ? <CircularProgress size={14} /> : undefined
+                }
+              >
+                問題文からコードを生成
+              </Button>
+            </Box>
+            <Editor
+              theme="vs-dark"
+              height="60vh"
+              width="100%"
+              defaultLanguage="ruby"
+              value={source}
+              onChange={handleEditorChange}
+            />
             {state.errors?.source &&
               state.errors.source.map((error: string) => (
                 <Typography
