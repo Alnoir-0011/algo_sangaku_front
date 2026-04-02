@@ -51,7 +51,7 @@ const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/signin" };
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24 * 7,    // 7日（絶対有効期限）
+    maxAge: 60 * 60 * 24 * 7, // 7日（絶対有効期限）
     updateAge: 60 * 60 * 24 * 7, // maxAge と同値にしてローリングを無効化（案A）
   },
   providers,
@@ -74,7 +74,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
 
         if (response.status == 200) {
           const data = await response.json();
-          // console.log(response.headers.get("accesstoken"));
           user.nickname = data.data.attributes.nickname;
           user.accessToken = response.headers.get("accesstoken")!;
           await setFlash({
@@ -99,7 +98,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.nickname = user?.nickname;
       }
       if (trigger === "update") {
-        console.log(session);
         token.nickname = session.user.nickname;
       }
 
