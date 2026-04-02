@@ -122,7 +122,9 @@ test.describe("/sangakus/create", () => {
       });
       await expect(generateButton).toBeDisabled();
 
-      await page.getByLabel("問題文").fill("1からnまでの合計を出力してください");
+      await page
+        .getByLabel("問題文")
+        .fill("1からnまでの合計を出力してください");
       await expect(generateButton).toBeEnabled();
 
       await page.getByLabel("問題文").fill("");
@@ -151,7 +153,10 @@ test.describe("/sangakus/create", () => {
 
       msw.use(
         http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
-          return HttpResponse.json({ source: generatedSource }, { status: 200 });
+          return HttpResponse.json(
+            { source: generatedSource },
+            { status: 200 },
+          );
         }),
         http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 200 });
@@ -163,7 +168,9 @@ test.describe("/sangakus/create", () => {
       await page.waitForLoadState();
 
       await page.getByLabel("タイトル").fill("test_title");
-      await page.getByLabel("問題文").fill("1からnまでの合計を出力してください");
+      await page
+        .getByLabel("問題文")
+        .fill("1からnまでの合計を出力してください");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("5");
 
       const generateButton = page.getByRole("button", {
@@ -177,7 +184,13 @@ test.describe("/sangakus/create", () => {
       // 生成されたコードがMonaco Editorに反映されているか確認
       const editorContent = await page.evaluate(() => {
         const models =
-          (window as unknown as { monaco?: { editor?: { getModels?: () => { getValue?: () => string }[] } } }).monaco?.editor?.getModels?.() || [];
+          (
+            window as unknown as {
+              monaco?: {
+                editor?: { getModels?: () => { getValue?: () => string }[] };
+              };
+            }
+          ).monaco?.editor?.getModels?.() || [];
         return models[0]?.getValue?.() || "";
       });
       expect(editorContent).toContain("対応言語: Ruby");

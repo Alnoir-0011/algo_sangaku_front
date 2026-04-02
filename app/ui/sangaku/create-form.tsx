@@ -172,7 +172,6 @@ export default function Page() {
                 size="small"
                 onClick={handleGenerate}
                 disabled={isGenerating || !description.trim()}
-                aria-label="問題文からコードを生成"
                 startIcon={
                   isGenerating ? <CircularProgress size={14} /> : undefined
                 }
