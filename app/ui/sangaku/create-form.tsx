@@ -63,14 +63,11 @@ export default function Page() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
     setIsGenerating(true);
-    try {
-      const generated = await generateSource(description);
+    const generated = await generateSource(description);
+    if (generated) {
       setSource(generated);
-    } catch {
-      // エラー時は何もしない（既存のソースコードを維持）
-    } finally {
-      setIsGenerating(false);
     }
+    setIsGenerating(false);
   };
 
   return (
