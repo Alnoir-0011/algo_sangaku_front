@@ -32,7 +32,7 @@ export default defineConfig({
   webServer: {
     command: "rm -rf .next && pnpm run build && pnpm run start -p 4020",
     url: "http://localhost:4020",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

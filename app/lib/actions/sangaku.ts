@@ -305,6 +305,28 @@ interface Details {
   result: "success" | "fail" | "error" | null;
 }
 
+export const generateSource = async (description: string) => {
+  const session = await auth();
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.accessToken}`,
+      },
+      body: JSON.stringify({ description }),
+    });
+
+    if (!res.ok) throw new Error("コードの生成に失敗しました");
+    const data = await res.json();
+    return data.source as string;
+  } catch (e) {
+    if (isRedirectError(e)) {
+      throw e;
+    }
+  }
+};
+
 const getDetails = async (id: string) => {
   const params = new URLSearchParams({
     api_key: "guest",
