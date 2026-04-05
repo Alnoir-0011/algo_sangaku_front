@@ -25,6 +25,8 @@ import {
 } from "@mui/material";
 import type { Sangaku, Difficulty } from "@/app/lib/definitions";
 
+const DESCRIPTION_MAX_LENGTH = 2000;
+
 interface Props {
   sangaku: Sangaku;
 }
@@ -133,6 +135,11 @@ export default function Form({ sangaku }: Props) {
               value={description}
               onChange={setDescription}
             />
+            {description.length > DESCRIPTION_MAX_LENGTH && (
+              <Typography sx={{ color: "red" }}>
+                問題文は{DESCRIPTION_MAX_LENGTH}文字以内で入力してください（現在{description.length}文字）
+              </Typography>
+            )}
             {state.errors?.description &&
               state.errors.description.map((error: string) => (
                 <Typography
@@ -177,7 +184,7 @@ export default function Form({ sangaku }: Props) {
                 variant="contained"
                 size="small"
                 onClick={handleGenerate}
-                disabled={isGenerating || !description.trim()}
+                disabled={isGenerating || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH}
                 startIcon={
                   isGenerating ? <CircularProgress size={14} /> : undefined
                 }
