@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import type { Sangaku } from "@/app/lib/definitions";
 import { createAnswer, State } from "@/app/lib/actions/answer";
 import SourceExecution from "./SourceExecution";
+import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
 interface Props {
   sangaku: Sangaku;
@@ -48,12 +49,16 @@ export default function Form({ sangaku }: Props) {
             {sangaku.attributes.title}
           </Typography>
           {/* 問題文 */}
-          <Typography
+          <Box
             height="65vh"
-            sx={{ p: 1, backgroundColor: "primary.main" }}
+            sx={{
+              p: 1,
+              backgroundColor: "primary.main",
+              overflowY: "auto",
+            }}
           >
-            {sangaku.attributes.description}
-          </Typography>
+            <MarkdownPreview content={sangaku.attributes.description} />
+          </Box>
         </Grid>
         <Grid size={6}>
           {/* Editor */}

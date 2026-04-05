@@ -30,10 +30,10 @@ export const createSangaku = async (
   source: string,
   difficulty: Difficulty,
   fixed_inputs: string[],
+  description: string,
 ) => {
   const session = await auth();
   const title = formData.get("title");
-  const description = formData.get("description");
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -103,11 +103,11 @@ export const updateSangaku = async (
   source: string,
   difficulty: Difficulty,
   fixed_inputs: string[],
+  description: string,
 ) => {
   const session = await auth();
 
   const title = formData.get("title");
-  const description = formData.get("description");
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",

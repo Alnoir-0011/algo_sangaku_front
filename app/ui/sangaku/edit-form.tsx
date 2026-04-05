@@ -14,6 +14,7 @@ import FixedInputField from "@/app/ui/sangaku/FixedInputField";
 import CheckPage from "@/app/ui/sangaku/CheckPage";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import MarkdownEditor from "@/app/ui/shared/MarkdownEditor";
 import CircularProgress from "@mui/material/CircularProgress";
 import {
   FormControl,
@@ -57,6 +58,7 @@ export default function Form({ sangaku }: Props) {
       source,
       difficulty,
       fixedInputs,
+      description,
     );
     return result;
   }
@@ -126,19 +128,11 @@ export default function Form({ sangaku }: Props) {
               ))}
           </Box>
           <Box sx={{ mb: 1 }}>
-            <label htmlFor="description">
-              問題文
-              <TextField
-                multiline
-                fullWidth
-                id="description"
-                variant="outlined"
-                rows={15}
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
+            <MarkdownEditor
+              label="問題文"
+              value={description}
+              onChange={setDescription}
+            />
             {state.errors?.description &&
               state.errors.description.map((error: string) => (
                 <Typography
