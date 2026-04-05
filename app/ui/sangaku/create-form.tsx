@@ -27,6 +27,7 @@ import type { Difficulty } from "@/app/lib/definitions";
 
 const initialState: State = { errors: {} };
 const initialSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
+const DESCRIPTION_MAX_LENGTH = 2000;
 
 export default function Page() {
   const [state, formAction] = useActionState(postSangakuAction, initialState);
@@ -119,6 +120,11 @@ export default function Page() {
               value={description}
               onChange={setDescription}
             />
+            {description.length > DESCRIPTION_MAX_LENGTH && (
+              <Typography sx={{ color: "red" }}>
+                問題文は{DESCRIPTION_MAX_LENGTH}文字以内で入力してください（現在{description.length}文字）
+              </Typography>
+            )}
             {state.errors?.description &&
               state.errors.description.map((error: string) => (
                 <Typography
@@ -163,7 +169,7 @@ export default function Page() {
                 variant="contained"
                 size="small"
                 onClick={handleGenerate}
-                disabled={isGenerating || !description.trim()}
+                disabled={isGenerating || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH}
                 startIcon={
                   isGenerating ? <CircularProgress size={14} /> : undefined
                 }
