@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import type { Sangaku, SangakuResult } from "../definitions";
+import type { Sangaku, SangakuResult, GenerateSourceUsage } from "../definitions";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchUserSangakus(
@@ -233,6 +233,38 @@ export async function fetchSavedSangaku(
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    }
+  }
+}
+
+export async function fetchGenerateSourceUsage(): Promise<GenerateSourceUsage | undefined> {
+  const session = await auth();
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.accessToken}`,
+  };
+
+  try {
+    const res = await fetch(
+      `${apiUrl}/api/v1/user/sangakus/generate_source_usage`,
+      { headers },
+    );
+
+    switch (res.status) {
+      case 200:
+        const body = await res.json();
+        return body as GenerateSourceUsage;
+      case 401:
+        return undefined;
+      default:
+        return undefined;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    } else {
+      return undefined;
     }
   }
 }

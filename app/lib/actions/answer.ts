@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/actions/flash";
-import { costomSignOut } from "./auth";
+import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
@@ -49,7 +49,7 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
           message:
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         break;
       case 400:
         const data = await res.json();

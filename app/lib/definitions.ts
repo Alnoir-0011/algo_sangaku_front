@@ -106,3 +106,10 @@ export interface SangakuResult {
     incorrect_count: number;
   };
 }
+
+export type GenerateSourceUsage = {
+  used: number;
+  limit: number;
+  remaining: number;
+  reset_at: string;
+};

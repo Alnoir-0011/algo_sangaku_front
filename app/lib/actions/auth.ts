@@ -6,7 +6,7 @@ import { setFlash } from "./flash";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
-export async function costomSignOut() {
+export async function customSignOut() {
   const session = await auth();
   const headers: HeadersInit = {
     "Content-Type": "application/json",

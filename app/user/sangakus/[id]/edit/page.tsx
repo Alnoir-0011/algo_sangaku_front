@@ -1,4 +1,4 @@
-import { fetchUserSangaku } from "@/app/lib/data/sangaku";
+import { fetchUserSangaku, fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/sangaku/edit-form";
 import { Box } from "@mui/material";
@@ -16,7 +16,10 @@ export default async function Page(props: Props) {
   const params = await props.params;
   const id = params.id;
 
-  const sangaku = await fetchUserSangaku(id);
+  const [sangaku, initialUsage] = await Promise.all([
+    fetchUserSangaku(id),
+    fetchGenerateSourceUsage(),
+  ]);
 
   if (!sangaku) {
     notFound();
@@ -25,7 +28,7 @@ export default async function Page(props: Props) {
   return (
     <Box>
       <h2 style={{ marginTop: 0 }}>算額を編集する</h2>
-      <Form sangaku={sangaku} />
+      <Form sangaku={sangaku} initialUsage={initialUsage} />
     </Box>
   );
 }

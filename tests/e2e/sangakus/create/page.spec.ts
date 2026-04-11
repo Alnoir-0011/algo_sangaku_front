@@ -38,6 +38,12 @@ test.describe("/sangakus/create", () => {
               message: "success",
             });
           }),
+          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+            return HttpResponse.json(
+              { used: 0, limit: 5, remaining: 5, reset_at: "2026-04-12T18:00:00Z" },
+              { status: 200 },
+            );
+          }),
           // allow all non-mocked routes to pass through
           http.all("*", () => {
             return passthrough();
@@ -154,7 +160,10 @@ test.describe("/sangakus/create", () => {
       msw.use(
         http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
           return HttpResponse.json(
-            { source: generatedSource },
+            {
+              source: generatedSource,
+              usage: { used: 1, limit: 5, remaining: 4, reset_at: "2026-04-12T18:00:00Z" },
+            },
             { status: 200 },
           );
         }),
@@ -263,6 +272,99 @@ test.describe("/sangakus/create", () => {
       const sourceErrorMessage = page.getByLabel("sourceError");
       await expect(sourceErrorMessage).toBeVisible();
       await expect(sourceErrorMessage).toHaveText("を入力してください");
+    });
+
+    test("shows usage indicator with remaining count", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.waitForLoadState();
+
+      const usageIndicator = page.getByText(/本日の残り生成回数: 5 \/ 5/);
+      await expect(usageIndicator).toBeVisible();
+    });
+
+    test("updates usage count after successful generation", async ({ page, msw }) => {
+      const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
+
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+          return HttpResponse.json(
+            {
+              source: generatedSource,
+              usage: { used: 1, limit: 5, remaining: 4, reset_at: "2026-04-12T18:00:00Z" },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.waitForLoadState();
+
+      await page.getByLabel("問題文").fill("nを出力してください");
+      await page.getByRole("button", { name: "問題文からコードを生成" }).click();
+      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10000 });
+
+      const usageIndicator = page.getByText(/本日の残り生成回数: 4 \/ 5/);
+      await expect(usageIndicator).toBeVisible();
+    });
+
+    test("shows error message on 429 response", async ({ page, msw }) => {
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+          return HttpResponse.json({}, { status: 429 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.waitForLoadState();
+
+      await page.getByLabel("問題文").fill("問題文を入力");
+      await page.getByRole("button", { name: "問題文からコードを生成" }).click();
+
+      const errorMessage = page.getByLabel("generateErrorMessage");
+      await expect(errorMessage).toBeVisible({ timeout: 10000 });
+      await expect(errorMessage).toHaveText(
+        "本日の利用上限に達しました。明日 3 時以降に再度お試しください。",
+      );
+      await expect(
+        page.getByRole("button", { name: "問題文からコードを生成" }),
+      ).toBeDisabled();
+    });
+  });
+
+  test.describe("when daily limit is reached", () => {
+    test.use({
+      mswHandlers: [
+        [
+          http.get(`${apiUrl}/up`, () => {
+            return HttpResponse.json({ message: "success" });
+          }),
+          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+            return HttpResponse.json(
+              { used: 5, limit: 5, remaining: 0, reset_at: "2026-04-12T18:00:00Z" },
+              { status: 200 },
+            );
+          }),
+          http.all("*", () => passthrough()),
+        ],
+        { scope: "test" },
+      ],
+    });
+
+    test("generate button is disabled when remaining is 0", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.waitForLoadState();
+
+      await page.getByLabel("問題文").fill("問題文を入力");
+      const generateButton = page.getByRole("button", { name: "問題文からコードを生成" });
+      await expect(generateButton).toBeDisabled();
+
+      const usageIndicator = page.getByText(/本日の残り生成回数: 0 \/ 5/);
+      await expect(usageIndicator).toBeVisible();
     });
   });
 });

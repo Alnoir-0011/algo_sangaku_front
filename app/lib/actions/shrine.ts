@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "./flash";
 import { revalidatePath } from "next/cache";
-import { costomSignOut } from "./auth";
+import { customSignOut } from "./auth";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -42,7 +42,7 @@ export async function dedicateSangaku(
           message:
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         return false;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -88,7 +88,7 @@ export async function createSangakuSave(sangaku_id: string) {
           message:
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
     }
