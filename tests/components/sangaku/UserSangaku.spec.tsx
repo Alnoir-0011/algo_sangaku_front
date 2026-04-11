@@ -31,40 +31,39 @@ const sangaku: Sangaku = {
   },
 };
 
-// NOTE: server actionを含むためスキップ
-
-test.describe.skip("UserSangaku", () => {
+test.describe("UserSangaku", () => {
   test("has sangaku title", async ({ mount }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const title = component.getByRole("heading", { name: "test_title" });
     await expect(title).toBeVisible();
   });
 
-  test("has sangaku description", async ({ mount }) => {
-    const component = await mount(<UserSangaku sangaku={sangaku} />);
-    const description = component.getByRole("paragraph", { name: "test_desc" });
-    await expect(description).toBeVisible();
+  test("has sangaku description", async ({ mount, page }) => {
+    await mount(<UserSangaku sangaku={sangaku} />);
+    await expect(page.getByText("test_desc")).toBeVisible();
   });
 
-  test("has sangaku difficulty", async ({ mount }) => {
-    const component = await mount(<UserSangaku sangaku={sangaku} />);
-    const difficulty = component.getByRole("paragraph", { name: "普通" });
-    await expect(difficulty).toBeVisible();
+  test("has sangaku difficulty", async ({ mount, page }) => {
+    await mount(<UserSangaku sangaku={sangaku} />);
+    await expect(page.getByText("普通")).toBeVisible();
   });
 
-  test("has edit page link", async ({ mount }) => {
+  test("has edit page link", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const menuButton = component.getByTestId("MoreVertIcon");
     await menuButton.click();
-    const editLink = component.getByRole("link", { name: "編集" });
+    // MUI Menu は Portal でレンダリングされるため page スコープで検索する
+    // MenuItem は component={NextLink} でも role="menuitem" が付与される
+    const editLink = page.getByRole("menuitem", { name: "編集" });
     await expect(editLink).toBeVisible();
   });
 
-  test("has delete button", async ({ mount }) => {
+  test("has delete button", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const menuButton = component.getByTestId("MoreVertIcon");
     await menuButton.click();
-    const delteButton = component.getByRole("button", { name: "編集" });
-    await expect(delteButton).toBeVisible();
+    // MUI Menu は Portal でレンダリングされるため page スコープで検索する
+    const deleteButton = page.getByRole("menuitem", { name: "削除" });
+    await expect(deleteButton).toBeVisible();
   });
 });

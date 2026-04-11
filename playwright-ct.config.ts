@@ -35,9 +35,82 @@ export default defineConfig({
 
     ctViteConfig: {
       resolve: {
-        alias: {
-          "@/": path.join(__dirname, "./"),
-        },
+        alias: [
+          {
+            find: "next/navigation",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/navigation.ts",
+            ),
+          },
+          {
+            find: "@monaco-editor/react",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/monaco-editor.tsx",
+            ),
+          },
+          {
+            find: "@/app/lib/actions/auth",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/auth.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/actions/sangaku",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/sangaku.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/actions/shrine",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/shrine.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/actions/profile",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/profile.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/actions/flash",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/flash.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/data/answer",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/data/answer.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/data/shrine",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/data/shrine.ts",
+            ),
+          },
+          {
+            find: "@/app/lib/data/sangaku",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/data/sangaku.ts",
+            ),
+          },
+          {
+            find: "@/",
+            replacement: path.join(__dirname, "./"),
+          },
+        ],
       },
     },
   },

@@ -1,13 +1,18 @@
 import { test, expect } from "@playwright/experimental-ct-react";
+import type { Session } from "next-auth";
 import Drawer from "@/app/ui/navigation/Drawer";
-import { mockClientSession } from "../../__helpers__/signin";
 
-test.describe.skip("Drawer", () => {
+const mockSession: Session = {
+  user: {
+    name: "testuser",
+    email: "test_user@example.com",
+    image: "https://avatars.githubusercontent.com/u/000000",
+  },
+  expires: "dummy",
+};
+
+test.describe("Drawer", () => {
   test.describe("before login", () => {
-    test.beforeEach(async ({ page }) => {
-      await mockClientSession(page, null);
-    });
-
     test("has AppName", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -16,6 +21,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: null } },
       );
       const heading = component.getByRole("link", { name: "アルゴ算額" });
       await expect(heading).toBeVisible();
@@ -29,6 +35,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: null } },
       );
       const link = component.getByRole("link", { name: "神社を探す" });
       await expect(link).toBeVisible();
@@ -43,6 +50,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: null } },
       );
       const button = component.getByRole("button", { name: "サインイン" });
       await expect(button).toBeVisible();
@@ -56,6 +64,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: null } },
       );
       const link = component.getByRole("link", {
         name: "プライバシーポリシー",
@@ -72,6 +81,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: null } },
       );
       const link = component.getByRole("link", { name: "利用規約" });
       await expect(link).toBeVisible();
@@ -80,19 +90,6 @@ test.describe.skip("Drawer", () => {
   });
 
   test.describe("after login", () => {
-    test.beforeEach(async ({ page }) => {
-      const json = {
-        user: {
-          name: "testuser",
-          email: "test_user@example.com",
-          picture: "https://avatars.githubusercontent.com/u/000000",
-          nickname: "test nickname",
-        },
-        expires: "dummy",
-        idToken: "dummy",
-      };
-      await mockClientSession(page, json);
-    });
     test("has AppName", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -101,6 +98,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const heading = component.getByRole("link", { name: "アルゴ算額" });
       await expect(heading).toBeVisible();
@@ -114,13 +112,14 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "神社を探す" });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
-    test("has not link to SignIn page", async ({ mount }) => {
+    test("has not button to SignIn page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -128,10 +127,10 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
-      const link = component.getByRole("button", { name: "サインイン" });
-      await expect(link).not.toBeVisible();
-      // await expect(link).toHaveAttribute("href", "/login");
+      const button = component.getByRole("button", { name: "サインイン" });
+      await expect(button).not.toBeVisible();
     });
 
     test("has link to CreateSangaku page", async ({ mount }) => {
@@ -142,6 +141,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "算額を作る" });
       await expect(link).toBeVisible();
@@ -156,10 +156,11 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "算額を解く" });
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute("href", "/solve");
+      await expect(link).toHaveAttribute("href", "/saved_sangakus");
     });
 
     test("has link to ShowOwnSangaku page", async ({ mount }) => {
@@ -170,6 +171,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "自分の算額を見る" });
       await expect(link).toBeVisible();
@@ -184,13 +186,14 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "プロフィール編集" });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute("href", "/user/profile");
     });
 
-    test("has link to Logout", async ({ mount }) => {
+    test("has signout button", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -198,8 +201,9 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
-      const button = component.getByRole("button", { name: "ログアウト" });
+      const button = component.getByRole("button", { name: "サインアウト" });
       await expect(button).toBeVisible();
     });
 
@@ -211,6 +215,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", {
         name: "プライバシーポリシー",
@@ -227,6 +232,7 @@ test.describe.skip("Drawer", () => {
           handleDrawerTransitionEnd={() => {}}
           handleDrawerClose={() => {}}
         />,
+        { hooksConfig: { session: mockSession } },
       );
       const link = component.getByRole("link", { name: "利用規約" });
       await expect(link).toBeVisible();
