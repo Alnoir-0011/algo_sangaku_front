@@ -10,7 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
 import NextLink from "next/link";
-import { costomSignOut } from "@/app/lib/actions/auth";
+import { customSignOut } from "@/app/lib/actions/auth";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -36,7 +36,7 @@ export default function ResponsiveDrawer({
   const { data: session } = useSession();
   const handleSignout = async () => {
     if (window.confirm("サインアウトしますか？")) {
-      costomSignOut();
+      customSignOut();
     }
   };
 

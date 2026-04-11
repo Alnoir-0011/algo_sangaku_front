@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
-import { Difficulty } from "../definitions";
-import { costomSignOut } from "./auth";
+import { Difficulty, GenerateSourceUsage } from "../definitions";
+import { customSignOut } from "./auth";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -67,7 +67,7 @@ export const createSangaku = async (
           message:
             "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         return {} as State;
       case 400:
         const data = await res.json();
@@ -141,7 +141,7 @@ export const updateSangaku = async (
           message:
             "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         return {} as State;
       case 400:
         const data = await res.json();
@@ -194,7 +194,7 @@ export const deleteSangaku = async (id: string) => {
           message:
             "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         break;
       default:
     }
@@ -305,7 +305,13 @@ interface Details {
   result: "success" | "fail" | "error" | null;
 }
 
-export const generateSource = async (description: string) => {
+export const generateSource = async (
+  description: string,
+): Promise<{
+  source?: string;
+  errorMessage?: string;
+  usage?: GenerateSourceUsage;
+}> => {
   const session = await auth();
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
@@ -317,13 +323,27 @@ export const generateSource = async (description: string) => {
       body: JSON.stringify({ description }),
     });
 
-    if (!res.ok) throw new Error("コードの生成に失敗しました");
-    const data = await res.json();
-    return data.source as string;
+    switch (res.status) {
+      case 200: {
+        const data = await res.json();
+        return { source: data.source as string, usage: data.usage as GenerateSourceUsage };
+      }
+      case 401:
+        await customSignOut();
+        return {};
+      case 429:
+        return {
+          errorMessage:
+            "本日の利用上限に達しました。明日 3 時以降に再度お試しください。",
+        };
+      default:
+        return { errorMessage: "コードの生成に失敗しました" };
+    }
   } catch (e) {
     if (isRedirectError(e)) {
       throw e;
     }
+    return { errorMessage: "コードの生成に失敗しました" };
   }
 };
 

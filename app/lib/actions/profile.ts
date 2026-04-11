@@ -4,7 +4,7 @@ import { auth, unstable_update } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
-import { costomSignOut } from "./auth";
+import { customSignOut } from "./auth";
 import { User } from "../definitions";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
@@ -57,7 +57,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
           message:
             "セッションの有効期限が切れています。\n再度サインインしてください",
         });
-        await costomSignOut();
+        await customSignOut();
         return {} as State;
       case 400:
         const data = await res.json();

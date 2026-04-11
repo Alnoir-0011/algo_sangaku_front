@@ -23,13 +23,18 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import type { Difficulty } from "@/app/lib/definitions";
+import type { Difficulty, GenerateSourceUsage } from "@/app/lib/definitions";
+import GenerateSourceUsageIndicator from "@/app/ui/sangaku/generate-source-usage-indicator";
 
 const initialState: State = { errors: {} };
 const initialSource = "# 対応言語: Ruby\ninput = gets.chomp\nputs input";
 const DESCRIPTION_MAX_LENGTH = 2000;
 
-export default function Page() {
+interface Props {
+  initialUsage: GenerateSourceUsage | undefined;
+}
+
+export default function Page({ initialUsage }: Props) {
   const [state, formAction] = useActionState(postSangakuAction, initialState);
   const [source, setSource] = useState(initialSource);
   const [description, setDescription] = useState("");
@@ -37,6 +42,8 @@ export default function Page() {
   const [difficulty, setDifficulty] = useState<Difficulty>("nomal");
   const [modalOpen, setModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [usage, setUsage] = useState<GenerateSourceUsage | undefined>(initialUsage);
+  const [generateErrorMessage, setGenerateErrorMessage] = useState<string | undefined>(undefined);
 
   async function postSangakuAction(prevState: State, formData: FormData) {
     const result = await createSangaku(
@@ -67,11 +74,19 @@ export default function Page() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
     setIsGenerating(true);
-    const generated = await generateSource(description);
-    if (generated) {
-      setSource(generated);
+    setGenerateErrorMessage(undefined);
+    try {
+      const result = await generateSource(description);
+      if (result.source) setSource(result.source);
+      if (result.usage) {
+        setUsage(result.usage);
+      } else if (result.errorMessage) {
+        setUsage((prev) => (prev ? { ...prev, remaining: 0 } : prev));
+      }
+      if (result.errorMessage) setGenerateErrorMessage(result.errorMessage);
+    } finally {
+      setIsGenerating(false);
     }
-    setIsGenerating(false);
   };
 
   return (
@@ -165,17 +180,25 @@ export default function Page() {
               }}
             >
               <Typography component="span">ソースコード</Typography>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={handleGenerate}
-                disabled={isGenerating || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH}
-                startIcon={
-                  isGenerating ? <CircularProgress size={14} /> : undefined
-                }
-              >
-                問題文からコードを生成
-              </Button>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5 }}>
+                <GenerateSourceUsageIndicator usage={usage} />
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !description.trim() || description.length > DESCRIPTION_MAX_LENGTH || usage?.remaining === 0}
+                  startIcon={
+                    isGenerating ? <CircularProgress size={14} /> : undefined
+                  }
+                >
+                  問題文からコードを生成
+                </Button>
+                {generateErrorMessage && (
+                  <Typography variant="caption" sx={{ color: "error.main" }} aria-label="generateErrorMessage">
+                    {generateErrorMessage}
+                  </Typography>
+                )}
+              </Box>
             </Box>
             <Editor
               theme="vs-dark"
