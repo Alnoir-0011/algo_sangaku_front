@@ -1,16 +1,5 @@
 import { test, expect } from "@playwright/experimental-ct-react";
-import { useState } from "react";
-import FixedInputField from "@/app/ui/sangaku/FixedInputField";
-
-function FixedInputFieldWrapper({ initial }: { initial: string[] }) {
-  const [fixedInputs, setFixedInputs] = useState(initial);
-  return (
-    <FixedInputField
-      fixedInputs={fixedInputs}
-      setFixedInputs={setFixedInputs}
-    />
-  );
-}
+import { FixedInputFieldWrapper } from "./FixedInputFieldStories";
 
 test.describe("FixedInputField", () => {
   test("renders input fields", async ({ mount }) => {
