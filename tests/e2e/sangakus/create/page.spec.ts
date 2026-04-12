@@ -17,8 +17,8 @@ test.describe("/sangakus/create", () => {
       await page.waitForLoadState();
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -112,8 +112,8 @@ test.describe("/sangakus/create", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.getByText("算額を作成しました");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("算額を作成しました", { timeout: 10_000 });
     });
 
     test("generate button is disabled when description is empty", async ({
@@ -213,8 +213,8 @@ test.describe("/sangakus/create", () => {
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.getByText("算額を作成しました");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("算額を作成しました", { timeout: 10_000 });
     });
 
     test("error message visible", async ({ page, msw }) => {

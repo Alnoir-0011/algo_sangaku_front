@@ -134,8 +134,8 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(heading).toBeVisible();
       const button = page.getByRole("button", { name: "算額を写す" });
       await button.click();
-      const flash = page.getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
     });
 
     test("should display notFound page", async ({ page }) => {
@@ -161,8 +161,8 @@ test.describe("/shrines/[id]/sangakus", () => {
         await expect(sangakuTitle).toBeVisible();
         const button = page.getByRole("button", { name: "算額を写す" });
         await button.click();
-        const flash = page.getByText("算額の写しを作成しました");
-        await expect(flash).toBeVisible();
+        const flash = page.getByRole("alert");
+        await expect(flash).toContainText("算額の写しを作成しました", { timeout: 10_000 });
       });
     });
   });

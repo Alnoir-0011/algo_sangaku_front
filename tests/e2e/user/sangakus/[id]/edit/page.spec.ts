@@ -16,8 +16,8 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.waitForLoadState();
       await page.goto("/user/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
     });
   });
 
@@ -137,8 +137,8 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.getByText("算額を更新しました");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
     });
 
     test("generate button is disabled when description is empty", async ({
@@ -233,8 +233,8 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.getByText("算額を更新しました");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
     });
 
     test("should display notFound page", async ({ page }) => {

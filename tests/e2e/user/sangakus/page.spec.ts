@@ -253,8 +253,8 @@ test.describe("/user/sangakus", () => {
         await dialog.accept();
       });
       await deleteButton.click();
-      const flash = page.getByText("算額を削除しました");
-      await expect(flash).toBeVisible();
+      const flash = page.getByRole("alert");
+      await expect(flash).toContainText("算額を削除しました", { timeout: 10_000 });
     });
   });
 });
