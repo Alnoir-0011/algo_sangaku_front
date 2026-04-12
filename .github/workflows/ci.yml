@@ -79,7 +79,9 @@ jobs:
       - name: Create AuthSecret
         run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
       - name: Run Playwright tests
-        run: pnpm run test:e2e -- --project=${{ matrix.project }}
+        env:
+          APP_ENV: test
+        run: pnpm exec playwright test --project=${{ matrix.project }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
