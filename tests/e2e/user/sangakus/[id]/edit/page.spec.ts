@@ -1,4 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
+import { waitForInteractive } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -154,12 +155,13 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       // 初期値（"test_description"）が入っているのでボタンは有効
       const generateButton = page.getByRole("button", {
         name: "問題文からコードを生成",
       });
-      await expect(generateButton).toBeEnabled();
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
 
       // 問題文を空にするとボタンが無効になる
       await page.getByLabel("問題文").fill("");
@@ -167,7 +169,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
       // 再度入力するとボタンが有効になる
       await page.getByLabel("問題文").fill("問題文を入力");
-      await expect(generateButton).toBeEnabled();
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
     });
 
     test("can generate source code from description", async ({ page, msw }) => {
@@ -206,11 +208,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       const generateButton = page.getByRole("button", {
         name: "問題文からコードを生成",
       });
-      await expect(generateButton).toBeEnabled();
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
       await generateButton.click();
 
       // ローディング完了後にボタンが再び有効になる
@@ -274,6 +277,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       await expect(page.getByLabel("問題文")).toHaveValue("test_description");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
@@ -293,6 +297,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
 

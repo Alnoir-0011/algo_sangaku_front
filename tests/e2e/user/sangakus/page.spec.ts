@@ -1,4 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
+import { waitForInteractive } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -209,6 +210,7 @@ test.describe("/user/sangakus", () => {
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
       await expect(sangakuTitle).toBeVisible();
       const menuButton = page.getByTestId("MoreVertIcon");
+      await waitForInteractive(menuButton);
       await menuButton.click();
       const editLink = page.getByRole("menuitem", { name: "編集" });
       await expect(editLink).toBeVisible();

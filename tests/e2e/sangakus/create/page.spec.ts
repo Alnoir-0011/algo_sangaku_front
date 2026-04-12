@@ -1,4 +1,5 @@
 import { setSession } from "../../../__helpers__/signin";
+import { waitForInteractive } from "../../../__helpers__/hydration";
 
 import {
   test,
@@ -122,6 +123,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       const generateButton = page.getByRole("button", {
         name: "問題文からコードを生成",
@@ -131,7 +133,7 @@ test.describe("/sangakus/create", () => {
       await page
         .getByLabel("問題文")
         .fill("1からnまでの合計を出力してください");
-      await expect(generateButton).toBeEnabled();
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
 
       await page.getByLabel("問題文").fill("");
       await expect(generateButton).toBeDisabled();
@@ -175,6 +177,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("タイトル").fill("test_title");
       await page
@@ -301,6 +304,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("問題文").fill("nを出力してください");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
@@ -320,6 +324,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("問題文").fill("問題文を入力");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
