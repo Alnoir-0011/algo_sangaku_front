@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, MouseEvent } from "react";
+import { useState, useTransition, MouseEvent } from "react";
 import type { Sangaku } from "@/app/lib/definitions";
 import { deleteSangaku } from "@/app/lib/actions/sangaku";
 import Menu from "@mui/material/Menu";
@@ -16,6 +16,7 @@ interface Props {
 
 export default function MenuButton({ sangaku }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isPending, startTransition] = useTransition();
   const open = Boolean(anchorEl);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget.parentElement);
@@ -26,7 +27,9 @@ export default function MenuButton({ sangaku }: Props) {
 
   const deleteSangakuWithId = () => {
     if (window.confirm("本当に削除しますか?")) {
-      deleteSangaku(sangaku.id);
+      startTransition(async () => {
+        await deleteSangaku(sangaku.id);
+      });
     }
   };
 
@@ -61,7 +64,7 @@ export default function MenuButton({ sangaku }: Props) {
         >
           編集
         </MenuItem>
-        <MenuItem component="button" onClick={deleteSangakuWithId}>
+        <MenuItem component="button" onClick={deleteSangakuWithId} disabled={isPending}>
           削除
         </MenuItem>
 

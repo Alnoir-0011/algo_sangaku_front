@@ -5,20 +5,30 @@ import { consumeFlash, Flash } from "@/app/lib/actions/flash";
 import FlashMessagePresentation from "@/app/ui/flash/FlashMessagePresentation";
 import { v4 as uuid } from "uuid";
 
-export default function FlashMessageContainer() {
+type Props = {
+  refreshKey: number;
+};
+
+export default function FlashMessageContainer({ refreshKey }: Props) {
   const [flash, setFlash] = useState<(Flash & { key: string }) | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     consumeFlash()
       .then((data) => {
-        if (data) {
+        if (!cancelled && data) {
           setFlash({ ...data, key: uuid() });
         }
       })
       .catch((error) => {
-        console.error("Error in FlashMessage component:", error);
+        if (!cancelled) {
+          console.error("Error in FlashMessage component:", error);
+        }
       });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
 
   if (!flash) {
     return null;

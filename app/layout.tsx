@@ -50,7 +50,7 @@ export default function RootLayout({
         <body className={roboto.variable}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
-              <FlashMessage />
+              <FlashMessage refreshKey={Date.now()} />
               <Box sx={{ display: "flex" }}>
                 <CssBaseline />
                 <ResponsiveNav drawerWidth={240} />
