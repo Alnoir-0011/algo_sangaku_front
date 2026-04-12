@@ -17,7 +17,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.waitForLoadState();
       await page.goto("/user/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
     });
   });
@@ -138,7 +138,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
     });
 
@@ -236,7 +236,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
     });
 

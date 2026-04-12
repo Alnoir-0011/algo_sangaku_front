@@ -190,8 +190,8 @@ test.describe("/user/sangakus", () => {
       await page.waitForLoadState();
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert").getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live])');
+      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -255,7 +255,7 @@ test.describe("/user/sangakus", () => {
         await dialog.accept();
       });
       await deleteButton.click();
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("算額を削除しました", { timeout: 10_000 });
     });
   });

@@ -16,8 +16,8 @@ test.describe("/saved_sangakus", () => {
       await page.waitForLoadState();
       await page.goto("/answers");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert").getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live])');
+      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
     });
   });
 

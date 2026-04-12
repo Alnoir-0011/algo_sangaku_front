@@ -16,7 +16,7 @@ test.describe("/user/sangakus", () => {
       await page.waitForLoadState();
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
@@ -64,7 +64,7 @@ test.describe("/user/sangakus", () => {
       const button = page.getByRole("button", { name: "更新する" });
       await button.click();
       await expect(page).toHaveURL("/");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("プロフィールを更新しました", { timeout: 10_000 });
     });
   });

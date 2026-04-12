@@ -22,7 +22,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await page.waitForLoadState();
       await page.goto("/shrines/1/dedicate");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
@@ -151,7 +151,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       const button = modal.getByRole("button", { name: "この算額を奉納する" });
       await button.click();
       await expect(page).toHaveURL("/shrines/1/dedicate");
-      const flash = page.getByRole("alert");
+      const flash = page.locator('[role="alert"]:not([aria-live])');
       await expect(flash).toContainText("算額を奉納しました", { timeout: 10_000 });
       const shareButton = page.getByRole("link", { name: "でシェア" });
       await expect(shareButton).toBeVisible();
