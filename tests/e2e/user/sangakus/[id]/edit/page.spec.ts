@@ -17,8 +17,9 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.waitForLoadState();
       await page.goto("/user/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
     });
   });
 
@@ -123,7 +124,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByLabel("問題文").fill("changed_description");
       const monacoEditor = page.locator(".monaco-editor").nth(0);
       await monacoEditor.click();
-      await page.keyboard.press("Meta+KeyA");
+      await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
       await page.keyboard.type("input = gets.chomp");
       await page.keyboard.press("Enter");
@@ -138,8 +139,9 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を更新しました");
     });
 
     test("generate button is disabled when description is empty", async ({
@@ -225,6 +227,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
           (window as unknown as { monaco?: { editor?: { getModels?: () => { getValue?: () => string }[] } } }).monaco?.editor?.getModels?.() || [];
         return models[0]?.getValue?.() || "";
       });
+      expect(editorContent).not.toBe("");
       expect(editorContent).toContain("対応言語: Ruby");
 
       // 確認画面を通じて保存できる
@@ -236,14 +239,15 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("算額を更新しました", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を更新しました");
     });
 
     test("should display notFound page", async ({ page }) => {
       await setSession(page);
 
-      page.goto("/user/sangakus/999/edit");
+      await page.goto("/user/sangakus/999/edit");
       const message = page.getByRole("heading", {
         name: "This page could not be found.",
       });

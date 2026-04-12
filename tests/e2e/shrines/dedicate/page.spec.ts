@@ -22,8 +22,9 @@ test.describe("/shrines/[id]/dedicate", () => {
       await page.waitForLoadState();
       await page.goto("/shrines/1/dedicate");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -151,8 +152,9 @@ test.describe("/shrines/[id]/dedicate", () => {
       const button = modal.getByRole("button", { name: "この算額を奉納する" });
       await button.click();
       await expect(page).toHaveURL("/shrines/1/dedicate");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("算額を奉納しました", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を奉納しました");
       const shareButton = page.getByRole("link", { name: "でシェア" });
       await expect(shareButton).toBeVisible();
     });
@@ -160,7 +162,7 @@ test.describe("/shrines/[id]/dedicate", () => {
     test("should display notFound page", async ({ page }) => {
       await setSession(page);
 
-      page.goto("/shrines/999/dedicate");
+      await page.goto("/shrines/999/dedicate");
       const message = page.getByRole("heading", {
         name: "This page could not be found.",
       });

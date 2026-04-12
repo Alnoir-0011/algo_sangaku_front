@@ -16,8 +16,9 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await page.waitForLoadState();
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
     });
   });
 
@@ -230,7 +231,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
         await monacoEditor.click();
-        await page.keyboard.press("Meta+KeyA");
+        await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");
         await page.keyboard.type("input = gets.chomp");
         await page.keyboard.press("Enter");
@@ -269,7 +270,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
         await monacoEditor.click();
-        await page.keyboard.press("Meta+KeyA");
+        await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");
         const button = page.getByRole("button", { name: "解答を終了する" });
         page.once("dialog", async (dialog) => {

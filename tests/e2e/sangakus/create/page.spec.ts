@@ -18,8 +18,9 @@ test.describe("/sangakus/create", () => {
       await page.waitForLoadState();
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("サインインしてください", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -98,7 +99,7 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
       const monacoEditor = page.locator(".monaco-editor").nth(0);
       await monacoEditor.click();
-      await page.keyboard.press("Meta+KeyA");
+      await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
       await page.keyboard.type("input = gets.chomp");
       await page.keyboard.press("Enter");
@@ -113,8 +114,9 @@ test.describe("/sangakus/create", () => {
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("算額を作成しました", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を作成しました");
     });
 
     test("generate button is disabled when description is empty", async ({
@@ -205,6 +207,7 @@ test.describe("/sangakus/create", () => {
           ).monaco?.editor?.getModels?.() || [];
         return models[0]?.getValue?.() || "";
       });
+      expect(editorContent).not.toBe("");
       expect(editorContent).toContain("対応言語: Ruby");
 
       // 確認画面を通じて保存できる
@@ -216,8 +219,9 @@ test.describe("/sangakus/create", () => {
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.locator('[role="alert"]:not([aria-live])');
-      await expect(flash).toContainText("算額を作成しました", { timeout: 10_000 });
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を作成しました");
     });
 
     test("error message visible", async ({ page, msw }) => {
@@ -251,7 +255,7 @@ test.describe("/sangakus/create", () => {
       // NOTE: monaco-editorの操作
       const monacoEditor = page.locator(".monaco-editor").nth(0);
       await monacoEditor.click();
-      await page.keyboard.press("Meta+KeyA");
+      await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
       await page.getByRole("button", { name: "確認画面へ" }).click();
       await page.waitForLoadState();
