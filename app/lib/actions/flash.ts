@@ -7,18 +7,6 @@ export type Flash = {
   message: string;
 };
 
-export async function getFlash(): Promise<Flash | null> {
-  const cookieStore = await cookies();
-  const flashCookie = cookieStore.get("flash");
-
-  if (!flashCookie) {
-    return null;
-  }
-
-  const flashData = JSON.parse(flashCookie.value) as Flash;
-  return flashData;
-}
-
 export async function consumeFlash(): Promise<Flash | null> {
   const cookieStore = await cookies();
   const flashCookie = cookieStore.get("flash");

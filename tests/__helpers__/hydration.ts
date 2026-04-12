@@ -6,7 +6,7 @@ import { Page, Locator } from "@playwright/test";
  * 実際の enabled/disabled 確認は呼び出し側で toBeEnabled({ timeout: 10_000 }) を使うこと。
  */
 export async function waitForInteractive(locator: Locator) {
-  await locator.waitFor({ state: "visible" });
+  await locator.waitFor({ state: "visible", timeout: 10_000 });
 }
 
 /**
