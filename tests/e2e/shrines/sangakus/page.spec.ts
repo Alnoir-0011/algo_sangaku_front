@@ -134,8 +134,9 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(heading).toBeVisible();
       const button = page.getByRole("button", { name: "算額を写す" });
       await button.click();
-      const flash = page.getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
     });
 
     test("should display notFound page", async ({ page }) => {
@@ -145,25 +146,26 @@ test.describe("/shrines/[id]/sangakus", () => {
       });
       await expect(message).toBeVisible();
     });
+  });
 
-    test.describe("after signin", () => {
-      test("should allow me to create sangakuSave", async ({ page }) => {
-        await setSession(page);
+  test.describe("after signin", () => {
+    test("should allow me to create sangakuSave", async ({ page }) => {
+      await setSession(page);
 
-        await page.goto("/shrines/1/sangakus");
-        const heading = page.getByRole("heading", {
-          name: "test_shrineの算額一覧",
-        });
-        await expect(heading).toBeVisible();
-        const sangakuTitle = page.getByRole("heading", {
-          name: "test_title",
-        });
-        await expect(sangakuTitle).toBeVisible();
-        const button = page.getByRole("button", { name: "算額を写す" });
-        await button.click();
-        const flash = page.getByText("算額の写しを作成しました");
-        await expect(flash).toBeVisible();
+      await page.goto("/shrines/1/sangakus");
+      const heading = page.getByRole("heading", {
+        name: "test_shrineの算額一覧",
       });
+      await expect(heading).toBeVisible();
+      const sangakuTitle = page.getByRole("heading", {
+        name: "test_title",
+      });
+      await expect(sangakuTitle).toBeVisible();
+      const button = page.getByRole("button", { name: "算額を写す" });
+      await button.click();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額の写しを作成しました");
     });
   });
 });

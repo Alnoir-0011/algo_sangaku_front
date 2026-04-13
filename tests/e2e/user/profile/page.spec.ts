@@ -9,15 +9,16 @@ import {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-test.describe("/user/sangakus", () => {
-  test.describe("before singin", () => {
+test.describe("/user/profile", () => {
+  test.describe("before signin", () => {
     test("should not allow me to visit edit profile page", async ({ page }) => {
       await page.goto("/");
       await page.waitForLoadState();
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -64,8 +65,9 @@ test.describe("/user/sangakus", () => {
       const button = page.getByRole("button", { name: "更新する" });
       await button.click();
       await expect(page).toHaveURL("/");
-      const flash = page.getByText("プロフィールを更新しました");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("プロフィールを更新しました");
     });
   });
 });

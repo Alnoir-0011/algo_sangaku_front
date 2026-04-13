@@ -185,9 +185,8 @@ export const deleteSangaku = async (id: string) => {
 
     switch (res.status) {
       case 200:
-        revalidatePath("/user/sangakus");
         await setFlash({ type: "success", message: "算額を削除しました" });
-        break;
+        redirect("/user/sangakus");
       case 401:
         await setFlash({
           type: "error",

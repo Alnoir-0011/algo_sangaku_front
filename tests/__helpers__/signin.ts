@@ -9,6 +9,7 @@ export const setSession = async (page: Page) => {
   await page.getByRole("button", { name: "Sign in with Credentials" }).click();
 };
 
+// Note: コンポーネントテスト用
 export const mockClientSession = async (page: Page, json: Session | null) => {
   await page.route("http://localhost:3100/api/auth/session", async (route) => {
     await route.fulfill({ json });

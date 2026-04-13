@@ -23,14 +23,18 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* CI では matrix 分割で各ジョブが独立して実行されるため workers 制限は不要 */
+  workers: undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
   webServer: {
-    command: "rm -rf .next && pnpm run build && pnpm run start -p 4020",
+    // CI では build ジョブで生成した .next を artifact 経由で受け取り start のみ実行する
+    // ローカルでは毎回クリーンビルドしてから起動する
+    command: process.env.CI
+      ? "pnpm run start -p 4020"
+      : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
     url: "http://localhost:4020",
     reuseExistingServer: false,
   },
@@ -39,8 +43,8 @@ export default defineConfig({
     // baseURL: 'http://127.0.0.1:3000',
     baseURL: "http://localhost:4020",
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
+    /* Collect trace on failure (failure 数が減った後のフレーク調査を容易にする) */
+    trace: "retain-on-failure",
   },
 
   /* Configure projects for major browsers */

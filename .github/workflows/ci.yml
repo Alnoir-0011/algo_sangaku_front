@@ -28,9 +28,38 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-  e2etest:
-    timeout-minutes: 60
+  build:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install -g pnpm && pnpm install
+      - name: copy env.template
+        run: cp env.template .env
+      - name: Create AuthSecret
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
+      - name: Build Next.js
+        run: pnpm run build
+      - name: Upload .next
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: .next/
+          retention-days: 1
+          include-hidden-files: true
+
+  e2etest:
+    needs: build
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,16 +69,23 @@ jobs:
         run: npm install -g pnpm && pnpm install
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+      - name: Download .next
+        uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next/
       - name: copy env.template
         run: cp env.template .env
       - name: Create AuthSecret
         run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
       - name: Run Playwright tests
-        run: pnpm run test:e2e
+        env:
+          APP_ENV: test
+        run: pnpm exec playwright test --project=${{ matrix.project }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-e2e
+          name: playwright-report-e2e-${{ matrix.project }}
           path: playwright-report/
           retention-days: 30
 

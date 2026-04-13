@@ -1,4 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
+import { waitForInteractive } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -189,8 +190,9 @@ test.describe("/user/sangakus", () => {
       await page.waitForLoadState();
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert").getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
@@ -202,13 +204,14 @@ test.describe("/user/sangakus", () => {
   });
 
   test.describe("after signin", () => {
-    test("shuoud allow me to show own sangakus", async ({ page }) => {
+    test("should allow me to show own sangakus", async ({ page }) => {
       await setSession(page);
 
       await page.goto("/user/sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
       await expect(sangakuTitle).toBeVisible();
       const menuButton = page.getByTestId("MoreVertIcon");
+      await waitForInteractive(menuButton);
       await menuButton.click();
       const editLink = page.getByRole("menuitem", { name: "編集" });
       await expect(editLink).toBeVisible();
@@ -253,8 +256,9 @@ test.describe("/user/sangakus", () => {
         await dialog.accept();
       });
       await deleteButton.click();
-      const flash = page.getByText("算額を削除しました");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を削除しました");
     });
   });
 });

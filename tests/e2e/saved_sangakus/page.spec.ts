@@ -10,14 +10,15 @@ import {
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 test.describe("/saved_sangakus", () => {
-  test.describe("before singin", () => {
+  test.describe("before signin", () => {
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
       await page.goto("/");
       await page.waitForLoadState();
-      await page.goto("/answers");
+      await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.getByRole("alert").getByText("サインインしてください");
-      await expect(flash).toBeVisible();
+      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
     });
   });
 

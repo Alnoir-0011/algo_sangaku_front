@@ -52,10 +52,14 @@ export default auth(async (req) => {
   //
   // return null;
 
+  const isPrefetch = req.headers.get("Next-Router-Prefetch") === "1";
+
   if (!isApiAuthRoute) {
     if (!isAuthRoute) {
       if (!isLoggedIn && !isPublicRoute) {
-        await setFlash({ type: "warning", message: "サインインしてください" });
+        if (!isPrefetch) {
+          await setFlash({ type: "warning", message: "サインインしてください" });
+        }
         return Response.redirect(new URL("/signin", nextUrl));
       }
     } else {

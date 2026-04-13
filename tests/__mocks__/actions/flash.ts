@@ -1,4 +1,4 @@
-export type FlashType = "error" | "info" | "success" | "warning";
+export type { FlashType, Flash } from "@/app/lib/actions/flash";
 
 export const setFlash = async () => {};
-export const getFlash = async () => null;
+export const consumeFlash = async () => null;
