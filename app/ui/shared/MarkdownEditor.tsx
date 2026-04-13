@@ -77,6 +77,11 @@ export default function MarkdownEditor({
               ...panelSx,
               alignItems: "flex-start",
             },
+            "& .MuiInputBase-input": {
+              height: "100% !important",
+              overflowY: "auto !important",
+              boxSizing: "border-box",
+            },
           }}
         />
       ) : (
@@ -86,7 +91,7 @@ export default function MarkdownEditor({
             border: 1,
             borderColor: "rgba(0,0,0,0.23)",
             borderRadius: "4px",
-            p: 2,
+            p: 1,
           }}
         >
           {value ? (
