@@ -5,6 +5,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "./flash";
 import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -14,11 +15,6 @@ export async function dedicateSangaku(
   location: { lat: number; lng: number },
 ) {
   const session = await auth();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   const params = { shrine_id, ...location };
 
   try {
@@ -26,7 +22,7 @@ export async function dedicateSangaku(
       `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/dedicate`,
       {
         method: "POST",
-        headers,
+        headers: buildHeaders(session?.accessToken),
         body: JSON.stringify(params),
       },
     );
@@ -63,15 +59,11 @@ export async function createSangakuSave(sangaku_id: string) {
     setFlash({ type: "error", message: "サインインしてください" });
     return null;
   }
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
 
   try {
     const res = await fetch(`${apiUrl}/api/v1/sangakus/${sangaku_id}/save`, {
       method: "POST",
-      headers,
+      headers: buildHeaders(session?.accessToken),
     });
 
     switch (res.status) {

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { Difficulty, GenerateSourceUsage } from "../definitions";
 import { customSignOut } from "./auth";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -35,10 +36,6 @@ export const createSangaku = async (
   const session = await auth();
   const title = formData.get("title");
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
   const params = {
     sangaku: {
       title,
@@ -52,7 +49,7 @@ export const createSangaku = async (
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/sangakus`, {
       method: "POST",
-      headers,
+      headers: buildHeaders(session?.accessToken),
       body: JSON.stringify(params),
     });
 
@@ -109,10 +106,6 @@ export const updateSangaku = async (
 
   const title = formData.get("title");
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
   const params = {
     sangaku: {
       title,
@@ -126,7 +119,7 @@ export const updateSangaku = async (
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
       method: "PATCH",
-      headers,
+      headers: buildHeaders(session?.accessToken),
       body: JSON.stringify(params),
     });
 
@@ -172,15 +165,11 @@ export const updateSangaku = async (
 
 export const deleteSangaku = async (id: string) => {
   const session = await auth();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
 
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
       method: "DELETE",
-      headers,
+      headers: buildHeaders(session?.accessToken),
     });
 
     switch (res.status) {
@@ -315,10 +304,7 @@ export const generateSource = async (
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.accessToken}`,
-      },
+      headers: buildHeaders(session?.accessToken),
       body: JSON.stringify({ description }),
     });
 

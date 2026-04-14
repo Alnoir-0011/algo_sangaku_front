@@ -6,6 +6,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -19,11 +20,6 @@ export type State = {
 export const createAnswer = async (sangaku_id: string, source: string) => {
   const session = await auth();
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   const params = {
     source,
   };
@@ -33,7 +29,7 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
       `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/answers`,
       {
         method: "POST",
-        headers,
+        headers: buildHeaders(session?.accessToken),
         body: JSON.stringify(params),
       },
     );

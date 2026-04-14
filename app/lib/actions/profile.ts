@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { User } from "../definitions";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -25,11 +26,6 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
 
   const nickname = formData.get("nickname");
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   const params = {
     user: { nickname },
   };
@@ -37,7 +33,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/profile`, {
       method: "PATCH",
-      headers,
+      headers: buildHeaders(session?.accessToken),
       body: JSON.stringify(params),
     });
 

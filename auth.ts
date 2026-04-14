@@ -5,6 +5,7 @@ import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 
 import { setFlash } from "@/app/lib/actions/flash";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -68,7 +69,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       try {
         const response = await fetch(`${apiUrl}/api/v1/authenticate`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: buildHeaders(),
           body: JSON.stringify({ token: idToken }),
         });
 
