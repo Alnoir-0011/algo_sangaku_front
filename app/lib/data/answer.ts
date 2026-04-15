@@ -3,20 +3,16 @@
 import { auth } from "@/auth";
 import type { Answer, AnswerResult } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
 export const fetchUserAnswer = async (id: string) => {
   const session = await auth();
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   try {
     const res = await fetch(`${apiUrl}/api/v1/user/answers/${id}`, {
-      headers,
+      headers: buildHeaders(session?.accessToken),
     });
 
     switch (res.status) {
@@ -40,16 +36,11 @@ export const fetchUserAnswer = async (id: string) => {
 export const fetchUserAnswerWithSangakuId = async (sangaku_id: string) => {
   const session = await auth();
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   try {
     const res = await fetch(
       `${apiUrl}/api/v1/user/saved_sangakus/${sangaku_id}/answer`,
       {
-        headers,
+        headers: buildHeaders(session?.accessToken),
       },
     );
 
@@ -74,15 +65,10 @@ export const fetchUserAnswerWithSangakuId = async (sangaku_id: string) => {
 export const fetchUserAnswerResult = async (id: string) => {
   const session = await auth();
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.accessToken}`,
-  };
-
   try {
     while (true) {
       const res = await fetch(`${apiUrl}/api/v1/user/answer_results/${id}`, {
-        headers,
+        headers: buildHeaders(session?.accessToken),
         cache: "no-store",
       });
 
