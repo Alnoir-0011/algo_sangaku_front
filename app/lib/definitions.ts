@@ -25,7 +25,7 @@ export type Sangaku = {
   };
 };
 
-export type Difficulty = "easy" | "nomal" | "difficult" | "very_difficult";
+export type Difficulty = "easy" | "normal" | "difficult" | "very_difficult";
 
 type input = {
   id: number;
@@ -112,4 +112,36 @@ export type GenerateSourceUsage = {
   limit: number;
   remaining: number;
   reset_at: string;
+};
+
+export type MyProfile = {
+  id: string;
+  type: "my_profile";
+  attributes: {
+    email: string;
+    nickname: string;
+    show_answer_count: boolean;
+    created_at: string;
+    sangaku_count: number;
+    dedicated_sangaku_count: number;
+    saved_sangaku_count: number;
+    answer_count: number;
+  };
+};
+
+export type PublicProfile = {
+  id: string;
+  type: "profile";
+  attributes: {
+    nickname: string;
+    created_at: string;
+    sangaku_count: number;
+    dedicated_sangaku_count: number;
+    answer_count: number | null;
+    dedicated_sangakus: {
+      id: number;
+      title: string;
+      shrine_name: string;
+    }[];
+  };
 };

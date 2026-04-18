@@ -2,13 +2,14 @@
 
 import { auth, unstable_update } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { User } from "../definitions";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+const apiUrl = process.env.API_URL!;
 
 export type State = {
   errors?: {
@@ -24,7 +25,8 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
   const session = await auth();
   const user = session?.user;
 
-  const nickname = formData.get("nickname");
+  const raw = formData.get("nickname");
+  const nickname = typeof raw === "string" ? raw : undefined;
 
   const params = {
     user: { nickname },
@@ -46,7 +48,8 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
           type: "success",
           message: "プロフィールを更新しました",
         });
-        redirect("/");
+        revalidatePath("/user/profile");
+        redirect("/user/profile");
       case 401:
         await setFlash({
           type: "error",
@@ -58,15 +61,16 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
       case 400:
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
+        const errors = Array.isArray(data.errors)
+          ? Object.fromEntries(data.errors)
+          : {};
         return {
-          errors: Object.fromEntries(data.errors),
-          // message: "入力に誤りがあります",
+          errors,
           values: { nickname },
         } as State;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
-          // message: "リクエストに失敗しました",
           values: { nickname },
         } as State;
     }
@@ -76,8 +80,37 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
     }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
-      // message: "予期せぬエラーが発生しました",
       values: { nickname },
     } as State;
+  }
+};
+
+export const updateShowAnswerCount = async (
+  showAnswerCount: boolean,
+): Promise<{ success: boolean }> => {
+  const session = await auth();
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/user/profile`, {
+      method: "PATCH",
+      headers: buildHeaders(session?.accessToken),
+      body: JSON.stringify({ user: { show_answer_count: showAnswerCount } }),
+    });
+
+    if (res.status === 200) {
+      await setFlash({ type: "success", message: "プライバシー設定を更新しました" });
+      return { success: true };
+    }
+    if (res.status === 401) {
+      await customSignOut();
+    }
+    await setFlash({ type: "error", message: "設定の更新に失敗しました" });
+    return { success: false };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return { success: false };
   }
 };
