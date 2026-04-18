@@ -42,7 +42,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
                     title: "before_edit",
                     description: "test_description",
                     source: 'input = gets.chomp\nputs "test #{input}',
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [
                       {
                         id: 1,
@@ -185,7 +185,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
             title: "before_edit",
             description: "test_description",
             source: generatedSource,
-            difficulty: "nomal",
+            difficulty: "normal",
             inputs: [{ id: 1, content: "example" }],
           },
           relationships: { user: { data: { id: "1", type: "user" } } },
@@ -333,7 +333,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
                     title: "before_edit",
                     description: "test_description",
                     source: 'input = gets.chomp\nputs "test #{input}',
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [{ id: 1, content: "example" }],
                   },
                   relationships: { user: { data: { id: "1", type: "user" } } },

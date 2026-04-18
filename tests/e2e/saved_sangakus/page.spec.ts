@@ -40,7 +40,7 @@ test.describe("/saved_sangakus", () => {
                         title: "test_title",
                         description: "test_desc",
                         source: "puts 'hi'",
-                        difficulty: "nomal",
+                        difficulty: "normal",
                         inputs: [
                           {
                             id: 1,
@@ -85,7 +85,7 @@ test.describe("/saved_sangakus", () => {
                         title: "answered",
                         description: "test_desc",
                         source: "puts 'hi'",
-                        difficulty: "nomal",
+                        difficulty: "normal",
                         inputs: [
                           {
                             id: 1,

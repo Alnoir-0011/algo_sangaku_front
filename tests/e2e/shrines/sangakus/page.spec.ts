@@ -49,7 +49,7 @@ test.describe("/shrines/[id]/sangakus", () => {
                   title: "test_title",
                   description: "test_description",
                   source: "put 'Hello world'",
-                  difficulty: "nomal",
+                  difficulty: "normal",
                   inputs: [],
                 },
                 relationships: {
@@ -81,7 +81,7 @@ test.describe("/shrines/[id]/sangakus", () => {
                     title: "test_title",
                     description: "test_description",
                     source: "put 'Hello world'",
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [],
                   },
                   relationships: {

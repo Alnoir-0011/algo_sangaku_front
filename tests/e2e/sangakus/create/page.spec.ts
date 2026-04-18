@@ -65,7 +65,7 @@ test.describe("/sangakus/create", () => {
             title: "test_title",
             description: "test_description",
             source: 'input = gets.chomp\nputs "test #{input}',
-            difficulty: "nomal",
+            difficulty: "normal",
             inputs: [
               {
                 id: 15,
@@ -152,7 +152,7 @@ test.describe("/sangakus/create", () => {
             title: "test_title",
             description: "test_description",
             source: generatedSource,
-            difficulty: "nomal",
+            difficulty: "normal",
             inputs: [{ id: 15, content: "5" }],
           },
           relationships: {

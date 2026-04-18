@@ -36,7 +36,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
                     title: "test_title",
                     description: "test_desc",
                     source: "input = gets.chomp\nputs input",
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [
                       {
                         id: 1,

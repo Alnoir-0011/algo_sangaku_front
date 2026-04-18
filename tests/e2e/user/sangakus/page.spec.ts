@@ -19,7 +19,7 @@ const beforeDedicateSangakus = {
         title: "test_title",
         description: "test_desc",
         source: "puts 'hi'",
-        difficulty: "nomal",
+        difficulty: "normal",
         inputs: [
           {
             id: 1,
@@ -51,7 +51,7 @@ const alreadyDedicateSangakus = {
         title: "dedicated",
         description: "test_desc",
         source: "puts 'hi'",
-        difficulty: "nomal",
+        difficulty: "normal",
         inputs: [
           {
             id: 1,
@@ -85,7 +85,7 @@ const deleteResponse = {
       title: "test_title",
       description: "test_desc",
       source: "puts 'hi'",
-      difficulty: "nomal",
+      difficulty: "normal",
       inputs: [
         {
           id: 1,
