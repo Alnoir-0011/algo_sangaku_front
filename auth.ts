@@ -7,7 +7,7 @@ import Credentials from "next-auth/providers/credentials";
 import { setFlash } from "@/app/lib/actions/flash";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 const providers: Provider[] = [Google];
 

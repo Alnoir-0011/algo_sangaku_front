@@ -9,7 +9,7 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 test.describe("/sangakus/create", () => {
   test.describe("before signin", () => {
