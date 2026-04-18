@@ -5,7 +5,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "./flash";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+const apiUrl = process.env.API_URL!;
 
 export async function customSignOut() {
   const session = await auth();

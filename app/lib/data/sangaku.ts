@@ -8,7 +8,7 @@ import type {
   GenerateSourceUsage,
 } from "../definitions";
 import { buildHeaders } from "@/app/lib/client_headers";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 export async function fetchUserSangakus(
   page: string,
