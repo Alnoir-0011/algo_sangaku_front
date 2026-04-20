@@ -1,4 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
+import { waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -230,6 +231,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         const description = page.getByText("test_desc");
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
+        await waitForMonacoEditor(page);
         await monacoEditor.click();
         await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");
@@ -269,6 +271,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         const description = page.getByText("test_desc");
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
+        await waitForMonacoEditor(page);
         await monacoEditor.click();
         await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");

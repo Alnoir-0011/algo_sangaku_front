@@ -1,5 +1,5 @@
 import { setSession } from "../../../__helpers__/signin";
-import { waitForInteractive } from "../../../__helpers__/hydration";
+import { waitForInteractive, waitForMonacoEditor } from "../../../__helpers__/hydration";
 
 import {
   test,
@@ -98,6 +98,7 @@ test.describe("/sangakus/create", () => {
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
       const monacoEditor = page.locator(".monaco-editor").nth(0);
+      await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
@@ -125,6 +126,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       const generateButton = page.getByRole("button", {
@@ -179,6 +181,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("タイトル").fill("test_title");
@@ -196,19 +199,9 @@ test.describe("/sangakus/create", () => {
       await expect(generateButton).toBeEnabled({ timeout: 10000 });
 
       // 生成されたコードがMonaco Editorに反映されているか確認
-      const editorContent = await page.evaluate(() => {
-        const models =
-          (
-            window as unknown as {
-              monaco?: {
-                editor?: { getModels?: () => { getValue?: () => string }[] };
-              };
-            }
-          ).monaco?.editor?.getModels?.() || [];
-        return models[0]?.getValue?.() || "";
-      });
-      expect(editorContent).not.toBe("");
-      expect(editorContent).toContain("対応言語: Ruby");
+      // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
+      const editorLines = page.locator(".monaco-editor").first().locator(".view-lines");
+      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10000 });
 
       // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
@@ -254,6 +247,7 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("textbox", { name: "fixedInput-2" }).fill("example");
       // NOTE: monaco-editorの操作
       const monacoEditor = page.locator(".monaco-editor").nth(0);
+      await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
@@ -308,6 +302,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("問題文").fill("nを出力してください");
@@ -328,6 +323,7 @@ test.describe("/sangakus/create", () => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByLabel("問題文").fill("問題文を入力");

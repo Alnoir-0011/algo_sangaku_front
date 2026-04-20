@@ -1,11 +1,6 @@
-import {
-  Box,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import Ema from "@/app/ui/Ema";
 
 interface DedicatedSangaku {
   id: number;
@@ -28,19 +23,45 @@ export default function DedicatedSangakuList({ sangakus }: Props) {
           奉納済みの算額はありません
         </Typography>
       ) : (
-        <List disablePadding>
-          {sangakus.map((sangaku, index) => (
-            <Box key={sangaku.id}>
-              {index > 0 && <Divider />}
-              <ListItem disableGutters>
-                <ListItemText
-                  primary={sangaku.title}
-                  secondary={sangaku.shrine_name}
-                />
-              </ListItem>
-            </Box>
+        <Grid container spacing={2} sx={{ justifyContent: "center", mt: 1 }}>
+          {sangakus.map((sangaku) => (
+            <Grid key={sangaku.id}>
+              <Ema width={12}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    height: "100%",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    fontWeight="bold"
+                    sx={{
+                      textAlign: "center",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {sangaku.title}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ textAlign: "center", mt: 1 }}
+                  >
+                    {sangaku.shrine_name}
+                  </Typography>
+                </Box>
+              </Ema>
+            </Grid>
           ))}
-        </List>
+        </Grid>
       )}
     </Box>
   );

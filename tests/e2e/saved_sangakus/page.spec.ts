@@ -141,9 +141,10 @@ test.describe("/saved_sangakus", () => {
     test("should allow me to show answered sangakus", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus?tab=answered");
+      await page.waitForLoadState();
       await expect(page).toHaveURL("/saved_sangakus?tab=answered");
       const sangakuTitle = page.getByRole("heading", { name: "answered" });
-      await expect(sangakuTitle).toBeVisible();
+      await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
   });
 });

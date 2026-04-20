@@ -120,13 +120,9 @@ test.describe("/profiles/[id]", () => {
 
       // section heading (subtitle1 = h6)
       await expect(page.getByRole("heading", { name: "奉納済み算額" })).toBeVisible();
-      // ListItem renders as <li> (listitem role)
-      await expect(
-        page.getByRole("listitem").filter({ hasText: "test_sangaku_title" }),
-      ).toBeVisible();
-      await expect(
-        page.getByRole("listitem").filter({ hasText: "test_shrine" }),
-      ).toBeVisible();
+      // sangaku title and shrine name inside Ema component
+      await expect(page.getByText("test_sangaku_title")).toBeVisible();
+      await expect(page.getByText("test_shrine")).toBeVisible();
     });
 
     test("should display empty message when no dedicated sangakus", async ({
