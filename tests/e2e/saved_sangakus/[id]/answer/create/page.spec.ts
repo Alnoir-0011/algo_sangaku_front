@@ -17,6 +17,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await page.waitForLoadState();
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
+      await page.waitForLoadState();
       const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");

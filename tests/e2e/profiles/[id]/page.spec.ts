@@ -14,7 +14,7 @@ const profileWithAnswerCount = {
     type: "profile",
     attributes: {
       nickname: "test nickname",
-      created_at: "2026-01-01T00:00:00.000+09:00",
+      created_at: "2026-06-01T00:00:00.000Z",
       sangaku_count: 2,
       dedicated_sangaku_count: 1,
       answer_count: 5,
@@ -31,7 +31,7 @@ const profileWithoutAnswerCount = {
     type: "profile",
     attributes: {
       nickname: "private nickname",
-      created_at: "2026-02-01T00:00:00.000+09:00",
+      created_at: "2026-07-01T00:00:00.000Z",
       sangaku_count: 3,
       dedicated_sangaku_count: 0,
       answer_count: null,

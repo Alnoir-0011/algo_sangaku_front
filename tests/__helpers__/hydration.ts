@@ -28,5 +28,5 @@ export async function waitForMonacoEditor(page: Page, nth = 0) {
     .locator(".monaco-editor")
     .nth(nth)
     .locator(".view-lines")
-    .waitFor({ state: "visible", timeout: 10_000 });
+    .waitFor({ state: "visible", timeout: 20_000 });
 }

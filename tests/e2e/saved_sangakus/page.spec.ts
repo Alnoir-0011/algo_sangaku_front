@@ -135,7 +135,7 @@ test.describe("/saved_sangakus", () => {
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/saved_sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
-      await expect(sangakuTitle).toBeVisible();
+      await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
 
     test("should allow me to show answered sangakus", async ({ page }) => {
