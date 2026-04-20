@@ -7,7 +7,7 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 test.describe("/shrines/[id]/sangakus", () => {
   test.use({
@@ -49,7 +49,7 @@ test.describe("/shrines/[id]/sangakus", () => {
                   title: "test_title",
                   description: "test_description",
                   source: "put 'Hello world'",
-                  difficulty: "nomal",
+                  difficulty: "normal",
                   inputs: [],
                 },
                 relationships: {
@@ -81,7 +81,7 @@ test.describe("/shrines/[id]/sangakus", () => {
                     title: "test_title",
                     description: "test_description",
                     source: "put 'Hello world'",
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [],
                   },
                   relationships: {

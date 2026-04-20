@@ -241,7 +241,7 @@ export default function Form({ sangaku, initialUsage }: Props) {
                 onChange={handleDifficultyChange}
               >
                 <MenuItem value={"easy"}>簡単</MenuItem>
-                <MenuItem value={"nomal"}>普通</MenuItem>
+                <MenuItem value={"normal"}>普通</MenuItem>
                 <MenuItem value={"difficult"}>難しい</MenuItem>
                 <MenuItem value={"very_difficult"}>とても難しい</MenuItem>
               </Select>

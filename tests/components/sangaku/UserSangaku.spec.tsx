@@ -9,7 +9,7 @@ const sangaku: Sangaku = {
     title: "test_title",
     description: "test_desc",
     source: "puts 'hi'",
-    difficulty: "nomal",
+    difficulty: "normal",
     author_name: "test_author",
     inputs: [
       {

@@ -8,7 +8,7 @@ import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+const apiUrl = process.env.API_URL!;
 
 export type State = {
   errors?: {

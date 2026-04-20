@@ -39,7 +39,7 @@ export default function Page({ initialUsage }: Props) {
   const [source, setSource] = useState(initialSource);
   const [description, setDescription] = useState("");
   const [fixedInputs, setFixedInputs] = useState([""]);
-  const [difficulty, setDifficulty] = useState<Difficulty>("nomal");
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [modalOpen, setModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [usage, setUsage] = useState<GenerateSourceUsage | undefined>(initialUsage);
@@ -229,7 +229,7 @@ export default function Page({ initialUsage }: Props) {
                 onChange={handleDifficultyChange}
               >
                 <MenuItem value={"easy"}>簡単</MenuItem>
-                <MenuItem value={"nomal"}>普通</MenuItem>
+                <MenuItem value={"normal"}>普通</MenuItem>
                 <MenuItem value={"difficult"}>難しい</MenuItem>
                 <MenuItem value={"very_difficult"}>とても難しい</MenuItem>
               </Select>

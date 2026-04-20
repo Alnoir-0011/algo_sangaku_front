@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+const apiUrl = process.env.API_URL!;
 
 export async function dedicateSangaku(
   shrine_id: string,

@@ -14,20 +14,11 @@ export default auth(async (req) => {
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   // const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
-  let flag = false;
-  publicRoutes.map((route) => {
-    if (typeof route === "string") {
-      if (route === nextUrl.pathname) {
-        flag = true;
-      }
-    } else {
-      if (route.test(nextUrl.pathname)) {
-        flag = true;
-      }
-    }
-  });
-
-  const isPublicRoute = flag;
+  const isPublicRoute = publicRoutes.some((route) =>
+    typeof route === "string"
+      ? route === nextUrl.pathname
+      : route.test(nextUrl.pathname),
+  );
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 

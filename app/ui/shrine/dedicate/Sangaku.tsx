@@ -11,7 +11,7 @@ export default function SangakuComponent({ data, handleClick }: Props) {
     switch (str) {
       case "easy":
         return "簡単";
-      case "nomal":
+      case "normal":
         return "普通";
       default:
         return "難しい";

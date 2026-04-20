@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { waitForInteractive } from "@/tests/__helpers__/hydration";
+import { waitForInteractive, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -8,7 +8,7 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 test.describe("/user/sangakus/[id]/edit", () => {
   test.describe("before signin", () => {
@@ -42,7 +42,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
                     title: "before_edit",
                     description: "test_description",
                     source: 'input = gets.chomp\nputs "test #{input}',
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [
                       {
                         id: 1,
@@ -123,6 +123,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByLabel("タイトル").fill("test_changed");
       await page.getByLabel("問題文").fill("changed_description");
       const monacoEditor = page.locator(".monaco-editor").nth(0);
+      await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
@@ -157,6 +158,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       // 初期値（"test_description"）が入っているのでボタンは有効
@@ -185,7 +187,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
             title: "before_edit",
             description: "test_description",
             source: generatedSource,
-            difficulty: "nomal",
+            difficulty: "normal",
             inputs: [{ id: 1, content: "example" }],
           },
           relationships: { user: { data: { id: "1", type: "user" } } },
@@ -210,6 +212,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       const generateButton = page.getByRole("button", {
@@ -222,13 +225,9 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(generateButton).toBeEnabled({ timeout: 10000 });
 
       // 生成されたコードがMonaco Editorに反映されているか確認
-      const editorContent = await page.evaluate(() => {
-        const models =
-          (window as unknown as { monaco?: { editor?: { getModels?: () => { getValue?: () => string }[] } } }).monaco?.editor?.getModels?.() || [];
-        return models[0]?.getValue?.() || "";
-      });
-      expect(editorContent).not.toBe("");
-      expect(editorContent).toContain("対応言語: Ruby");
+      // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
+      const editorLines = page.locator(".monaco-editor").first().locator(".view-lines");
+      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10000 });
 
       // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
@@ -281,6 +280,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       await expect(page.getByLabel("問題文")).toHaveValue("test_description");
@@ -301,6 +301,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
       await page.waitForLoadState();
+      await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
@@ -333,7 +334,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
                     title: "before_edit",
                     description: "test_description",
                     source: 'input = gets.chomp\nputs "test #{input}',
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [{ id: 1, content: "example" }],
                   },
                   relationships: { user: { data: { id: "1", type: "user" } } },

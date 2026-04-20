@@ -5,7 +5,7 @@ import type { Answer, AnswerResult } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { buildHeaders } from "@/app/lib/client_headers";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+const apiUrl = process.env.API_URL!;
 
 export const fetchUserAnswer = async (id: string) => {
   const session = await auth();

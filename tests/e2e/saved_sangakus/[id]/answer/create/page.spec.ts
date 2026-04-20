@@ -1,4 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
+import { waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -7,7 +8,7 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 test.describe("/saved_sangakus/[id]/answer/create", () => {
   test.describe("before signin", () => {
@@ -16,6 +17,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await page.waitForLoadState();
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
+      await page.waitForLoadState();
       const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
@@ -36,7 +38,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
                     title: "test_title",
                     description: "test_desc",
                     source: "input = gets.chomp\nputs input",
-                    difficulty: "nomal",
+                    difficulty: "normal",
                     inputs: [
                       {
                         id: 1,
@@ -230,6 +232,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         const description = page.getByText("test_desc");
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
+        await waitForMonacoEditor(page);
         await monacoEditor.click();
         await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");
@@ -269,6 +272,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         const description = page.getByText("test_desc");
         await expect(description).toBeVisible();
         const monacoEditor = page.locator(".monaco-editor").nth(0);
+        await waitForMonacoEditor(page);
         await monacoEditor.click();
         await page.keyboard.press("ControlOrMeta+a");
         await page.keyboard.press("Backspace");

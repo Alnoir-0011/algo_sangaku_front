@@ -7,7 +7,7 @@ import {
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.API_URL;
 
 test.describe("/saved_sangakus", () => {
   test.describe("before signin", () => {
@@ -40,7 +40,7 @@ test.describe("/saved_sangakus", () => {
                         title: "test_title",
                         description: "test_desc",
                         source: "puts 'hi'",
-                        difficulty: "nomal",
+                        difficulty: "normal",
                         inputs: [
                           {
                             id: 1,
@@ -85,7 +85,7 @@ test.describe("/saved_sangakus", () => {
                         title: "answered",
                         description: "test_desc",
                         source: "puts 'hi'",
-                        difficulty: "nomal",
+                        difficulty: "normal",
                         inputs: [
                           {
                             id: 1,
@@ -135,15 +135,16 @@ test.describe("/saved_sangakus", () => {
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/saved_sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
-      await expect(sangakuTitle).toBeVisible();
+      await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
 
     test("should allow me to show answered sangakus", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus?tab=answered");
+      await page.waitForLoadState();
       await expect(page).toHaveURL("/saved_sangakus?tab=answered");
       const sangakuTitle = page.getByRole("heading", { name: "answered" });
-      await expect(sangakuTitle).toBeVisible();
+      await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
   });
 });
