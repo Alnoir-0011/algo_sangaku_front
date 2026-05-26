@@ -20,11 +20,13 @@ if (process.env.APP_ENV === "test") {
       },
       authorize: (credentials) => {
         if (credentials.password === "password") {
+          const email = credentials.email as string;
           const user: User = {
-            email: credentials.email as string,
+            email,
             name: "Test user",
             image: "https://avatars.githubusercontent.com/u/67470890?s=200&v=4",
             accessToken: "dummy_token",
+            role: email === "admin_user@example.com" ? "admin" : "general",
           };
           return user;
         } else {
@@ -76,6 +78,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         if (response.status == 200) {
           const data = await response.json();
           user.nickname = data.data.attributes.nickname;
+          user.role = data.data.attributes.role;
           user.accessToken = response.headers.get("accesstoken")!;
           await setFlash({
             type: "success",
@@ -86,7 +89,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           return false;
         }
       } catch (error) {
-        console.log(error);
+        console.error("[auth] signIn error:", error);
         return false;
       }
     },
@@ -97,6 +100,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       }
       if (user) {
         token.nickname = user?.nickname;
+        token.role = user?.role;
       }
       if (trigger === "update") {
         token.nickname = session.user.nickname;
@@ -116,6 +120,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     async session({ token, session }) {
       session.accessToken = token.accessToken as string;
       session.user.nickname = token.nickname as string;
+      session.role = token.role;
       return session;
     },
   },
