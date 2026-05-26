@@ -3,7 +3,7 @@ import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
 import SavedSangakuList from "@/app/ui/answer/SavedSangakuList";
 import { Box, Container, Typography } from "@mui/material";
 import Search from "@/app/ui/Search";
-import PageTab from "../ui/answer/PageTab";
+import PageTab from "@/app/ui/answer/PageTab";
 
 import { Metadata } from "next";
 
