@@ -107,6 +107,13 @@ export default defineConfig({
             ),
           },
           {
+            find: "@/app/lib/actions/admin",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/admin.ts",
+            ),
+          },
+          {
             find: "@/",
             replacement: path.join(__dirname, "./"),
           },
