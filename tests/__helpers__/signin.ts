@@ -9,6 +9,14 @@ export const setSession = async (page: Page) => {
   await page.getByRole("button", { name: "Sign in with Credentials" }).click();
 };
 
+export const setAdminSession = async (page: Page) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "サインイン" }).click();
+  await page.getByLabel("Email").fill("admin_user@example.com");
+  await page.getByLabel("Password").fill("password");
+  await page.getByRole("button", { name: "Sign in with Credentials" }).click();
+};
+
 // Note: コンポーネントテスト用
 export const mockClientSession = async (page: Page, json: Session | null) => {
   await page.route("http://localhost:3100/api/auth/session", async (route) => {

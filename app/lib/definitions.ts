@@ -107,6 +107,53 @@ export interface SangakuResult {
   };
 }
 
+export type AdminUser = {
+  id: string;
+  type: "user";
+  attributes: {
+    name: string;
+    email: string;
+    nickname: string;
+    role: "general" | "admin";
+    created_at: string;
+    sangaku_count: number;
+    answer_count: number;
+  };
+};
+
+export type AdminSangaku = {
+  id: string;
+  type: "sangaku";
+  attributes: {
+    title: string;
+    difficulty: Difficulty;
+    created_at: string;
+    user_name: string;
+    shrine_name: string | null;
+    description: string;
+    source: string;
+  };
+};
+
+export type AdminShrine = {
+  id: string;
+  type: "shrine";
+  attributes: {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    sangaku_count: number;
+  };
+};
+
+export type AdminStats = {
+  users_count: number;
+  sangakus_count: number;
+  shrines_count: number;
+  answers_count: number;
+};
+
 export type GenerateSourceUsage = {
   used: number;
   limit: number;
