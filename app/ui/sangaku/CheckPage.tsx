@@ -9,7 +9,7 @@ import SourceResult from "@/app/ui/sangaku/SourceResult";
 
 interface Props {
   useModal: () => [boolean, Dispatch<SetStateAction<boolean>>];
-  source: string;
+  source: string | undefined;
   fixedInputs: string[];
 }
 
@@ -40,19 +40,23 @@ export default function CheckPage({ useModal, source, fixedInputs }: Props) {
     <Modal disableEnforceFocus open={modalOpen}>
       <Box sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}>
         <Grid container spacing={1} sx={{ mb: 2, width: "100%" }}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Editor
-              defaultLanguage="ruby"
-              height="500px"
-              theme="vs-dark"
-              options={{ readOnly: true, readOnlyMessage }}
-              value={source}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }} aria-label="sourceResult">
-            実行結果
-            <SourceResult source={source} fixedInputs={fixedInputs} />
-          </Grid>
+          {source !== undefined && (
+            <>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Editor
+                  defaultLanguage="ruby"
+                  height="500px"
+                  theme="vs-dark"
+                  options={{ readOnly: true, readOnlyMessage }}
+                  value={source}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }} aria-label="sourceResult">
+                実行結果
+                <SourceResult source={source} fixedInputs={fixedInputs} />
+              </Grid>
+            </>
+          )}
         </Grid>
         <Box sx={{ display: "flex", justifyContent: "space-around" }}>
           <Button variant="contained" onClick={closeModal}>

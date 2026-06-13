@@ -41,7 +41,7 @@ export default function Form({ sangaku, initialUsage }: Props) {
     },
   };
   const [state, formAction] = useActionState(updateSangakuAction, initialState);
-  const [source, setSource] = useState(sangaku.attributes.source);
+  const [source, setSource] = useState(sangaku.attributes.source ?? "");
   const [description, setDescription] = useState(
     sangaku.attributes.description,
   );
