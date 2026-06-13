@@ -4,7 +4,7 @@ export type Sangaku = {
   attributes: {
     title: string;
     description: string;
-    source: string;
+    source?: string;
     difficulty: Difficulty;
     inputs: input[];
     author_name: string;
