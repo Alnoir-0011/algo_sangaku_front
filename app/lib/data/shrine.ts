@@ -1,6 +1,7 @@
 "use server";
 
 import { setFlash } from "../actions/flash";
+import { handleApiError } from "../handle_api_error";
 import { Shrine } from "../definitions";
 import { buildHeaders } from "@/app/lib/client_headers";
 
@@ -24,6 +25,9 @@ export async function fetchShrines(
     if (res.status == 200) {
       const data = await res.json();
       return data.data as Shrine[];
+    } else if (res.status == 429) {
+      await handleApiError(res);
+      return [] as Shrine[];
     } else {
       await setFlash({ type: "error", message: "神社を読み込めませんでした" });
       return [] as Shrine[];

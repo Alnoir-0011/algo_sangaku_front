@@ -37,6 +37,10 @@ export default defineConfig({
       : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
     url: "http://localhost:4020",
     reuseExistingServer: false,
+    // ローカルビルド時に Google Maps をモックへ差し替える（CI は build ジョブ側で設定）
+    env: {
+      E2E_MOCK_MAPS: "true",
+    },
   },
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
