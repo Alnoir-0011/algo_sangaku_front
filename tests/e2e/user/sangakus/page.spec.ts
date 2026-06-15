@@ -210,7 +210,10 @@ test.describe("/user/sangakus", () => {
       await page.goto("/user/sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
       await expect(sangakuTitle).toBeVisible();
-      const menuButton = page.getByTestId("MoreVertIcon");
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複し
+      // （#menu-button-1 が hidden で2つ並ぶ）strict mode 違反になるため、
+      // 可視要素のみを first() で対象にする
+      const menuButton = page.locator("#menu-button-1:visible").first();
       await waitForInteractive(menuButton);
       await menuButton.click();
       const editLink = page.getByRole("menuitem", { name: "編集" });
@@ -249,7 +252,11 @@ test.describe("/user/sangakus", () => {
     test("can delete sangaku", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
-      const menuButton = page.getByTestId("MoreVertIcon");
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複し
+      // （#menu-button-1 が hidden で2つ並ぶ）strict mode 違反になるため、
+      // 可視要素のみを first() で対象にする
+      const menuButton = page.locator("#menu-button-1:visible").first();
+      await waitForInteractive(menuButton);
       await menuButton.click();
       const deleteButton = page.getByRole("menuitem", { name: "削除" });
       page.once("dialog", async (dialog) => {
