@@ -11,6 +11,11 @@ import { buildHeaders } from "@/app/lib/client_headers";
 
 const apiUrl = process.env.API_URL!;
 
+// PaizaIO 実行用の設定。api_key は back の ENV.fetch("PAIZAIO_API_KEY", "guest") と統一する
+const PAIZA_API_KEY = process.env.PAIZAIO_API_KEY ?? "guest";
+const POLL_INTERVAL_MS = 200;
+const MAX_POLL_ATTEMPTS = 30; // back PaizaioApi と同値
+
 export type State = {
   errors?: {
     title?: string[];
@@ -194,17 +199,20 @@ export const deleteSangaku = async (id: string) => {
 };
 
 export const runSource = async (source: string, fixedInputs: string[]) => {
-  if (!fixedInputs.length) {
-    fixedInputs.push("");
-  }
+  const inputs = fixedInputs.length ? fixedInputs : [""];
   const results = await Promise.all(
-    fixedInputs.map(async (input) => {
+    inputs.map(async (input) => {
       try {
         const id = await postSource(source, input, "ruby");
         let isSourceComplete = false;
-        while (isSourceComplete === false) {
-          await sleep(200);
+        let attempts = 0;
+        while (!isSourceComplete) {
+          if (attempts >= MAX_POLL_ATTEMPTS) {
+            throw new Error("PaizaIO polling timeout");
+          }
+          await sleep(POLL_INTERVAL_MS);
           isSourceComplete = await getStatus(id);
+          attempts += 1;
         }
         const result = await getDetails(id);
 
@@ -233,7 +241,7 @@ const sleep = (time: number) =>
 
 const postSource = async (source: string, input: string, language: string) => {
   const params = new URLSearchParams({
-    api_key: "guest",
+    api_key: PAIZA_API_KEY,
     source_code: source,
     input,
     language,
@@ -256,7 +264,7 @@ const postSource = async (source: string, input: string, language: string) => {
 
 const getStatus = async (id: string) => {
   const params = new URLSearchParams({
-    api_key: "guest",
+    api_key: PAIZA_API_KEY,
     id,
   });
   const reqUri = `https://api.paiza.io:443/runners/get_status.json?${params}`;
@@ -334,7 +342,7 @@ export const generateSource = async (
 
 const getDetails = async (id: string) => {
   const params = new URLSearchParams({
-    api_key: "guest",
+    api_key: PAIZA_API_KEY,
     id,
   });
   const reqUri = `https://api.paiza.io:443/runners/get_details.json?${params}`;
