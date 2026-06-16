@@ -24,30 +24,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [
-    ["line"],
-    ["html"],
-    [
-      "monocart-reporter",
-      {
-        name: "Coverage Report (CT)",
-        outputFile: "./coverage-reports/ct/index.html",
-        coverage: {
-          outputDir: "./coverage-reports/ct/v8",
-          reports: ["v8", "console-summary", "raw"],
-          // CT は Vite の dev サーバーでビルドされ、ソースマップはデフォルトで有効なため
-          // COVERAGE 環境変数（Next.js の productionBrowserSourceMaps 制御）は不要
-          entryFilter: {
-            "**": true,
-          },
-          sourceFilter: {
-            "tests/": false,
-            "**": true,
-          },
-        },
-      },
-    ],
-  ],
+  reporter: [["line"], ["html"]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
@@ -99,6 +76,13 @@ export default defineConfig({
             replacement: path.join(
               __dirname,
               "./tests/__mocks__/actions/profile.ts",
+            ),
+          },
+          {
+            find: "@vis.gl/react-google-maps",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/react-google-maps.tsx",
             ),
           },
           {
