@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  productionBrowserSourceMaps: process.env.COVERAGE === "true",
   experimental: {
     testProxy: true,
   },

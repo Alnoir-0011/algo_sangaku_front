@@ -6,7 +6,7 @@ import {
   http,
   HttpResponse,
   passthrough,
-} from "next/experimental/testmode/playwright/msw";
+} from "@/tests/e2e/fixtures.msw";
 
 const apiUrl = process.env.API_URL;
 

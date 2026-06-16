@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/coverage-reports/
 
 # next.js
 /.next/
@@ -46,3 +47,4 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/monocart-report/

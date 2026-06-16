@@ -26,7 +26,31 @@ export default defineConfig({
   /* CI では matrix 分割で各ジョブが独立して実行されるため workers 制限は不要 */
   workers: undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  reporter: [
+    ["line"],
+    ["html"],
+    [
+      "monocart-reporter",
+      {
+        name: "Coverage Report (E2E)",
+        outputFile: "./coverage-reports/e2e/index.html",
+        coverage: {
+          outputDir: "./coverage-reports/e2e/v8",
+          reports: ["v8", "console-summary", "raw"],
+          entryFilter: {
+            "_next/static/": true,
+            "**": false,
+          },
+          sourceFilter: {
+            "node_modules": false,
+            "tests": false,
+            "app/": true,
+            "theme.ts": true,
+          },
+        },
+      },
+    ],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
   webServer: {
@@ -37,9 +61,10 @@ export default defineConfig({
       : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
     url: "http://localhost:4020",
     reuseExistingServer: false,
-    // ローカルビルド時に Google Maps をモックへ差し替える（CI は build ジョブ側で設定）
+    // ローカルビルド時に Google Maps をモックへ差し替え、ソースマップを有効化する（CI は build ジョブ側で設定）
     env: {
       E2E_MOCK_MAPS: "true",
+      COVERAGE: "true",
     },
   },
   use: {
