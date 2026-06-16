@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-react";
+import { test, expect } from "@/tests/fixtures.ct";
 import GenerateSourceUsageIndicator from "@/app/ui/sangaku/generate-source-usage-indicator";
 
 test.describe("GenerateSourceUsageIndicator", () => {

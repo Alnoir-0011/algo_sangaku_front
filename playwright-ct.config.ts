@@ -24,7 +24,30 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  reporter: [
+    ["line"],
+    ["html"],
+    [
+      "monocart-reporter",
+      {
+        name: "Coverage Report (CT)",
+        outputFile: "./coverage-reports/ct/index.html",
+        coverage: {
+          outputDir: "./coverage-reports/ct/v8",
+          reports: ["v8", "console-summary", "raw"],
+          // CT は Vite の dev サーバーでビルドされ、ソースマップはデフォルトで有効なため
+          // COVERAGE 環境変数（Next.js の productionBrowserSourceMaps 制御）は不要
+          entryFilter: {
+            "**": true,
+          },
+          sourceFilter: {
+            "tests/": false,
+            "**": true,
+          },
+        },
+      },
+    ],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/experimental-ct-react';
+import { test, expect } from '@/tests/fixtures.ct';
 import Footer from '@/app/ui/navigation/Footer';
 
 test.describe('footer', () => {

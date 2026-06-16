@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-react";
+import { test, expect } from "@/tests/fixtures.ct";
 import type { Sangaku } from "@/app/lib/definitions";
 import UserSangaku from "@/app/ui/sangaku/UserSangaku";
 

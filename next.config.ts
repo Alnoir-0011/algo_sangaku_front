@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // COVERAGE はテスト実行時（CI の build ジョブ・ローカル E2E）のみ "true" になる想定。
+  // 本番デプロイ用のビルド/ワークフローでこの変数を継承しないこと
+  // （ソースマップにソースコードが埋め込まれ公開される）。
+  productionBrowserSourceMaps: process.env.COVERAGE === "true",
   experimental: {
     testProxy: true,
   },

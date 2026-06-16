@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "@/tests/e2e/fixtures";
 import { setSession } from "../__helpers__/signin";
 
 test.describe("TopPage", () => {

@@ -34,6 +34,12 @@ jobs:
           name: playwright-report-components
           path: playwright-report/
           retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage-ct
+          path: coverage-reports/ct/
+          retention-days: 1
 
   build:
     timeout-minutes: 30
@@ -52,6 +58,7 @@ jobs:
       - name: Build Next.js
         env:
           E2E_MOCK_MAPS: "true"
+          COVERAGE: "true"
         run: pnpm run build
       - name: Upload .next
         uses: actions/upload-artifact@v4
@@ -103,6 +110,44 @@ jobs:
         with:
           name: playwright-report-e2e-${{ matrix.project }}
           path: playwright-report/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && matrix.project == 'chromium' }}
+        with:
+          name: coverage-e2e-chromium
+          path: coverage-reports/e2e/
+          retention-days: 1
+
+  coverage:
+    needs: [componentstest, e2etest]
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install -g pnpm@10 && pnpm install
+      - name: Download CT coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-ct
+          path: coverage-reports/ct
+      - name: Download E2E Chromium coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-e2e-chromium
+          path: coverage-reports/e2e
+      - name: Merge coverage and check thresholds
+        run: pnpm run coverage:merge
+      # 注意: このレポートにはソースコードが埋め込まれる。リポジトリを public 化する場合は
+      # artifact の公開範囲についても見直すこと
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage-merged
+          path: coverage-reports/merged/
           retention-days: 30
 
   lint:

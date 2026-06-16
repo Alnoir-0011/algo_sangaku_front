@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-react";
+import { test, expect } from "@/tests/fixtures.ct";
 import {
   SangakuListSkeleton,
   SangakuWithButtonListSkeleton,
