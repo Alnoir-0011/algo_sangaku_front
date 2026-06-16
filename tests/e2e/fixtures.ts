@@ -1,18 +1,10 @@
 import { test as e2eBase, expect } from "@playwright/test";
-import { addCoverageReport } from "monocart-reporter";
+import { runWithAutoCoverage } from "../__helpers__/auto-coverage-fixture";
 
 const test = e2eBase.extend<{ autoTestCoverage: void }>({
   autoTestCoverage: [
-    async ({ page }, use) => {
-      const isChromium = test.info().project.name === "chromium";
-      if (isChromium) {
-        await page.coverage.startJSCoverage({ resetOnNavigation: false });
-      }
-      await use();
-      if (isChromium) {
-        const jsCoverage = await page.coverage.stopJSCoverage();
-        await addCoverageReport(jsCoverage, test.info());
-      }
+    async ({ page }, use, testInfo) => {
+      await runWithAutoCoverage(page, testInfo, use);
     },
     { scope: "test", auto: true },
   ],

@@ -141,6 +141,8 @@ jobs:
           path: coverage-reports/e2e
       - name: Merge coverage and check thresholds
         run: pnpm run coverage:merge
+      # 注意: このレポートにはソースコードが埋め込まれる。リポジトリを public 化する場合は
+      # artifact の公開範囲についても見直すこと
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:

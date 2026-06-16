@@ -37,6 +37,11 @@ export default defineConfig({
         coverage: {
           outputDir: "./coverage-reports/e2e/v8",
           reports: ["v8", "console-summary", "raw"],
+          // monocart の entryFilter/sourceFilter はオブジェクトキーの定義順で
+          // 先勝ち判定（最初にマッチしたキーの値が採用される）。順序を変えないこと。
+          // E2E は Next.js のページ全体（ページ本体・外部スクリプト等）が対象に
+          // 含まれるため、_next/static/ のみを許可するホワイトリスト方式にしている
+          // （CT は Vite 経由でテスト対象モジュールに限定されるためブラックリスト方式）
           entryFilter: {
             "_next/static/": true,
             "**": false,

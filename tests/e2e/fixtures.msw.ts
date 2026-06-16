@@ -5,20 +5,12 @@ import {
   HttpResponse,
   passthrough,
 } from "next/experimental/testmode/playwright/msw";
-import { addCoverageReport } from "monocart-reporter";
+import { runWithAutoCoverage } from "../__helpers__/auto-coverage-fixture";
 
 const test = mswBase.extend<{ autoTestCoverage: void }>({
   autoTestCoverage: [
-    async ({ page }, use) => {
-      const isChromium = test.info().project.name === "chromium";
-      if (isChromium) {
-        await page.coverage.startJSCoverage({ resetOnNavigation: false });
-      }
-      await use();
-      if (isChromium) {
-        const jsCoverage = await page.coverage.stopJSCoverage();
-        await addCoverageReport(jsCoverage, test.info());
-      }
+    async ({ page }, use, testInfo) => {
+      await runWithAutoCoverage(page, testInfo, use);
     },
     { scope: "test", auto: true },
   ],

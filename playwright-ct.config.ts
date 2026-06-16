@@ -35,6 +35,8 @@ export default defineConfig({
         coverage: {
           outputDir: "./coverage-reports/ct/v8",
           reports: ["v8", "console-summary", "raw"],
+          // CT は Vite の dev サーバーでビルドされ、ソースマップはデフォルトで有効なため
+          // COVERAGE 環境変数（Next.js の productionBrowserSourceMaps 制御）は不要
           entryFilter: {
             "**": true,
           },
