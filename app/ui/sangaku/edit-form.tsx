@@ -212,14 +212,16 @@ export default function Form({ sangaku, initialUsage }: Props) {
                 )}
               </Box>
             </Box>
-            <Editor
-              theme="vs-dark"
-              height="60vh"
-              width="100%"
-              defaultLanguage="ruby"
-              value={source}
-              onChange={handleEditorChange}
-            />
+            <Box data-testid="monaco-editor-source">
+              <Editor
+                theme="vs-dark"
+                height="60vh"
+                width="100%"
+                defaultLanguage="ruby"
+                value={source}
+                onChange={handleEditorChange}
+              />
+            </Box>
             {state.errors?.source &&
               state.errors.source.map((error: string) => (
                 <Typography

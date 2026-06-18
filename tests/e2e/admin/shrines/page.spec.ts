@@ -67,7 +67,7 @@ test.describe("/admin/shrines", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/shrines", async ({
+    test("should not allow me to access shrine list as a general user", async ({
       page,
     }) => {
       await setSession(page);
@@ -77,7 +77,7 @@ test.describe("/admin/shrines", () => {
   });
 
   test.describe("after admin signin", () => {
-    test("should display shrines list heading", async ({ page }) => {
+    test("should allow me to see the shrines list heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
       await expect(
@@ -85,19 +85,19 @@ test.describe("/admin/shrines", () => {
       ).toBeVisible();
     });
 
-    test("should display shrine names from API", async ({ page }) => {
+    test("should allow me to see shrine names from API", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
       await expect(page.getByText("管理神社テスト")).toBeVisible();
     });
 
-    test("should display shrine address from API", async ({ page }) => {
+    test("should allow me to see shrine address from API", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
       await expect(page.getByText("東京都千代田区1-1")).toBeVisible();
     });
 
-    test("should have create shrine button", async ({ page }) => {
+    test("should allow me to see the create shrine button", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
       await expect(
@@ -105,7 +105,7 @@ test.describe("/admin/shrines", () => {
       ).toBeVisible();
     });
 
-    test("should have edit link for each shrine", async ({ page }) => {
+    test("should allow me to see the edit link for each shrine", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
       await expect(page.getByRole("link", { name: "編集" })).toBeVisible();

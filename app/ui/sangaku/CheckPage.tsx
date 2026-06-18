@@ -38,7 +38,7 @@ export default function CheckPage({ useModal, source, fixedInputs }: Props) {
 
   return (
     <Modal disableEnforceFocus open={modalOpen}>
-      <Box sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}>
+      <Box sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }} data-testid="check-page-modal">
         <Grid container spacing={1} sx={{ mb: 2, width: "100%" }}>
           {source !== undefined && (
             <>

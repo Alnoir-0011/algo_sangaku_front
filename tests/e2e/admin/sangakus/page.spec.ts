@@ -65,7 +65,7 @@ test.describe("/admin/sangakus", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/sangakus", async ({
+    test("should not allow me to access /admin/sangakus as a general user", async ({
       page,
     }) => {
       await setSession(page);
@@ -75,38 +75,60 @@ test.describe("/admin/sangakus", () => {
   });
 
   test.describe("after admin signin", () => {
-    test("should display sangakus list heading", async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus");
+    });
+
+    test("should allow me to see the sangakus list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "算額管理" }),
       ).toBeVisible();
     });
 
-    test("should display sangaku titles from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/sangakus");
+    test("should allow me to see sangaku titles on the list page", async ({ page }) => {
       await expect(page.getByText("管理算額テスト")).toBeVisible();
       await expect(page.getByText("未奉納の算額")).toBeVisible();
     });
 
-    test("should display shrine name when dedicated", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/sangakus");
+    test("should allow me to see shrine name when sangaku is dedicated", async ({ page }) => {
       await expect(page.getByText("test_shrine")).toBeVisible();
     });
 
-    test("should display fallback when not dedicated", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/sangakus");
+    test("should allow me to see 未奉納 label when sangaku is not dedicated", async ({ page }) => {
       await expect(page.getByText("未奉納", { exact: true })).toBeVisible();
     });
 
-    test("should have edit link for each sangaku", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/sangakus");
-      const editLinks = page.getByRole("link", { name: "編集" });
-      await expect(editLinks.first()).toBeVisible();
+    test("should allow me to see edit link for each sangaku", async ({ page }) => {
+      await expect(page.getByRole("link", { name: "編集" }).first()).toBeVisible();
+    });
+
+    test("should allow me to delete sangaku when confirmed", async ({ page, msw }) => {
+      msw.use(
+        http.delete(`${apiUrl}/api/v1/admin/sangakus/1`, () => {
+          return HttpResponse.json({}, { status: 200 });
+        }),
+      );
+      // window.confirm を true で上書きして確認OK をシミュレート
+      await page.evaluate(() => {
+        window.confirm = () => true;
+      });
+      await page.getByRole("button", { name: "削除" }).first().click();
+      const flash = page.getByTestId('flash-message');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を削除しました");
+    });
+
+    test("should not allow me to delete sangaku when cancelled", async ({
+      page,
+    }) => {
+      // window.confirm を false で上書きしてキャンセルをシミュレート
+      await page.evaluate(() => {
+        window.confirm = () => false;
+      });
+      await page.getByRole("button", { name: "削除" }).first().click();
+      await expect(page.getByText("管理算額テスト")).toBeVisible();
+      await expect(page.getByTestId('flash-message')).not.toContainText("算額を削除しました");
     });
   });
 });

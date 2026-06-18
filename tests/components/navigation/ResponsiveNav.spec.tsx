@@ -39,5 +39,18 @@ test.describe("ResponsiveNav", () => {
         component.getByRole("link", { name: "アルゴ算額" }),
       ).toBeVisible();
     });
+
+    test("should allow me to close the drawer by pressing Escape", async ({ mount, page }) => {
+      await mount(<ResponsiveNav drawerWidth={240} />, {
+        hooksConfig: { session: null },
+      });
+      const button = page.getByRole("button", { name: "open drawer" });
+      await button.click();
+      // MUIのDrawerはポータル経由でbodyに追加されるためpage経由で取得する
+      const mobileDrawer = page.getByTestId("mobileDrawer");
+      await expect(mobileDrawer).toBeVisible({ timeout: 5000 });
+      await page.keyboard.press("Escape");
+      await expect(mobileDrawer).not.toBeVisible({ timeout: 5000 });
+    });
   });
 });

@@ -13,10 +13,9 @@ test.describe("/user/profile", () => {
   test.describe("before signin", () => {
     test("should not allow me to visit edit profile page", async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState();
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
@@ -82,19 +81,80 @@ test.describe("/user/profile", () => {
       ],
     });
 
+    test("should allow me to toggle show_answer_count switch", async ({ page, msw }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/profile`, () => {
+          return HttpResponse.json({ data: { id: "1" } }, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/profile");
+
+      const switchEl = page.getByRole("checkbox", {
+        name: "提出した回答数を公開プロフィールに表示する",
+      });
+      await expect(switchEl).not.toBeChecked();
+      await switchEl.click();
+      await expect(switchEl).toBeChecked({ timeout: 5_000 });
+    });
+
+    test("should not allow me to update show_answer_count when API fails", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/profile`, async ({ request }) => {
+          const body = await request.json() as { user: Record<string, unknown> };
+          if ("show_answer_count" in body.user) {
+            return HttpResponse.json({}, { status: 500 });
+          }
+          return HttpResponse.json({ data: { id: "1" } }, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/profile");
+
+      const switchEl = page.getByRole("checkbox", {
+        name: "提出した回答数を公開プロフィールに表示する",
+      });
+      await switchEl.click();
+      // 失敗時は元の状態（false）に戻る
+      await expect(switchEl).not.toBeChecked({ timeout: 5_000 });
+    });
+
     test("should allow me to edit profile", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/profile");
-      await page.waitForLoadState();
       await page
         .getByRole("textbox", { name: "ニックネーム" })
         .fill("changed_name");
       const button = page.getByRole("button", { name: "保存" });
       await button.click();
       await expect(page).toHaveURL("/user/profile");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("プロフィールを更新しました");
+    });
+
+    test("should allow me to see validation error when API returns 400", async ({ page, msw }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/profile`, () => {
+          return HttpResponse.json({
+            message: "Bad Request",
+            errors: [["nickname", ["は不正な値です"]]],
+          }, { status: 400 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/profile");
+      // required フィールドなので有効な値を入力してサーバー側のバリデーションエラーをテスト
+      await page.getByRole("textbox", { name: "ニックネーム" }).fill("invalid_value");
+      await page.getByRole("button", { name: "保存" }).click();
+      await expect(page.getByLabel("nicknameError")).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByLabel("nicknameError")).toHaveText("は不正な値です");
     });
   });
 });

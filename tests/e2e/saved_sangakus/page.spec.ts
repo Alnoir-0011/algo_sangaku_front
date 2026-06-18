@@ -13,10 +13,9 @@ test.describe("/saved_sangakus", () => {
   test.describe("before signin", () => {
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState();
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
     });
@@ -141,10 +140,154 @@ test.describe("/saved_sangakus", () => {
     test("should allow me to show answered sangakus", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus?tab=answered");
-      await page.waitForLoadState();
       await expect(page).toHaveURL("/saved_sangakus?tab=answered");
       const sangakuTitle = page.getByRole("heading", { name: "answered" });
       await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
+    });
+
+    test("should allow me to see easy difficulty label", async ({ page, msw }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/saved_sangakus`, () => {
+          return new HttpResponse(
+            JSON.stringify({
+              data: [
+                {
+                  id: "4",
+                  type: "sangaku",
+                  attributes: {
+                    title: "簡単な算額",
+                    description: "test",
+                    source: "",
+                    difficulty: "easy",
+                    inputs: [],
+                    author_name: "user",
+                  },
+                  relationships: {
+                    user: { data: { id: "1", type: "user" } },
+                    shrine: { data: null },
+                  },
+                },
+              ],
+            }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "current-page": "1",
+                "page-items": "20",
+                "total-pages": "1",
+                "total-count": "1",
+              },
+            },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+
+      const main = page.locator("main");
+      await expect(main.getByText("簡単", { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    test("should allow me to see difficult and very_difficult difficulty labels", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/saved_sangakus`, () => {
+          return new HttpResponse(
+            JSON.stringify({
+              data: [
+                {
+                  id: "2",
+                  type: "sangaku",
+                  attributes: {
+                    title: "難しい算額",
+                    description: "test",
+                    source: "",
+                    difficulty: "difficult",
+                    inputs: [],
+                    author_name: "user",
+                  },
+                  relationships: {
+                    user: { data: { id: "1", type: "user" } },
+                    shrine: { data: null },
+                  },
+                },
+                {
+                  id: "3",
+                  type: "sangaku",
+                  attributes: {
+                    title: "とても難しい算額",
+                    description: "test",
+                    source: "",
+                    difficulty: "very_difficult",
+                    inputs: [],
+                    author_name: "user",
+                  },
+                  relationships: {
+                    user: { data: { id: "1", type: "user" } },
+                    shrine: { data: null },
+                  },
+                },
+              ],
+            }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "current-page": "1",
+                "page-items": "20",
+                "total-pages": "1",
+                "total-count": "2",
+              },
+            },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+
+      const main = page.locator("main");
+      await expect(main.getByText("難しい", { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(main.getByText("とても難しい", { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    test("should allow me to filter sangakus by search text", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+
+      const searchInput = page.getByPlaceholder("タイトルで探す");
+      await searchInput.fill("検索文字");
+      await expect(page).toHaveURL(/query=%E6%A4%9C%E7%B4%A2%E6%96%87%E5%AD%97/, {
+        timeout: 1_000,
+      });
+
+      await searchInput.fill("");
+      await expect(page).not.toHaveURL(/query=/, { timeout: 1_000 });
+    });
+
+    test("should allow me to filter sangakus by difficulty", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+
+      // 難易度セレクトをクリックして「難しい」を選択
+      await page.getByRole("combobox", { name: "難易度" }).click();
+      await page.getByRole("option", { name: "難しい", exact: true }).click();
+      await expect(page).toHaveURL(/difficulty=difficult/, { timeout: 1_000 });
+
+      // 「全て」に戻す
+      await page.getByRole("combobox", { name: "難易度" }).click();
+      await page.getByRole("option", { name: "全て" }).click();
+      await expect(page).not.toHaveURL(/difficulty=/, { timeout: 1_000 });
     });
   });
 });

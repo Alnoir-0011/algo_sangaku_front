@@ -1,5 +1,12 @@
-import { test, expect } from "@/tests/e2e/fixtures";
+import {
+  test,
+  expect,
+  http,
+  HttpResponse,
+} from "@/tests/e2e/fixtures.msw";
 import { setSession } from "../__helpers__/signin";
+
+const apiUrl = process.env.API_URL;
 
 test.describe("TopPage", () => {
   test.describe("mainNode", () => {
@@ -59,7 +66,7 @@ test.describe("TopPage", () => {
     });
 
     test.describe("before login", () => {
-      test("has link to SignIn", async ({ page }) => {
+      test("should allow me to see sign in dialog when clicking the sign in button", async ({ page }) => {
         await page.goto("/");
         const button = page.getByRole("button", { name: "サインイン" });
         await button.click();
@@ -71,13 +78,64 @@ test.describe("TopPage", () => {
     });
 
     test.describe("after login", () => {
-      test("has not link to SignIn", async ({ page }) => {
+      test("should not allow me to see the sign in button after login", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
-        await page.waitForLoadState();
         const button = page.getByRole("button", { name: "サインイン" });
         await expect(button).not.toBeVisible();
       });
+
+      test("should allow me to sign out when confirmed", async ({ page, msw }) => {
+        msw.use(
+          http.delete(`${apiUrl}/api/v1/authenticate`, () => {
+            return HttpResponse.json({}, { status: 200 });
+          }),
+        );
+        await setSession(page);
+        await page.goto("/");
+
+        // window.confirm を true で上書きしてサインアウト確認OKをシミュレート
+        await page.evaluate(() => {
+          window.confirm = () => true;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+      });
+
+      test("should not allow me to sign out when dismissed", async ({
+        page,
+      }) => {
+        await setSession(page);
+        await page.goto("/");
+
+        // window.confirm を false で上書きしてキャンセルをシミュレート
+        await page.evaluate(() => {
+          window.confirm = () => false;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/");
+      });
+    });
+  });
+
+  test.describe("mobile", () => {
+    test.use({ viewport: { width: 430, height: 932 } });
+
+    test("has responsive drawer", async ({ page }) => {
+      await page.goto("/");
+      await page.getByRole("button", { name: "open drawer" }).click();
+      const appName = page.getByRole("link", { name: "アルゴ算額" });
+      await expect(appName).toBeVisible();
+    });
+
+    test("should allow me to close the drawer by clicking the backdrop", async ({ page }) => {
+      await page.goto("/");
+      await page.getByRole("button", { name: "open drawer" }).click();
+      const mobileDrawer = page.getByTestId("mobileDrawer");
+      await expect(mobileDrawer).toBeVisible({ timeout: 5000 });
+      // バックドロップ（ドロワーの外側）をクリックして閉じる
+      await page.keyboard.press("Escape");
+      await expect(mobileDrawer).not.toBeVisible({ timeout: 5000 });
     });
   });
 });

@@ -37,6 +37,7 @@ export default function MenuButton({ sangaku }: Props) {
     <Box sx={{ position: "relative", pl: 3 }}>
       <IconButton
         id={`menu-button-${sangaku.id}`}
+        aria-label="算額のメニューを開く"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}

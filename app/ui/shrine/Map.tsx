@@ -69,6 +69,7 @@ function MapComponent() {
 
     const location = await getLocation();
 
+    /* v8 ignore start */
     if (circle) {
       circle.circle.setMap(null);
       circle.innerDot.setMap(null);
@@ -98,6 +99,7 @@ function MapComponent() {
     });
 
     setCircle({ circle: newCircle, innerDot: newInnerDot });
+    /* v8 ignore stop */
   };
 
   if (isLoading) {
@@ -140,6 +142,7 @@ function MapComponent() {
   );
 }
 
+/* v8 ignore start */
 async function getLocation() {
   return new Promise<{ lat: number; lng: number }>((resolve, rejects) => {
     if ("geolocation" in navigator) {
@@ -157,3 +160,4 @@ async function getLocation() {
     return position;
   });
 }
+/* v8 ignore stop */

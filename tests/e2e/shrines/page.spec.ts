@@ -25,7 +25,7 @@ test.describe("/shrines", () => {
     ],
   });
 
-  test("「このエリアで探す」ボタンで 429 のとき warning フラッシュを表示する", async ({
+  test("should allow me to see a warning flash when 429 is returned on area search", async ({
     page,
   }) => {
     await page.goto("/shrines");
@@ -34,9 +34,7 @@ test.describe("/shrines", () => {
     await expect(button).toBeVisible();
     await button.click();
 
-    const flash = page.locator(
-      '[role="alert"]:not([aria-live]):not([aria-atomic])',
-    );
+    const flash = page.getByTestId('flash-message');
     await expect(flash).toBeVisible({ timeout: 10_000 });
     await expect(flash).toContainText(
       "リクエストが多すぎます。しばらくしてから再試行してください。",

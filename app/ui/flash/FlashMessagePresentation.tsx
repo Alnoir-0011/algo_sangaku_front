@@ -33,11 +33,13 @@ export default function FlashMessagePresentation({ type, message }: Props) {
       autoHideDuration={DEFAULT_HIDE_DURATION}
       onClose={handleClose}
     >
+      {/* NOTE: Next.js の __next-route-announcer__ も role="alert" を持つため getByRole("alert") は strict mode 違反になる。data-testid で区別する */}
       <Alert
         onClose={handleClose}
         severity={type}
         variant="filled"
         sx={{ width: "100%" }}
+        data-testid="flash-message"
       >
         {message}
       </Alert>

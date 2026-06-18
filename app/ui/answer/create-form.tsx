@@ -62,7 +62,7 @@ export default function Form({ sangaku }: Props) {
         </Grid>
         <Grid size={6}>
           {/* Editor */}
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 2 }} data-testid="monaco-editor-source">
             <Editor
               theme="vs-dark"
               height="60vh"

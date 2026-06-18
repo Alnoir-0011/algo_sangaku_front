@@ -60,7 +60,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
   });
 
   test.describe("unauthenticated user", () => {
-    test("should redirect to signin page when accessing /admin/sangakus/[id]/edit", async ({
+    test("should not allow me to access sangaku edit page without authentication", async ({
       page,
     }) => {
       await page.goto("/admin/sangakus/1/edit");
@@ -69,7 +69,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/sangakus/[id]/edit", async ({
+    test("should not allow me to access sangaku edit page as a general user", async ({
       page,
     }) => {
       await setSession(page);
@@ -79,7 +79,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
   });
 
   test.describe("after admin signin", () => {
-    test("should display sangaku edit heading", async ({ page }) => {
+    test("should allow me to see the sangaku edit heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus/1/edit");
       await expect(
@@ -87,7 +87,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       ).toBeVisible();
     });
 
-    test("should pre-fill form with existing sangaku title", async ({
+    test("should allow me to see the form pre-filled with the existing sangaku title", async ({
       page,
     }) => {
       await setAdminSession(page);
@@ -95,14 +95,12 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       await expect(page.getByLabel("タイトル")).toHaveValue("管理算額テスト");
     });
 
-    test("should allow updating sangaku title", async ({ page }) => {
+    test("should allow me to update sangaku title", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus/1/edit");
       await page.getByLabel("タイトル").fill("更新後の算額タイトル");
       await page.getByRole("button", { name: "更新" }).click();
-      const flash = page.locator(
-        '[role="alert"]:not([aria-live]):not([aria-atomic])',
-      );
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を更新しました");
     });

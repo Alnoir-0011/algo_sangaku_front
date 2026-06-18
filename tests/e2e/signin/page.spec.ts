@@ -14,7 +14,6 @@ test.describe("/signin", () => {
     test("redirect to root", async ({ page }) => {
       await setSession(page);
       await page.goto("/signin");
-      await page.waitForLoadState();
       await expect(page).not.toHaveURL("/login");
       await expect(page).toHaveURL("/");
     });

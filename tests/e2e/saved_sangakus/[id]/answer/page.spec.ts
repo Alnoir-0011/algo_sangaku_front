@@ -13,10 +13,9 @@ test.describe("/saved_sangakus/[id]/answer", () => {
   test.describe("before signin", () => {
     test("should not allow me to show answer", async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState();
       await page.goto("/saved_sangakus/1/answer");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
     });

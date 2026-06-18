@@ -65,7 +65,7 @@ test.describe("/admin/users", () => {
   });
 
   test.describe("unauthenticated user", () => {
-    test("should redirect to signin page when accessing /admin/users", async ({
+    test("should not allow me to access user list without authentication", async ({
       page,
     }) => {
       await page.goto("/admin/users");
@@ -74,7 +74,7 @@ test.describe("/admin/users", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/users", async ({
+    test("should not allow me to access user list as a general user", async ({
       page,
     }) => {
       await setSession(page);
@@ -84,7 +84,7 @@ test.describe("/admin/users", () => {
   });
 
   test.describe("after admin signin", () => {
-    test("should display users list heading", async ({ page }) => {
+    test("should allow me to see the users list heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users");
       await expect(
@@ -92,14 +92,14 @@ test.describe("/admin/users", () => {
       ).toBeVisible();
     });
 
-    test("should display user names from API", async ({ page }) => {
+    test("should allow me to see user names from API", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users");
       await expect(page.getByText("Admin User")).toBeVisible();
       await expect(page.getByText("General User")).toBeVisible();
     });
 
-    test("should have edit link for each user", async ({ page }) => {
+    test("should allow me to see the edit link for each user", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users");
       const editLinks = page.getByRole("link", { name: "編集" });

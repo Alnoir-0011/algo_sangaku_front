@@ -13,12 +13,11 @@ const apiUrl = process.env.API_URL;
 
 test.describe("/sangakus/create", () => {
   test.describe("before signin", () => {
-    test("redirect to signin page", async ({ page }) => {
+    test("should not allow me to visit create page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState();
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
@@ -55,7 +54,7 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
-    test("can create sangaku", async ({ page, msw }) => {
+    test("should allow me to create a sangaku", async ({ page, msw }) => {
       // NOTE:モックの定義
       const backendResponse = {
         data: {
@@ -93,11 +92,10 @@ test.describe("/sangakus/create", () => {
       // NOTE:Test start
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       await page.getByLabel("タイトル").fill("test_title");
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
-      const monacoEditor = page.locator(".monaco-editor").nth(0);
+      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
@@ -106,26 +104,24 @@ test.describe("/sangakus/create", () => {
       await page.keyboard.press("Enter");
       await page.keyboard.type('puts "test #{input}"');
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      await page.waitForLoadState();
       const readOnlyEditor = page
-        .locator(".MuiModal-root")
+        .getByTestId("check-page-modal")
         .locator(".monaco-editor");
       await expect(readOnlyEditor).toBeVisible();
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を作成しました");
     });
 
-    test("generate button is disabled when description is empty", async ({
+    test("should not allow me to click the generate button when description is empty", async ({
       page,
     }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -143,7 +139,7 @@ test.describe("/sangakus/create", () => {
       await expect(generateButton).toBeDisabled();
     });
 
-    test("can generate source code from description", async ({ page, msw }) => {
+    test("should allow me to generate source code from description", async ({ page, msw }) => {
       const generatedSource =
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
       const backendResponse = {
@@ -180,7 +176,6 @@ test.describe("/sangakus/create", () => {
 
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -200,24 +195,23 @@ test.describe("/sangakus/create", () => {
 
       // 生成されたコードがMonaco Editorに反映されているか確認
       // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
-      const editorLines = page.locator(".monaco-editor").first().locator(".view-lines");
+      const editorLines = page.getByTestId("monaco-editor-source").locator(".view-lines");
       await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10000 });
 
       // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      await page.waitForLoadState();
       const readOnlyEditor = page
-        .locator(".MuiModal-root")
+        .getByTestId("check-page-modal")
         .locator(".monaco-editor");
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を作成しました");
     });
 
-    test("error message visible", async ({ page, msw }) => {
+    test("should allow me to see validation error messages on failed submission", async ({ page, msw }) => {
       // NOTE:モックの定義
       const backendResponse = {
         message: "Bad Request",
@@ -238,7 +232,6 @@ test.describe("/sangakus/create", () => {
       // NOTE: Test start
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       // NOTE: フォーム操作
       await page.getByLabel("タイトル").fill("");
       await page.getByLabel("問題文").fill("");
@@ -246,15 +239,14 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
       await page.getByRole("textbox", { name: "fixedInput-2" }).fill("example");
       // NOTE: monaco-editorの操作
-      const monacoEditor = page.locator(".monaco-editor").nth(0);
+      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
       await page.keyboard.press("Backspace");
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      await page.waitForLoadState();
       const readOnlyEditor = page
-        .locator(".MuiModal-root")
+        .getByTestId("check-page-modal")
         .locator(".monaco-editor");
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
@@ -275,16 +267,15 @@ test.describe("/sangakus/create", () => {
       await expect(sourceErrorMessage).toHaveText("を入力してください");
     });
 
-    test("shows usage indicator with remaining count", async ({ page }) => {
+    test("should allow me to see usage indicator with remaining count", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
 
       const usageIndicator = page.getByText(/本日の残り生成回数: 5 \/ 5/);
       await expect(usageIndicator).toBeVisible();
     });
 
-    test("updates usage count after successful generation", async ({ page, msw }) => {
+    test("should allow me to see updated usage count after successful generation", async ({ page, msw }) => {
       const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
 
       msw.use(
@@ -301,7 +292,6 @@ test.describe("/sangakus/create", () => {
 
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -313,7 +303,7 @@ test.describe("/sangakus/create", () => {
       await expect(usageIndicator).toBeVisible();
     });
 
-    test("shows error message on 429 response", async ({ page, msw }) => {
+    test("should allow me to see an error message on 429 response", async ({ page, msw }) => {
       msw.use(
         http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
           return HttpResponse.json({}, { status: 429 });
@@ -322,7 +312,6 @@ test.describe("/sangakus/create", () => {
 
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -337,6 +326,68 @@ test.describe("/sangakus/create", () => {
       await expect(
         page.getByRole("button", { name: "問題文からコードを生成" }),
       ).toBeDisabled();
+    });
+
+    test("should allow me to see dash indicator when generate source API fails", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(
+          `${apiUrl}/api/v1/user/sangakus/generate_source_usage`,
+          () => {
+            return HttpResponse.json({}, { status: 500 });
+          },
+        ),
+      );
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await expect(
+        page.getByText("本日の残り生成回数: - / -"),
+      ).toBeVisible({ timeout: 10_000 });
+    });
+
+    test("should allow me to preview markdown content with rendered content and empty placeholder", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await waitForInteractive(page.getByLabel("問題文"));
+
+      // 空の状態でプレビューに切り替えてプレースホルダーを確認
+      await page.getByRole("button", { name: "プレビュー" }).click();
+      await expect(page.getByText("プレビューが表示されます")).toBeVisible();
+
+      // 編集に戻りMarkdownコンテンツを入力
+      await page.getByRole("button", { name: "編集" }).click();
+      const markdownContent = [
+        "インライン `code` があります",
+        "",
+        "```ruby",
+        "puts 'hello'",
+        "```",
+        "",
+        "| 列1 | 列2 |",
+        "| ---- | ---- |",
+        "| A | B |",
+      ].join("\n");
+      await page.getByLabel("問題文").fill(markdownContent);
+
+      // プレビューに切り替えてレンダリングされたコンテンツを確認
+      await page.getByRole("button", { name: "プレビュー" }).click();
+      await expect(page.getByText("インライン")).toBeVisible();
+      await expect(page.locator("code").filter({ hasText: "puts" })).toBeVisible();
+      await expect(page.getByRole("table")).toBeVisible();
+      await expect(page.getByRole("columnheader", { name: "列1" })).toBeVisible();
+      await expect(page.getByRole("cell", { name: "A" })).toBeVisible();
+    });
+
+    test("should allow me to go back from the confirmation modal to the edit screen", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await waitForMonacoEditor(page);
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "作成画面に戻る" }).click();
+      await expect(page.getByTestId("check-page-modal")).not.toBeVisible();
     });
   });
 
@@ -359,10 +410,9 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
-    test("generate button is disabled when remaining is 0", async ({ page }) => {
+    test("should not allow me to click the generate button when remaining is 0", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
-      await page.waitForLoadState();
 
       await page.getByLabel("問題文").fill("問題文を入力");
       const generateButton = page.getByRole("button", { name: "問題文からコードを生成" });

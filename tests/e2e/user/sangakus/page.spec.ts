@@ -185,12 +185,11 @@ test.describe("/user/sangakus", () => {
   });
 
   test.describe("before signin", () => {
-    test("redirect to signin page", async ({ page }) => {
+    test("should not allow me to visit my sangakus page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState();
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
       const mainNode = page.locator("main");
@@ -204,58 +203,72 @@ test.describe("/user/sangakus", () => {
   });
 
   test.describe("after signin", () => {
-    test("should allow me to show own sangakus", async ({ page }) => {
+    test("should allow me to see my sangaku title", async ({ page }) => {
       await setSession(page);
-
       await page.goto("/user/sangakus");
-      const sangakuTitle = page.getByRole("heading", { name: "test_title" });
-      await expect(sangakuTitle).toBeVisible();
-      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複し
-      // （#menu-button-1 が hidden で2つ並ぶ）strict mode 違反になるため、
-      // 可視要素のみを first() で対象にする
-      const menuButton = page.locator("#menu-button-1:visible").first();
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+    });
+
+    test("should allow me to open my sangaku menu", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複するため first() で対象を絞る
+      const menuButton = page.getByRole("button", { name: "算額のメニューを開く" }).first();
       await waitForInteractive(menuButton);
       await menuButton.click();
       const editLink = page.getByRole("menuitem", { name: "編集" });
       await expect(editLink).toBeVisible();
       await expect(editLink).toHaveAttribute("href", "/user/sangakus/1/edit");
-      const deleteButton = page.getByRole("menuitem", { name: "削除" });
-      await expect(deleteButton).toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "削除" })).toBeVisible();
     });
 
-    test("should allow me to show dedicated sangakus", async ({ page }) => {
+    test("should allow me to see dedicated sangaku title", async ({ page }) => {
       await setSession(page);
-
       await page.goto("/user/sangakus");
-      const tab = page.getByRole("tab", { name: "奉納した算額" });
-      await tab.click();
+      await page.getByRole("tab", { name: "奉納した算額" }).click();
+      await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
+    });
+
+    test("should not allow me to see menu for dedicated sangakus", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      await page.getByRole("tab", { name: "奉納した算額" }).click();
+      await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "算額のメニューを開く" })).not.toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "編集" })).not.toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "削除" })).not.toBeVisible();
+    });
+
+    test("should allow me to see shrine info when clicking a dedicated sangaku", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      await page.getByRole("tab", { name: "奉納した算額" }).click();
       const sangakuTitle = page.getByRole("heading", { name: "dedicated" });
       await expect(sangakuTitle).toBeVisible();
-      const menuButton = page.getByTestId("MoreVertIcon");
-      await expect(menuButton).not.toBeVisible();
-      const editLink = page.getByRole("menuitem", { name: "編集" });
-      await expect(editLink).not.toBeVisible();
-      const deleteButton = page.getByRole("menuitem", { name: "削除" });
-      await expect(deleteButton).not.toBeVisible();
       await sangakuTitle.click();
-      await page.waitForLoadState();
-      const shrineName = page.getByRole("heading", { name: "test_shrine" });
-      await expect(shrineName).toBeVisible();
-      const copyCountText = page.getByText("算額が写された数:");
-      await expect(copyCountText).toBeVisible();
-      const SangakuDescription = page
-        .getByLabel("modal")
-        .getByText("test_desc");
-      await expect(SangakuDescription).toBeVisible();
+      await expect(page.getByRole("heading", { name: "test_shrine" })).toBeVisible();
+      await expect(page.getByText("算額が写された数:")).toBeVisible();
+      await expect(page.getByLabel("modal").getByText("test_desc")).toBeVisible();
     });
 
-    test("can delete sangaku", async ({ page }) => {
+    test("should allow me to close the dedicated sangaku modal", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
-      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複し
-      // （#menu-button-1 が hidden で2つ並ぶ）strict mode 違反になるため、
-      // 可視要素のみを first() で対象にする
-      const menuButton = page.locator("#menu-button-1:visible").first();
+      await page.getByRole("tab", { name: "奉納した算額" }).click();
+      const sangakuTitle = page.getByRole("heading", { name: "dedicated" });
+      await expect(sangakuTitle).toBeVisible();
+      await sangakuTitle.click();
+      await expect(page.getByRole("heading", { name: "test_shrine" })).toBeVisible();
+      // Escapeキーでモーダルを閉じる
+      await page.keyboard.press("Escape");
+      await expect(page.getByLabel("modal")).not.toBeVisible({ timeout: 5000 });
+    });
+
+    test("should allow me to delete my sangaku", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複するため first() で対象を絞る
+      const menuButton = page.getByRole("button", { name: "算額のメニューを開く" }).first();
       await waitForInteractive(menuButton);
       await menuButton.click();
       const deleteButton = page.getByRole("menuitem", { name: "削除" });
@@ -263,9 +276,122 @@ test.describe("/user/sangakus", () => {
         await dialog.accept();
       });
       await deleteButton.click();
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を削除しました");
+    });
+
+    test("should allow me to see difficult and very_difficult difficulty labels on dedicated tab", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const url = new URL(request.url);
+          const shrineId = url.searchParams.get("shrine_id");
+          if (shrineId !== "") {
+            return new HttpResponse(
+              JSON.stringify({
+                data: [
+                  {
+                    id: "2",
+                    type: "sangaku",
+                    attributes: {
+                      title: "難しい算額",
+                      description: "",
+                      source: "",
+                      difficulty: "difficult",
+                      inputs: [],
+                    },
+                    relationships: {
+                      user: { data: { id: "1", type: "user" } },
+                      shrine: { data: { id: "1", type: "shrine" } },
+                    },
+                  },
+                  {
+                    id: "3",
+                    type: "sangaku",
+                    attributes: {
+                      title: "とても難しい算額",
+                      description: "",
+                      source: "",
+                      difficulty: "very_difficult",
+                      inputs: [],
+                    },
+                    relationships: {
+                      user: { data: { id: "1", type: "user" } },
+                      shrine: { data: { id: "1", type: "shrine" } },
+                    },
+                  },
+                ],
+              }),
+              {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/json",
+                  "current-page": "1",
+                  "page-items": "20",
+                  "total-pages": "1",
+                  "total-count": "2",
+                },
+              },
+            );
+          }
+          return new HttpResponse(JSON.stringify(beforeDedicateSangakus), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "current-page": "1",
+              "page-items": "20",
+              "total-pages": "2",
+              "total-count": "22",
+            },
+          });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      const tab = page.getByRole("tab", { name: "奉納した算額" });
+      await tab.click();
+      const main = page.locator("main");
+      await expect(main.getByText("難しい", { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(main.getByText("とても難しい", { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    test("should not allow me to see dedicated sangakus when fetch fails", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const url = new URL(request.url);
+          const shrineId = url.searchParams.get("shrine_id");
+          if (shrineId !== "") {
+            return HttpResponse.json({}, { status: 500 });
+          }
+          return new HttpResponse(JSON.stringify(beforeDedicateSangakus), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "current-page": "1",
+              "page-items": "20",
+              "total-pages": "2",
+              "total-count": "22",
+            },
+          });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      const tab = page.getByRole("tab", { name: "奉納した算額" });
+      await tab.click();
+      await expect(
+        page.getByText("リクエストに失敗しました"),
+      ).toBeVisible({ timeout: 10_000 });
     });
   });
 });

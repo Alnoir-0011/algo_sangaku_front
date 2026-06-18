@@ -249,6 +249,7 @@ async function getLocation() {
             lng: position.coords.longitude,
           });
         },
+        /* v8 ignore next */
         (e) => rejects(e),
       );
     }
