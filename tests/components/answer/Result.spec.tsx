@@ -5,7 +5,7 @@ test.describe("Result", () => {
   test("should allow me to see the result output after polling completes", async ({ mount }) => {
     const component = await mount(<Result index={0} id="1" />);
     // モックが即座に correct を返すのでポーリングが完了する
-    await expect(component.getByLabel("result-1")).toBeVisible({ timeout: 5000 });
+    await expect(component.getByTestId("result-1")).toBeVisible({ timeout: 5000 });
     await expect(component.getByText("○")).toBeVisible();
   });
 

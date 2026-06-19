@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { fetchUserAnswerWithSangakuId } from "@/app/lib/data/answer";
 import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
 import Results from "@/app/ui/answer/Results";
-import SourceResult from "@/app/ui/answer/SourseResult";
+import SourceResult from "@/app/ui/answer/SourceResult";
 import ReadOnlyEditor from "@/app/ui/answer/ReadOnlyEditor";
 import { Typography } from "@mui/material";
 import { Metadata } from "next";

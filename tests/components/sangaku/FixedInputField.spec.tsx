@@ -2,7 +2,7 @@ import { test, expect } from "@/tests/fixtures.ct";
 import { FixedInputFieldWrapper } from "./FixedInputFieldStories";
 
 test.describe("FixedInputField", () => {
-  test("renders input fields", async ({ mount }) => {
+  test("should allow me to see input fields", async ({ mount }) => {
     const component = await mount(
       <FixedInputFieldWrapper initial={["入力1", "入力2"]} />,
     );
@@ -10,7 +10,7 @@ test.describe("FixedInputField", () => {
     await expect(component.getByLabel("fixedInput-2")).toBeVisible();
   });
 
-  test("shows index numbers", async ({ mount }) => {
+  test("should allow me to see index numbers for each field", async ({ mount }) => {
     const component = await mount(
       <FixedInputFieldWrapper initial={["a", "b"]} />,
     );
@@ -18,14 +18,14 @@ test.describe("FixedInputField", () => {
     await expect(component.getByText("2")).toBeVisible();
   });
 
-  test("has add button", async ({ mount }) => {
+  test("should allow me to see add button", async ({ mount }) => {
     const component = await mount(<FixedInputFieldWrapper initial={[]} />);
     await expect(
       component.getByRole("button", { name: "固定入力を追加" }),
     ).toBeVisible();
   });
 
-  test("has remove buttons for each field", async ({ mount }) => {
+  test("should allow me to see remove buttons for each field", async ({ mount }) => {
     const component = await mount(
       <FixedInputFieldWrapper initial={["a", "b"]} />,
     );
@@ -33,7 +33,7 @@ test.describe("FixedInputField", () => {
     await expect(deleteButtons).toHaveCount(2);
   });
 
-  test("adds a new field when add button is clicked", async ({
+  test("should allow me to add a new field by clicking add button", async ({
     mount,
     page,
   }) => {
@@ -42,7 +42,7 @@ test.describe("FixedInputField", () => {
     await expect(page.getByLabel("fixedInput-2")).toBeVisible();
   });
 
-  test("removes a field when delete button is clicked", async ({
+  test("should allow me to remove a field by clicking delete button", async ({
     mount,
     page,
   }) => {

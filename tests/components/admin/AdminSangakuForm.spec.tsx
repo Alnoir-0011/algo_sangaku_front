@@ -16,33 +16,33 @@ const sangaku = {
 };
 
 test.describe("AdminSangakuForm", () => {
-  test("should pre-fill title with existing sangaku data", async ({ mount }) => {
+  test("should allow me to see pre-filled title with existing sangaku data", async ({ mount }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByLabel("タイトル")).toHaveValue("テスト算額");
   });
 
-  test("should display difficulty select with current value", async ({
+  test("should allow me to see difficulty select with current value", async ({
     mount,
   }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByRole("combobox")).toHaveValue("easy");
   });
 
-  test("should pre-fill description with existing sangaku data", async ({
+  test("should allow me to see pre-filled description with existing sangaku data", async ({
     mount,
   }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByLabel("説明文")).toHaveValue("テスト説明文");
   });
 
-  test("should pre-fill source with existing sangaku data", async ({
+  test("should allow me to see pre-filled source with existing sangaku data", async ({
     mount,
   }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByLabel("想定回答")).toHaveValue("print('hello')");
   });
 
-  test("should have update button", async ({ mount }) => {
+  test("should allow me to see update button", async ({ mount }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByRole("button", { name: "更新" })).toBeVisible();
   });

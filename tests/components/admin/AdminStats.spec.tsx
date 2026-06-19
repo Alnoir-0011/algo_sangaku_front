@@ -9,23 +9,23 @@ const stats = {
 };
 
 test.describe("AdminStats", () => {
-  test("should display users count", async ({ mount }) => {
+  test("should allow me to see users count", async ({ mount }) => {
     const component = await mount(<AdminStats stats={stats} />);
-    await expect(component.getByText("10")).toBeVisible();
+    await expect(component.getByTestId("users_count").getByText("10")).toBeVisible();
   });
 
-  test("should display sangakus count", async ({ mount }) => {
+  test("should allow me to see sangakus count", async ({ mount }) => {
     const component = await mount(<AdminStats stats={stats} />);
-    await expect(component.getByText("5")).toBeVisible();
+    await expect(component.getByTestId("sangakus_count").getByText("5")).toBeVisible();
   });
 
-  test("should display shrines count", async ({ mount }) => {
+  test("should allow me to see shrines count", async ({ mount }) => {
     const component = await mount(<AdminStats stats={stats} />);
-    await expect(component.getByText("3")).toBeVisible();
+    await expect(component.getByTestId("shrines_count").getByText("3")).toBeVisible();
   });
 
-  test("should display answers count", async ({ mount }) => {
+  test("should allow me to see answers count", async ({ mount }) => {
     const component = await mount(<AdminStats stats={stats} />);
-    await expect(component.getByText("20")).toBeVisible();
+    await expect(component.getByTestId("answers_count").getByText("20")).toBeVisible();
   });
 });

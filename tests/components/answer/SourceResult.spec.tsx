@@ -1,5 +1,5 @@
 import { test, expect } from "@/tests/fixtures.ct";
-import SourseResult from "@/app/ui/answer/SourseResult";
+import SourceResult from "@/app/ui/answer/SourceResult";
 
 const correctAnswer = {
   id: "1",
@@ -11,11 +11,12 @@ const correctAnswer = {
   },
 };
 
-test.describe("SourseResult", () => {
+test.describe("SourceResult", () => {
   test("should allow me to see 明察 when answer is correct", async ({ mount }) => {
     // モックが "correct" を返すため isCorrect() が呼ばれて true になる
-    const component = await mount(<SourseResult answer={correctAnswer} />);
-    await expect(component.getByText("明")).toBeVisible({ timeout: 5000 });
-    await expect(component.getByText("察")).toBeVisible();
+    const component = await mount(<SourceResult answer={correctAnswer} />);
+    const heading = component.getByRole("heading", { level: 1 });
+    await expect(heading).toBeVisible({ timeout: 5000 });
+    await expect(heading).toContainText("察");
   });
 });

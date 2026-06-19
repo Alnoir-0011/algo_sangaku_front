@@ -14,7 +14,7 @@ const shrine = {
 };
 
 test.describe("AdminShrineRow", () => {
-  test("should display shrine name", async ({ mount }) => {
+  test("should allow me to see shrine name", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -25,7 +25,7 @@ test.describe("AdminShrineRow", () => {
     await expect(component.getByText("test_shrine")).toBeVisible();
   });
 
-  test("should display shrine address", async ({ mount }) => {
+  test("should allow me to see shrine address", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -36,7 +36,7 @@ test.describe("AdminShrineRow", () => {
     await expect(component.getByText("東京都千代田区1-1")).toBeVisible();
   });
 
-  test("should display sangaku count", async ({ mount }) => {
+  test("should allow me to see sangaku count", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -44,10 +44,10 @@ test.describe("AdminShrineRow", () => {
         </tbody>
       </table>,
     );
-    await expect(component.getByText("2")).toBeVisible();
+    await expect(component.getByRole("cell", { name: "2" })).toBeVisible();
   });
 
-  test("should have edit link to shrine detail page", async ({ mount }) => {
+  test("should allow me to see edit link to shrine detail page", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -60,5 +60,4 @@ test.describe("AdminShrineRow", () => {
       "/admin/shrines/1/edit",
     );
   });
-
 });

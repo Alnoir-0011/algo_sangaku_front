@@ -5,15 +5,15 @@ test.describe("ResponsiveNav", () => {
   test.describe("Desktop", () => {
     test.use({ viewport: { width: 1024, height: 720 } });
 
-    test("has not hamberger-menu button", async ({ mount }) => {
+    test("should not allow me to see hamburger menu button on desktop", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
       });
-      const button = component.getByRole("button", { name: "opne drawer" });
+      const button = component.getByRole("button", { name: "open drawer" });
       await expect(button).not.toBeVisible();
     });
 
-    test("has opened sidenav", async ({ mount }) => {
+    test("should allow me to see app name link when sidenav is open", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
       });
@@ -26,7 +26,7 @@ test.describe("ResponsiveNav", () => {
     test.use({ viewport: { width: 430, height: 932 } });
 
     // 画面上には表示されるがコンポーネントテストで要素を取得できないためexample.spec.tsxに代替のテストを記載
-    test.skip("opne drawer when click button", async ({ mount }) => {
+    test.skip("should allow me to open drawer when click button", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
       });

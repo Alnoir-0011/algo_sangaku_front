@@ -24,7 +24,7 @@ const sangakuWithoutShrine = {
 };
 
 test.describe("AdminSangakuRow", () => {
-  test("should display sangaku title", async ({ mount }) => {
+  test("should allow me to see sangaku title", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -35,7 +35,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("テスト算額")).toBeVisible();
   });
 
-  test("should display user name", async ({ mount }) => {
+  test("should allow me to see user name", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -46,7 +46,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("test_user")).toBeVisible();
   });
 
-  test("should display shrine name when dedicated", async ({ mount }) => {
+  test("should allow me to see shrine name when dedicated", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -57,7 +57,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("test_shrine")).toBeVisible();
   });
 
-  test("should display fallback when not dedicated", async ({ mount }) => {
+  test("should allow me to see fallback text when not dedicated", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -68,7 +68,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("未奉納")).toBeVisible();
   });
 
-  test("should have edit link", async ({ mount }) => {
+  test("should allow me to see edit link", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -79,7 +79,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByRole("link", { name: "編集" })).toBeVisible();
   });
 
-  test("should have delete button", async ({ mount }) => {
+  test("should allow me to see delete button", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
