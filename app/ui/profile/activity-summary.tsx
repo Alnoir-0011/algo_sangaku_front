@@ -3,11 +3,12 @@ import { Box, Card, CardContent, Typography } from "@mui/material";
 interface StatCardProps {
   label: string;
   value: number | null;
+  testId?: string;
 }
 
-function StatCard({ label, value }: StatCardProps) {
+function StatCard({ label, value, testId }: StatCardProps) {
   return (
-    <Card variant="outlined" sx={{ flex: 1, minWidth: 100 }}>
+    <Card variant="outlined" sx={{ flex: 1, minWidth: 100 }} data-testid={testId}>
       <CardContent sx={{ textAlign: "center", py: 2, "&:last-child": { pb: 2 } }}>
         <Typography variant="h5" component="p" fontWeight="bold">
           {value === null ? "—" : value}
@@ -44,7 +45,7 @@ export default function ActivitySummary({
         {savedSangakuCount !== undefined && (
           <StatCard label="保存した算額" value={savedSangakuCount} />
         )}
-        <StatCard label="提出した回答" value={answerCount} />
+        <StatCard label="提出した回答" value={answerCount} testId="stat-card-answer" />
       </Box>
     </Box>
   );

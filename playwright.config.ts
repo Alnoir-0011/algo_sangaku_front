@@ -41,7 +41,6 @@ export default defineConfig({
           // 先勝ち判定（最初にマッチしたキーの値が採用される）。順序を変えないこと。
           // E2E は Next.js のページ全体（ページ本体・外部スクリプト等）が対象に
           // 含まれるため、_next/static/ のみを許可するホワイトリスト方式にしている
-          // （CT は Vite 経由でテスト対象モジュールに限定されるためブラックリスト方式）
           entryFilter: {
             "_next/static/": true,
             "**": false,
@@ -51,6 +50,33 @@ export default defineConfig({
             "tests": false,
             "app/": true,
             "theme.ts": true,
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onEnd: (results: any) => {
+            const thresholds = {
+              statements: 80,
+              branches: 80,
+              functions: 80,
+              lines: 80,
+            };
+            const errors: string[] = [];
+            const { summary } = results;
+            for (const [metric, threshold] of Object.entries(thresholds)) {
+              const pct = summary[metric]?.pct;
+              if (pct === undefined) {
+                errors.push(`Coverage metric "${metric}" not found in summary`);
+                continue;
+              }
+              if (pct < threshold) {
+                errors.push(
+                  `Coverage threshold for ${metric} (${pct}%) not met: ${threshold}%`,
+                );
+              }
+            }
+            if (errors.length) {
+              console.error(errors.join("\n"));
+              process.exitCode = 1;
+            }
           },
         },
       },

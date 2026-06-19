@@ -11,10 +11,9 @@ test.describe("/signin", () => {
   });
 
   test.describe("after signin", () => {
-    test("redirect to root", async ({ page }) => {
+    test("should allow me to be redirected to root when already signed in", async ({ page }) => {
       await setSession(page);
       await page.goto("/signin");
-      await page.waitForLoadState();
       await expect(page).not.toHaveURL("/login");
       await expect(page).toHaveURL("/");
     });

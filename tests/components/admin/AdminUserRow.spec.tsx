@@ -16,7 +16,7 @@ const user = {
 };
 
 test.describe("AdminUserRow", () => {
-  test("should display user name", async ({ mount }) => {
+  test("should allow me to see user name", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -27,7 +27,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("Test User")).toBeVisible();
   });
 
-  test("should display user email", async ({ mount }) => {
+  test("should allow me to see user email", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -38,7 +38,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("test@example.com")).toBeVisible();
   });
 
-  test("should display current role as text", async ({ mount }) => {
+  test("should allow me to see current role as text", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -49,7 +49,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("general")).toBeVisible();
   });
 
-  test("should have edit link", async ({ mount }) => {
+  test("should allow me to see edit link", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -60,7 +60,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByRole("link", { name: "編集" })).toBeVisible();
   });
 
-  test("should display sangaku count", async ({ mount }) => {
+  test("should allow me to see sangaku count", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -68,10 +68,10 @@ test.describe("AdminUserRow", () => {
         </tbody>
       </table>,
     );
-    await expect(component.getByText("3")).toBeVisible();
+    await expect(component.getByRole("cell", { name: "3" })).toBeVisible();
   });
 
-  test("should display answer count", async ({ mount }) => {
+  test("should allow me to see answer count", async ({ mount }) => {
     const component = await mount(
       <table>
         <tbody>
@@ -79,6 +79,6 @@ test.describe("AdminUserRow", () => {
         </tbody>
       </table>,
     );
-    await expect(component.getByText("7")).toBeVisible();
+    await expect(component.getByRole("cell", { name: "7" })).toBeVisible();
   });
 });

@@ -13,7 +13,7 @@ const mockSession: Session = {
 
 test.describe("Drawer", () => {
   test.describe("before login", () => {
-    test("has AppName", async ({ mount }) => {
+    test("should allow me to see app name link", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -27,7 +27,7 @@ test.describe("Drawer", () => {
       await expect(heading).toBeVisible();
     });
 
-    test("has link to Map page", async ({ mount }) => {
+    test("should allow me to see link to map page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -42,7 +42,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
-    test("has button to SignIn page", async ({ mount }) => {
+    test("should allow me to see sign-in button", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -56,7 +56,7 @@ test.describe("Drawer", () => {
       await expect(button).toBeVisible();
     });
 
-    test("has link to Privacy Policy page", async ({ mount }) => {
+    test("should allow me to see link to privacy policy page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -73,7 +73,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
-    test("has link to Terms of use page", async ({ mount }) => {
+    test("should allow me to see link to terms of use page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -90,7 +90,7 @@ test.describe("Drawer", () => {
   });
 
   test.describe("after login", () => {
-    test("has AppName", async ({ mount }) => {
+    test("should allow me to see app name link", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -104,7 +104,7 @@ test.describe("Drawer", () => {
       await expect(heading).toBeVisible();
     });
 
-    test("has link to Map page", async ({ mount }) => {
+    test("should allow me to see link to map page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -119,7 +119,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
-    test("has not button to SignIn page", async ({ mount }) => {
+    test("should not allow me to see sign-in button when logged in", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -133,7 +133,7 @@ test.describe("Drawer", () => {
       await expect(button).not.toBeVisible();
     });
 
-    test("has link to CreateSangaku page", async ({ mount }) => {
+    test("should allow me to see link to create sangaku page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -148,7 +148,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/sangakus/create");
     });
 
-    test("has link to AnswerSangaku page", async ({ mount }) => {
+    test("should allow me to see link to answer sangaku page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -163,7 +163,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/saved_sangakus");
     });
 
-    test("has link to ShowOwnSangaku page", async ({ mount }) => {
+    test("should allow me to see link to own sangaku list page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -178,7 +178,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
-    test("has link to edit profile page", async ({ mount }) => {
+    test("should allow me to see link to edit profile page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -193,7 +193,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/user/profile");
     });
 
-    test("has signout button", async ({ mount }) => {
+    test("should allow me to see sign-out button", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -207,7 +207,7 @@ test.describe("Drawer", () => {
       await expect(button).toBeVisible();
     });
 
-    test("has link to Privacy Policy page", async ({ mount }) => {
+    test("should allow me to see link to privacy policy page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}
@@ -224,7 +224,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
-    test("has link to Terms of use page", async ({ mount }) => {
+    test("should allow me to see link to terms of use page", async ({ mount }) => {
       const component = await mount(
         <Drawer
           drawerWidth={240}

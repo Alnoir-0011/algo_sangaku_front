@@ -16,6 +16,7 @@ export function SangakuListSkeleton() {
       {[...Array(9)].map((_, i: number) => (
         <Grid2 key={i}>
           <Skeleton
+            data-testid="skeleton-item"
             variant="rectangular"
             width={288}
             height={183.27}
@@ -58,6 +59,7 @@ export function SangakuWithButtonListSkeleton({
       {[...Array(9)].map((_, i: number) => (
         <Grid2 key={i}>
           <Skeleton
+            data-testid="skeleton-item"
             variant="rectangular"
             width={288}
             height={183.27}
@@ -76,6 +78,7 @@ export function SangakuWithButtonListSkeleton({
           />
           <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
             <Skeleton
+              data-testid="skeleton-item"
               variant="rectangular"
               width={width}
               height={36.5}
@@ -92,9 +95,9 @@ export function MapSkeleton() {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "end", mb: "0.5rem" }}>
-        <Skeleton variant="rounded" width="9rem" height="36.5px" />
+        <Skeleton data-testid="skeleton-item" variant="rounded" width="9rem" height="36.5px" />
       </Box>
-      <Skeleton variant="rectangular" height="40rem" />
+      <Skeleton data-testid="skeleton-item" variant="rectangular" height="40rem" />
     </>
   );
 }

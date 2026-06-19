@@ -12,13 +12,10 @@ const apiUrl = process.env.API_URL;
 
 test.describe("/saved_sangakus/[id]/answer/create", () => {
   test.describe("before signin", () => {
-    test("should not allow me to create answer", async ({ page }) => {
-      await page.goto("/");
-      await page.waitForLoadState();
+    test("should not allow me to access create answer page without signing in", async ({ page }) => {
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
-      await page.waitForLoadState();
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
     });
@@ -223,68 +220,83 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       ],
     });
 
-    test.describe("after signin", () => {
-      test("should allow me to create answer", async ({ page }) => {
-        await setSession(page);
-        await page.goto("/saved_sangakus/1/answer/create");
-        const title = page.getByRole("heading", { name: "test_title" });
-        await expect(title).toBeVisible();
-        const description = page.getByText("test_desc");
-        await expect(description).toBeVisible();
-        const monacoEditor = page.locator(".monaco-editor").nth(0);
-        await waitForMonacoEditor(page);
-        await monacoEditor.click();
-        await page.keyboard.press("ControlOrMeta+a");
-        await page.keyboard.press("Backspace");
-        await page.keyboard.type("input = gets.chomp");
-        await page.keyboard.press("Enter");
-        await page.keyboard.press("Enter");
-        await page.keyboard.type("puts input");
-        const button = page.getByRole("button", { name: "解答を終了する" });
-        page.once("dialog", async (dialog) => {
-          await dialog.accept();
-        });
-        await button.click();
-        await expect(page).toHaveURL("/saved_sangakus/1/answer");
-        const heading = page.getByRole("heading", { name: "test_titleの結果" });
-        await expect(heading).toBeVisible();
+    test("should allow me to submit answer and navigate to result page", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      const title = page.getByRole("heading", { name: "test_title" });
+      await expect(title).toBeVisible();
+      const description = page.getByText("test_desc");
+      await expect(description).toBeVisible();
+      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
+      await waitForMonacoEditor(page);
+      await monacoEditor.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.press("Backspace");
+      await page.keyboard.type("input = gets.chomp");
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("puts input");
+      const button = page.getByRole("button", { name: "解答を終了する" });
+      page.once("dialog", async (dialog) => {
+        await dialog.accept();
       });
+      await button.click();
+      await expect(page).toHaveURL("/saved_sangakus/1/answer");
+      const heading = page.getByRole("heading", { name: "test_titleの結果" });
+      await expect(heading).toBeVisible();
+      const output = page.getByTestId("result-1");
+      await expect(output).toBeVisible();
+      await expect(output).toContainText("test");
+    });
 
-      test("should not allow me to create answer without source", async ({
-        page,
-        msw,
-      }) => {
-        msw.use(
-          http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
-            return HttpResponse.json(
-              {
-                message: "Bad Request",
-                errors: [["source", ["を入力してください"]]],
-              },
-              { status: 400 },
-            );
-          }),
-        );
-        await setSession(page);
-        await page.goto("/saved_sangakus/1/answer/create");
-        const title = page.getByRole("heading", { name: "test_title" });
-        await expect(title).toBeVisible();
-        const description = page.getByText("test_desc");
-        await expect(description).toBeVisible();
-        const monacoEditor = page.locator(".monaco-editor").nth(0);
-        await waitForMonacoEditor(page);
-        await monacoEditor.click();
-        await page.keyboard.press("ControlOrMeta+a");
-        await page.keyboard.press("Backspace");
-        const button = page.getByRole("button", { name: "解答を終了する" });
-        page.once("dialog", async (dialog) => {
-          await dialog.accept();
-        });
-        await button.click();
-        await expect(page).toHaveURL("/saved_sangakus/1/answer/create");
-        const errorMessage = page.getByLabel("sourceError");
-        await expect(errorMessage).toBeVisible();
+    test("should not allow me to end answer when confirm is dismissed", async ({
+      page,
+    }) => {
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      await waitForMonacoEditor(page);
+      await page.evaluate(() => {
+        window.confirm = () => false;
       });
+      const button = page.getByRole("button", { name: "解答を終了する" });
+      await button.click();
+      await expect(page).toHaveURL("/saved_sangakus/1/answer/create");
+    });
+
+    test("should not allow me to create answer without source", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+          return HttpResponse.json(
+            {
+              message: "Bad Request",
+              errors: [["source", ["を入力してください"]]],
+            },
+            { status: 400 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      const title = page.getByRole("heading", { name: "test_title" });
+      await expect(title).toBeVisible();
+      const description = page.getByText("test_desc");
+      await expect(description).toBeVisible();
+      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
+      await waitForMonacoEditor(page);
+      await monacoEditor.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.press("Backspace");
+      const button = page.getByRole("button", { name: "解答を終了する" });
+      page.once("dialog", async (dialog) => {
+        await dialog.accept();
+      });
+      await button.click();
+      await expect(page).toHaveURL("/saved_sangakus/1/answer/create");
+      const errorMessage = page.getByLabel("sourceError");
+      await expect(errorMessage).toBeVisible();
     });
   });
 });

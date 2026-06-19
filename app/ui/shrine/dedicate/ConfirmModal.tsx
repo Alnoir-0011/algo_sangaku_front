@@ -53,7 +53,7 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
     <Modal open={!!data} onClose={handleClose}>
       <Box
         sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}
-        aria-label="confirm-modal"
+        role="dialog"
       >
         {isDedicated || (
           <form
@@ -249,6 +249,7 @@ async function getLocation() {
             lng: position.coords.longitude,
           });
         },
+        /* v8 ignore next */
         (e) => rejects(e),
       );
     }

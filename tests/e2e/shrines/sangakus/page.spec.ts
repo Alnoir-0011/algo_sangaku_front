@@ -114,7 +114,7 @@ test.describe("/shrines/[id]/sangakus", () => {
   });
 
   test.describe("before signin", () => {
-    test("should allow me to visit page", async ({ page }) => {
+    test("should allow me to see shrine sangaku list without signing in", async ({ page }) => {
       await page.goto("/shrines/1/sangakus");
       const heading = page.getByRole("heading", {
         name: "test_shrineの算額一覧",
@@ -126,20 +126,21 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(sangakuTitle).toBeVisible();
     });
 
-    test.skip("should not allow me to create sangakuCopy", async ({ page }) => {
-      await page.goto("/shrines/1/sangakus");
-      const heading = page.getByRole("heading", {
-        name: "test_shrineの算額一覧",
-      });
-      await expect(heading).toBeVisible();
-      const button = page.getByRole("button", { name: "算額を写す" });
-      await button.click();
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
-      await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("サインインしてください");
-    });
+    // TODO: 未ログイン時の「算額を写す」ボタンクリック後のリダイレクト動作が未実装のためコメントアウト
+    // test("should not allow me to create sangakuCopy", async ({ page }) => {
+    //   await page.goto("/shrines/1/sangakus");
+    //   const heading = page.getByRole("heading", {
+    //     name: "test_shrineの算額一覧",
+    //   });
+    //   await expect(heading).toBeVisible();
+    //   const button = page.getByRole("button", { name: "算額を写す" });
+    //   await button.click();
+    //   const flash = page.getByTestId('flash-message');
+    //   await expect(flash).toBeVisible({ timeout: 10_000 });
+    //   await expect(flash).toContainText("サインインしてください");
+    // });
 
-    test("should display notFound page", async ({ page }) => {
+    test("should allow me to see not found page for a non-existent shrine", async ({ page }) => {
       await page.goto("/shrines/999/sangakus");
       const message = page.getByRole("heading", {
         name: "This page could not be found.",
@@ -163,7 +164,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(sangakuTitle).toBeVisible();
       const button = page.getByRole("button", { name: "算額を写す" });
       await button.click();
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額の写しを作成しました");
     });

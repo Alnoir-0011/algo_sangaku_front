@@ -16,7 +16,7 @@ export default function AdminStats({ stats }: Props) {
   return (
     <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
       {statItems.map(({ label, key }) => (
-        <Card key={key} sx={{ minWidth: 160, flex: 1 }}>
+        <Card key={key} data-testid={key} sx={{ minWidth: 160, flex: 1 }}>
           <CardContent>
             <Typography variant="body2" color="text.secondary">
               {label}

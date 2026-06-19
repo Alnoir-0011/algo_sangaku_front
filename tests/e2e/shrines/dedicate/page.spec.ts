@@ -16,25 +16,6 @@ test.describe("/shrines/[id]/dedicate", () => {
     permissions: ["geolocation"],
   });
 
-  test.describe("before login", () => {
-    test("redirect to signin page", async ({ page }) => {
-      await page.goto("/");
-      await page.waitForLoadState();
-      await page.goto("/shrines/1/dedicate");
-      await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
-      await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("サインインしてください");
-      const mainNode = page.locator("main");
-      const heading = mainNode.getByRole("heading", { name: "サインイン" });
-      await expect(heading).toBeVisible();
-      await page.reload();
-      const drawer = page.locator("nav");
-      const link = drawer.getByRole("button", { name: "サインイン" });
-      await expect(link).toBeVisible();
-    });
-  });
-
   test.use({
     mswHandlers: [
       [
@@ -137,7 +118,34 @@ test.describe("/shrines/[id]/dedicate", () => {
       { scope: "test" }, // or 'worker'
     ],
   });
-  test.describe("after login", () => {
+
+  test.describe("before signin", () => {
+    test("should not allow me to access dedicate page without authentication", async ({
+      page,
+    }) => {
+      await page.goto("/shrines/1/dedicate");
+      await expect(page).toHaveURL("/signin");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
+      await expect(
+        page.locator("main").getByRole("heading", { name: "サインイン" }),
+      ).toBeVisible();
+    });
+
+    test("should allow me to see sign in button in nav after page reload", async ({
+      page,
+    }) => {
+      await page.goto("/shrines/1/dedicate");
+      await expect(page).toHaveURL("/signin");
+      await page.reload();
+      await expect(
+        page.locator("nav").getByRole("button", { name: "サインイン" }),
+      ).toBeVisible();
+    });
+  });
+
+  test.describe("after signin", () => {
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {
@@ -146,20 +154,22 @@ test.describe("/shrines/[id]/dedicate", () => {
       await page.goto("/shrines/1/dedicate");
       const sangaku = page.getByRole("heading", { name: "before_dedicate" });
       await sangaku.click();
-      const modal = page.getByLabel("confirm-modal");
+      const modal = page.getByRole("dialog");
       const heading = modal.getByRole("heading", { name: "before_dedicate" });
       await expect(heading).toBeVisible();
       const button = modal.getByRole("button", { name: "この算額を奉納する" });
       await button.click();
       await expect(page).toHaveURL("/shrines/1/dedicate");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId("flash-message");
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を奉納しました");
       const shareButton = page.getByRole("link", { name: "でシェア" });
       await expect(shareButton).toBeVisible();
     });
 
-    test("should display notFound page", async ({ page }) => {
+    test("should allow me to see not found page for a non-existent shrine", async ({
+      page,
+    }) => {
       await setSession(page);
 
       await page.goto("/shrines/999/dedicate");

@@ -46,8 +46,18 @@ export function useMap() {
   };
 }
 
-export function AdvancedMarker({ children }: { children?: ReactNode } & Record<string, unknown>) {
-  return <>{children}</>;
+export function AdvancedMarker({
+  children,
+  onClick,
+}: { children?: ReactNode; onClick?: () => void } & Record<
+  string,
+  unknown
+>) {
+  return (
+    <div data-testid="advanced-marker-mock" onClick={onClick}>
+      {children}
+    </div>
+  );
 }
 
 export function Pin() {

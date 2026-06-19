@@ -34,60 +34,56 @@ test.describe("/admin (dashboard)", () => {
   });
 
   test.describe("unauthenticated user", () => {
-    test("should redirect to signin page when accessing /admin", async ({
+    test("should not allow me to access dashboard without authentication", async ({
       page,
     }) => {
       await page.goto("/admin");
       await expect(page).toHaveURL("/signin");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
+      await expect(page.locator("main").getByRole("heading", { name: "サインイン" })).toBeVisible();
     });
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin", async ({ page }) => {
+    test("should not allow me to access dashboard as a general user", async ({ page }) => {
       await setSession(page);
       await page.goto("/admin");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 
   test.describe("after admin signin", () => {
-    test("should display dashboard heading", async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin");
+    });
+
+    test("should allow me to see the dashboard heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "管理ダッシュボード" }),
       ).toBeVisible();
     });
 
-    test("should display users count from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin");
-      await expect(page.getByText("42")).toBeVisible();
+    test("should allow me to see users count from API", async ({ page }) => {
+      await expect(page.getByTestId("users_count")).toContainText("42");
     });
 
-    test("should display sangakus count from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin");
-      await expect(page.getByText("15")).toBeVisible();
+    test("should allow me to see sangakus count from API", async ({ page }) => {
+      await expect(page.getByTestId("sangakus_count")).toContainText("15");
     });
 
-    test("should display shrines count from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin");
-      await expect(page.getByText("8")).toBeVisible();
+    test("should allow me to see shrines count from API", async ({ page }) => {
+      await expect(page.getByTestId("shrines_count")).toContainText("8");
     });
 
-    test("should display answers count from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin");
-      await expect(page.getByText("100")).toBeVisible();
+    test("should allow me to see answers count from API", async ({ page }) => {
+      await expect(page.getByTestId("answers_count")).toContainText("100", { timeout: 10_000 });
     });
 
-    test("should have navigation links to management pages", async ({
-      page,
-    }) => {
-      await setAdminSession(page);
-      await page.goto("/admin");
+    test("should allow me to see navigation links to management pages", async ({ page }) => {
       await expect(
         page.getByRole("link", { name: "ユーザー管理" }),
       ).toBeVisible();

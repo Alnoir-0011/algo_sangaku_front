@@ -10,7 +10,7 @@
     "test:e2e": "APP_ENV=test playwright test",
     "test:components": "playwright test -c playwright-ct.config.ts",
     "show-report": "playwright show-report",
-    "coverage:merge": "node scripts/merge-coverage.mjs"
+    "show-coverage": "monocart show-report"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

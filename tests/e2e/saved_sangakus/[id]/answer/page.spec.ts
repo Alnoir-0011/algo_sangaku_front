@@ -11,12 +11,10 @@ const apiUrl = process.env.API_URL;
 
 test.describe("/saved_sangakus/[id]/answer", () => {
   test.describe("before signin", () => {
-    test("should not allow me to show answer", async ({ page }) => {
-      await page.goto("/");
-      await page.waitForLoadState();
+    test("should not allow me to see answer without signing in", async ({ page }) => {
       await page.goto("/saved_sangakus/1/answer");
       await expect(page).toHaveURL("/signin");
-      const flash = page.locator('[role="alert"]:not([aria-live]):not([aria-atomic])');
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
     });
@@ -185,14 +183,15 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       ],
     });
 
-    test("should allow me to show answer", async ({ page }) => {
+    test("should allow me to see answer result", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer");
       await expect(page).toHaveURL("/saved_sangakus/1/answer");
       const heading = page.getByRole("heading", { name: "test_titleの結果" });
       await expect(heading).toBeVisible();
-      const output = page.getByLabel("result-1");
+      const output = page.getByTestId("result-1");
       await expect(output).toBeVisible();
+      await expect(output).toContainText("test");
     });
   });
 });

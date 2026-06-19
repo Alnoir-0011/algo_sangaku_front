@@ -60,7 +60,7 @@ test.describe("/admin/users/[id]/edit", () => {
   });
 
   test.describe("unauthenticated user", () => {
-    test("should redirect to signin page when accessing /admin/users/[id]/edit", async ({
+    test("should not allow me to access user edit page without authentication", async ({
       page,
     }) => {
       await page.goto("/admin/users/2/edit");
@@ -69,17 +69,18 @@ test.describe("/admin/users/[id]/edit", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/users/[id]/edit", async ({
+    test("should not allow me to access user edit page as a general user", async ({
       page,
     }) => {
       await setSession(page);
       await page.goto("/admin/users/2/edit");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 
   test.describe("after admin signin", () => {
-    test("should display user edit heading", async ({ page }) => {
+    test("should allow me to see the user edit heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
       await expect(
@@ -87,20 +88,18 @@ test.describe("/admin/users/[id]/edit", () => {
       ).toBeVisible();
     });
 
-    test("should pre-fill form with existing user name", async ({ page }) => {
+    test("should allow me to see the form pre-filled with the existing user name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
       await expect(page.getByLabel("名前")).toHaveValue("General User");
     });
 
-    test("should allow updating user", async ({ page }) => {
+    test("should allow me to update user", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
       await page.getByLabel("名前").fill("Updated User");
       await page.getByRole("button", { name: "更新" }).click();
-      const flash = page.locator(
-        '[role="alert"]:not([aria-live]):not([aria-atomic])',
-      );
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("ユーザーを更新しました");
     });

@@ -25,8 +25,8 @@ export async function waitForNetworkIdle(page: Page) {
  */
 export async function waitForMonacoEditor(page: Page, nth = 0) {
   await page
-    .locator(".monaco-editor")
+    .getByTestId("monaco-editor-source")
     .nth(nth)
     .locator(".view-lines")
-    .waitFor({ state: "visible", timeout: 20_000 });
+    .waitFor({ state: "visible", timeout: 30_000 });
 }

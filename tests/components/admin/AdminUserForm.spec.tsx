@@ -16,22 +16,22 @@ const user = {
 };
 
 test.describe("AdminUserForm", () => {
-  test("should pre-fill name with existing user data", async ({ mount }) => {
+  test("should allow me to see pre-filled name with existing user data", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByLabel("名前")).toHaveValue("Test User");
   });
 
-  test("should pre-fill nickname with existing user data", async ({ mount }) => {
+  test("should allow me to see pre-filled nickname with existing user data", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByLabel("ニックネーム")).toHaveValue("testuser");
   });
 
-  test("should display role select with current value", async ({ mount }) => {
+  test("should allow me to see role select with current value", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByRole("combobox")).toHaveValue("general");
   });
 
-  test("should have update button", async ({ mount }) => {
+  test("should allow me to see update button", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByRole("button", { name: "更新" })).toBeVisible();
   });

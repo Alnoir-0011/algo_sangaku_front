@@ -56,7 +56,7 @@ test.describe("/admin/shrines/[id]/edit", () => {
   });
 
   test.describe("unauthenticated user", () => {
-    test("should redirect to signin page when accessing /admin/shrines/[id]/edit", async ({
+    test("should not allow me to access shrine edit page without authentication", async ({
       page,
     }) => {
       await page.goto("/admin/shrines/1/edit");
@@ -65,17 +65,18 @@ test.describe("/admin/shrines/[id]/edit", () => {
   });
 
   test.describe("general user", () => {
-    test("should redirect to / when accessing /admin/shrines/[id]/edit", async ({
+    test("should not allow me to access shrine edit page as a general user", async ({
       page,
     }) => {
       await setSession(page);
       await page.goto("/admin/shrines/1/edit");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 
   test.describe("after admin signin", () => {
-    test("should display shrine detail heading", async ({ page }) => {
+    test("should allow me to see the shrine detail heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
       await expect(
@@ -83,20 +84,18 @@ test.describe("/admin/shrines/[id]/edit", () => {
       ).toBeVisible();
     });
 
-    test("should pre-fill form with existing shrine name", async ({ page }) => {
+    test("should allow me to see the form pre-filled with the existing shrine name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
       await expect(page.getByLabel("神社名")).toHaveValue("管理神社テスト");
     });
 
-    test("should allow updating shrine name", async ({ page }) => {
+    test("should allow me to update shrine name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
       await page.getByLabel("神社名").fill("更新後の神社名");
       await page.getByRole("button", { name: "更新" }).click();
-      const flash = page.locator(
-        '[role="alert"]:not([aria-live]):not([aria-atomic])',
-      );
+      const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("神社を更新しました");
     });

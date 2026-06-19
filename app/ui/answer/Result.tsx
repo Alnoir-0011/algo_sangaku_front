@@ -53,7 +53,7 @@ export default function Result({ index, id }: Props) {
         {index + 1}
       </Box>
       <Box sx={{ flexGrow: 1, p: 1, borderRight: "1px solid gray" }}>
-        <Typography aria-label={`result-${index + 1}`}>
+        <Typography data-testid={`result-${index + 1}`}>
           {result?.attributes.output}
         </Typography>
       </Box>

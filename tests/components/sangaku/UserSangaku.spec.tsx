@@ -32,25 +32,25 @@ const sangaku: Sangaku = {
 };
 
 test.describe("UserSangaku", () => {
-  test("has sangaku title", async ({ mount }) => {
+  test("should allow me to see sangaku title", async ({ mount }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const title = component.getByRole("heading", { name: "test_title" });
     await expect(title).toBeVisible();
   });
 
-  test("has sangaku description", async ({ mount, page }) => {
+  test("should allow me to see sangaku description", async ({ mount, page }) => {
     await mount(<UserSangaku sangaku={sangaku} />);
     await expect(page.getByText("test_desc")).toBeVisible();
   });
 
-  test("has sangaku difficulty", async ({ mount, page }) => {
+  test("should allow me to see sangaku difficulty as Japanese text", async ({ mount, page }) => {
     await mount(<UserSangaku sangaku={sangaku} />);
     await expect(page.getByText("普通")).toBeVisible();
   });
 
-  test("has edit page link", async ({ mount, page }) => {
+  test("should allow me to see edit link in menu", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
-    const menuButton = component.getByTestId("MoreVertIcon");
+    const menuButton = component.getByRole("button", { name: "算額のメニューを開く" });
     await menuButton.click();
     // MUI Menu は Portal でレンダリングされるため page スコープで検索する
     // MenuItem は component={NextLink} でも role="menuitem" が付与される
@@ -58,9 +58,9 @@ test.describe("UserSangaku", () => {
     await expect(editLink).toBeVisible();
   });
 
-  test("has delete button", async ({ mount, page }) => {
+  test("should allow me to see delete button in menu", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
-    const menuButton = component.getByTestId("MoreVertIcon");
+    const menuButton = component.getByRole("button", { name: "算額のメニューを開く" });
     await menuButton.click();
     // MUI Menu は Portal でレンダリングされるため page スコープで検索する
     const deleteButton = page.getByRole("menuitem", { name: "削除" });

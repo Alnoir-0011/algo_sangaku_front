@@ -1,5 +1,12 @@
-import { test, expect } from "@/tests/e2e/fixtures";
+import {
+  test,
+  expect,
+  http,
+  HttpResponse,
+} from "@/tests/e2e/fixtures.msw";
 import { setSession } from "../__helpers__/signin";
+
+const apiUrl = process.env.API_URL;
 
 test.describe("TopPage", () => {
   test.describe("mainNode", () => {
@@ -27,39 +34,34 @@ test.describe("TopPage", () => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を作る" });
       await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", "/sangakus/create");
     });
 
     test("has link to showSangakus page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を確認" });
       await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
     test("has link to map page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "神社を探す" });
       await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", "/shrines");
     });
 
     test("has link to answerSangaku page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を解く" });
       await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", "/saved_sangakus");
     });
   });
 
   test.describe("Drawer", () => {
-    test("has appName", async ({ page }) => {
-      await setSession(page);
-      await page.goto("/");
-
-      const drawer = page.locator("nav");
-      const link = drawer.getByRole("link", { name: "アルゴ算額" });
-      await expect(link).toBeVisible();
-    });
-
     test.describe("before login", () => {
-      test("has link to SignIn", async ({ page }) => {
+      test("should allow me to see sign in dialog when clicking the sign in button", async ({ page }) => {
         await page.goto("/");
         const button = page.getByRole("button", { name: "サインイン" });
         await button.click();
@@ -71,13 +73,75 @@ test.describe("TopPage", () => {
     });
 
     test.describe("after login", () => {
-      test("has not link to SignIn", async ({ page }) => {
+      test("should allow me to see the app name link in the drawer", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
-        await page.waitForLoadState();
-        const button = page.getByRole("button", { name: "サインイン" });
-        await expect(button).not.toBeVisible();
+
+        const drawer = page.locator("nav");
+        const link = drawer.getByRole("link", { name: "アルゴ算額" });
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute("href", "/");
       });
+
+      test("should not allow me to see the sign in button after login", async ({ page }) => {
+        await setSession(page);
+        await page.goto("/");
+        const button = page.getByRole("button", { name: "サインイン" });
+        await expect(button).not.toBeVisible({ timeout: 5_000 });
+      });
+
+      test("should allow me to sign out when confirmed", async ({ page, msw }) => {
+        msw.use(
+          http.delete(`${apiUrl}/api/v1/authenticate`, () => {
+            return HttpResponse.json({}, { status: 200 });
+          }),
+        );
+        await setSession(page);
+        await page.goto("/");
+
+        // window.confirm を true で上書きしてサインアウト確認OKをシミュレート
+        await page.evaluate(() => {
+          window.confirm = () => true;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+      });
+
+      test("should not allow me to sign out when dismissed", async ({
+        page,
+      }) => {
+        await setSession(page);
+        await page.goto("/");
+        // WebKit では hydration が遅いため networkidle まで待機してからボタンを操作する
+        await page.waitForLoadState("networkidle");
+
+        // window.confirm を false で上書きしてキャンセルをシミュレート
+        await page.evaluate(() => {
+          window.confirm = () => false;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/");
+      });
+    });
+  });
+
+  test.describe("mobile", () => {
+    test.use({ viewport: { width: 430, height: 932 } });
+
+    test("should allow me to open the drawer by clicking the menu button on mobile", async ({ page }) => {
+      await page.goto("/");
+      await page.getByRole("button", { name: "open drawer" }).click();
+      const appName = page.getByRole("link", { name: "アルゴ算額" });
+      await expect(appName).toBeVisible();
+    });
+
+    test("should allow me to close the drawer by pressing Escape key", async ({ page }) => {
+      await page.goto("/");
+      await page.getByRole("button", { name: "open drawer" }).click();
+      const mobileDrawer = page.getByTestId("mobileDrawer");
+      await expect(mobileDrawer).toBeVisible({ timeout: 5_000 });
+      await page.keyboard.press("Escape");
+      await expect(mobileDrawer).not.toBeVisible({ timeout: 5_000 });
     });
   });
 });
