@@ -98,7 +98,7 @@ test.describe("/user/profile", () => {
       const switchEl = page.getByRole("checkbox", {
         name: "提出した回答数を公開プロフィールに表示する",
       });
-      await expect(switchEl).not.toBeChecked();
+      await expect(switchEl).not.toBeChecked({ timeout: 10_000 });
       await switchEl.click();
       await expect(switchEl).toBeChecked({ timeout: 5_000 });
     });

@@ -244,7 +244,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(page).toHaveURL("/saved_sangakus/1/answer");
       const heading = page.getByRole("heading", { name: "test_titleの結果" });
       await expect(heading).toBeVisible();
-      const output = page.getByLabel("result-1");
+      const output = page.getByTestId("result-1");
       await expect(output).toBeVisible();
       await expect(output).toContainText("test");
     });

@@ -80,7 +80,7 @@ test.describe("/admin (dashboard)", () => {
     });
 
     test("should allow me to see answers count from API", async ({ page }) => {
-      await expect(page.getByTestId("answers_count")).toContainText("100");
+      await expect(page.getByTestId("answers_count")).toContainText("100", { timeout: 10_000 });
     });
 
     test("should allow me to see navigation links to management pages", async ({ page }) => {

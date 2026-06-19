@@ -112,6 +112,8 @@ test.describe("TopPage", () => {
       }) => {
         await setSession(page);
         await page.goto("/");
+        // WebKit では hydration が遅いため networkidle まで待機してからボタンを操作する
+        await page.waitForLoadState("networkidle");
 
         // window.confirm を false で上書きしてキャンセルをシミュレート
         await page.evaluate(() => {

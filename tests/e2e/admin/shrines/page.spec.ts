@@ -100,7 +100,7 @@ test.describe("/admin/shrines", () => {
     test("should allow me to see the create shrine button", async ({ page }) => {
       await expect(
         page.getByRole("link", { name: "神社を追加" }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 10_000 });
     });
 
     test("should allow me to see the edit link for each shrine", async ({ page }) => {

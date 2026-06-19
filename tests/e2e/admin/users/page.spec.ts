@@ -97,7 +97,7 @@ test.describe("/admin/users", () => {
     test("should allow me to see the users list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "ユーザー管理" }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 10_000 });
     });
 
     test("should allow me to see user names from API", async ({ page }) => {

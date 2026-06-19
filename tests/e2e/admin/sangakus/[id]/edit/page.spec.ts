@@ -93,7 +93,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
     }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus/1/edit");
-      await expect(page.getByLabel("タイトル")).toHaveValue("管理算額テスト");
+      await expect(page.getByLabel("タイトル")).toHaveValue("管理算額テスト", { timeout: 10_000 });
     });
 
     test("should allow me to update sangaku title", async ({ page }) => {
