@@ -21,7 +21,7 @@ test.describe("FixedInputField", () => {
   test("has add button", async ({ mount }) => {
     const component = await mount(<FixedInputFieldWrapper initial={[]} />);
     await expect(
-      component.getByRole("button", { name: "addButton" }),
+      component.getByRole("button", { name: "固定入力を追加" }),
     ).toBeVisible();
   });
 
@@ -38,7 +38,7 @@ test.describe("FixedInputField", () => {
     page,
   }) => {
     await mount(<FixedInputFieldWrapper initial={["a"]} />);
-    await page.getByRole("button", { name: "addButton" }).click();
+    await page.getByRole("button", { name: "固定入力を追加" }).click();
     await expect(page.getByLabel("fixedInput-2")).toBeVisible();
   });
 

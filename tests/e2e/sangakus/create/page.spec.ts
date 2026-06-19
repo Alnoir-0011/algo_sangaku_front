@@ -14,7 +14,6 @@ const apiUrl = process.env.API_URL;
 test.describe("/sangakus/create", () => {
   test.describe("before signin", () => {
     test("should not allow me to visit create page without signing in and redirect to signin", async ({ page }) => {
-      await page.goto("/");
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
@@ -23,6 +22,11 @@ test.describe("/sangakus/create", () => {
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
+    });
+
+    test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
+      await page.goto("/sangakus/create");
+      await expect(page).toHaveURL("/signin");
       await page.reload();
       const drawer = page.locator("nav");
       const link = drawer.getByRole("button", { name: "サインイン" });
@@ -104,10 +108,10 @@ test.describe("/sangakus/create", () => {
       await page.keyboard.press("Enter");
       await page.keyboard.type('puts "test #{input}"');
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      const readOnlyEditor = page
-        .getByTestId("check-page-modal")
-        .locator(".monaco-editor");
-      await expect(readOnlyEditor).toBeVisible();
+      const checkModal = page.getByTestId("check-page-modal");
+      await expect(checkModal).toBeVisible();
+      const editorLines = checkModal.locator(".view-lines");
+      await expect(editorLines).toContainText("test");
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
@@ -191,12 +195,12 @@ test.describe("/sangakus/create", () => {
       await generateButton.click();
 
       // ローディング完了後にボタンが再び有効になる
-      await expect(generateButton).toBeEnabled({ timeout: 10000 });
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
 
       // 生成されたコードがMonaco Editorに反映されているか確認
       // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
       const editorLines = page.getByTestId("monaco-editor-source").locator(".view-lines");
-      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10000 });
+      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10_000 });
 
       // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
@@ -235,7 +239,7 @@ test.describe("/sangakus/create", () => {
       // NOTE: フォーム操作
       await page.getByLabel("タイトル").fill("");
       await page.getByLabel("問題文").fill("");
-      await page.getByRole("button", { name: "addButton" }).click();
+      await page.getByRole("button", { name: "固定入力を追加" }).click();
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
       await page.getByRole("textbox", { name: "fixedInput-2" }).fill("example");
       // NOTE: monaco-editorの操作
@@ -297,7 +301,7 @@ test.describe("/sangakus/create", () => {
 
       await page.getByLabel("問題文").fill("nを出力してください");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
-      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10000 });
+      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10_000 });
 
       const usageIndicator = page.getByText(/本日の残り生成回数: 4 \/ 5/);
       await expect(usageIndicator).toBeVisible();
@@ -318,8 +322,8 @@ test.describe("/sangakus/create", () => {
       await page.getByLabel("問題文").fill("問題文を入力");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
 
-      const errorMessage = page.getByLabel("generateErrorMessage");
-      await expect(errorMessage).toBeVisible({ timeout: 10000 });
+      const errorMessage = page.getByTestId("generate-error-message");
+      await expect(errorMessage).toBeVisible({ timeout: 10_000 });
       await expect(errorMessage).toHaveText(
         "本日の利用上限に達しました。明日 3 時以降に再度お試しください。",
       );
@@ -358,6 +362,10 @@ test.describe("/sangakus/create", () => {
 
       // 編集に戻りMarkdownコンテンツを入力
       await page.getByRole("button", { name: "編集" }).click();
+      // Firefox では TextField リマウント後に label-input 関連付けが再確立されないため
+      // placeholder で特定する
+      const descriptionField = page.getByPlaceholder("マークダウン記法で記述できます");
+      await expect(descriptionField).toBeVisible({ timeout: 10_000 });
       const markdownContent = [
         "インライン `code` があります",
         "",
@@ -369,7 +377,7 @@ test.describe("/sangakus/create", () => {
         "| ---- | ---- |",
         "| A | B |",
       ].join("\n");
-      await page.getByLabel("問題文").fill(markdownContent);
+      await descriptionField.fill(markdownContent);
 
       // プレビューに切り替えてレンダリングされたコンテンツを確認
       await page.getByRole("button", { name: "プレビュー" }).click();
@@ -387,7 +395,8 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("button", { name: "確認画面へ" }).click();
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "作成画面に戻る" }).click();
-      await expect(page.getByTestId("check-page-modal")).not.toBeVisible();
+      await expect(page.getByTestId("check-page-modal")).not.toBeVisible({ timeout: 3_000 });
+      await expect(page.getByLabel("タイトル")).toBeVisible();
     });
   });
 

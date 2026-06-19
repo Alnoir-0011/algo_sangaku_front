@@ -186,7 +186,6 @@ test.describe("/user/sangakus", () => {
 
   test.describe("before signin", () => {
     test("should not allow me to visit my sangakus page without signing in and redirect to signin", async ({ page }) => {
-      await page.goto("/");
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
@@ -195,6 +194,11 @@ test.describe("/user/sangakus", () => {
       const mainNode = page.locator("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
+    });
+
+    test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
+      await page.goto("/user/sangakus");
+      await expect(page).toHaveURL("/signin");
       await page.reload();
       const drawer = page.locator("nav");
       const link = drawer.getByRole("button", { name: "サインイン" });
@@ -234,9 +238,9 @@ test.describe("/user/sangakus", () => {
       await page.goto("/user/sangakus");
       await page.getByRole("tab", { name: "奉納した算額" }).click();
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "算額のメニューを開く" })).not.toBeVisible();
-      await expect(page.getByRole("menuitem", { name: "編集" })).not.toBeVisible();
-      await expect(page.getByRole("menuitem", { name: "削除" })).not.toBeVisible();
+      await expect(page.getByRole("button", { name: "算額のメニューを開く" })).not.toBeVisible({ timeout: 3_000 });
+      await expect(page.getByRole("menuitem", { name: "編集" })).not.toBeVisible({ timeout: 3_000 });
+      await expect(page.getByRole("menuitem", { name: "削除" })).not.toBeVisible({ timeout: 3_000 });
     });
 
     test("should allow me to see shrine info when clicking a dedicated sangaku", async ({ page }) => {
@@ -248,7 +252,7 @@ test.describe("/user/sangakus", () => {
       await sangakuTitle.click();
       await expect(page.getByRole("heading", { name: "test_shrine" })).toBeVisible();
       await expect(page.getByText("算額が写された数:")).toBeVisible();
-      await expect(page.getByLabel("modal").getByText("test_desc")).toBeVisible();
+      await expect(page.getByRole("dialog").getByText("test_desc")).toBeVisible();
     });
 
     test("should allow me to close the dedicated sangaku modal", async ({ page }) => {
@@ -261,7 +265,8 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "test_shrine" })).toBeVisible();
       // Escapeキーでモーダルを閉じる
       await page.keyboard.press("Escape");
-      await expect(page.getByLabel("modal")).not.toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
     });
 
     test("should allow me to delete my sangaku", async ({ page }) => {

@@ -71,6 +71,7 @@ test.describe("/admin/shrines/[id]/edit", () => {
       await setSession(page);
       await page.goto("/admin/shrines/1/edit");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 

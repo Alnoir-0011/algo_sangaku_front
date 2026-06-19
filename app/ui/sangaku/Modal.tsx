@@ -56,7 +56,7 @@ export default function ModalComponent({ data, handleClose }: Props) {
     <Modal open={!!data} onClose={handleClose}>
       <Box
         sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}
-        aria-label="modal"
+        role="dialog"
       >
         {isLoading && (
           <Box display="flex" justifyContent="center" alignItems="center" p={5}>

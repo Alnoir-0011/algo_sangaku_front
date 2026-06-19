@@ -140,7 +140,7 @@ test.describe("/shrines/[id]/sangakus", () => {
     //   await expect(flash).toContainText("サインインしてください");
     // });
 
-    test("should allow me to see not found page", async ({ page }) => {
+    test("should allow me to see not found page for a non-existent shrine", async ({ page }) => {
       await page.goto("/shrines/999/sangakus");
       const message = page.getByRole("heading", {
         name: "This page could not be found.",

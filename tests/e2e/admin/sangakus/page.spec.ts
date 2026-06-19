@@ -71,6 +71,7 @@ test.describe("/admin/sangakus", () => {
       await setSession(page);
       await page.goto("/admin/sangakus");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 
@@ -109,9 +110,8 @@ test.describe("/admin/sangakus", () => {
           return HttpResponse.json({}, { status: 200 });
         }),
       );
-      // window.confirm を true で上書きして確認OK をシミュレート
-      await page.evaluate(() => {
-        window.confirm = () => true;
+      page.once("dialog", async (dialog) => {
+        await dialog.accept();
       });
       await page.getByRole("button", { name: "削除" }).first().click();
       const flash = page.getByTestId('flash-message');
@@ -122,13 +122,12 @@ test.describe("/admin/sangakus", () => {
     test("should not allow me to delete sangaku when cancelled", async ({
       page,
     }) => {
-      // window.confirm を false で上書きしてキャンセルをシミュレート
-      await page.evaluate(() => {
-        window.confirm = () => false;
+      page.once("dialog", async (dialog) => {
+        await dialog.dismiss();
       });
       await page.getByRole("button", { name: "削除" }).first().click();
       await expect(page.getByText("管理算額テスト")).toBeVisible();
-      await expect(page.getByTestId('flash-message')).not.toContainText("算額を削除しました");
+      await expect(page.getByText("算額を削除しました")).not.toBeVisible({ timeout: 3_000 });
     });
   });
 });

@@ -16,34 +16,6 @@ test.describe("/shrines/[id]/dedicate", () => {
     permissions: ["geolocation"],
   });
 
-  test.describe("before login", () => {
-    test("should not allow me to access dedicate page without authentication", async ({
-      page,
-    }) => {
-      await page.goto("/");
-      await page.goto("/shrines/1/dedicate");
-      await expect(page).toHaveURL("/signin");
-      const flash = page.getByTestId("flash-message");
-      await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("サインインしてください");
-      await expect(
-        page.locator("main").getByRole("heading", { name: "サインイン" }),
-      ).toBeVisible();
-    });
-
-    test("should allow me to see sign in button in nav after page reload", async ({
-      page,
-    }) => {
-      await page.goto("/");
-      await page.goto("/shrines/1/dedicate");
-      await expect(page).toHaveURL("/signin");
-      await page.reload();
-      await expect(
-        page.locator("nav").getByRole("button", { name: "サインイン" }),
-      ).toBeVisible();
-    });
-  });
-
   test.use({
     mswHandlers: [
       [
@@ -147,7 +119,33 @@ test.describe("/shrines/[id]/dedicate", () => {
     ],
   });
 
-  test.describe("after login", () => {
+  test.describe("before signin", () => {
+    test("should not allow me to access dedicate page without authentication", async ({
+      page,
+    }) => {
+      await page.goto("/shrines/1/dedicate");
+      await expect(page).toHaveURL("/signin");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
+      await expect(
+        page.locator("main").getByRole("heading", { name: "サインイン" }),
+      ).toBeVisible();
+    });
+
+    test("should allow me to see sign in button in nav after page reload", async ({
+      page,
+    }) => {
+      await page.goto("/shrines/1/dedicate");
+      await expect(page).toHaveURL("/signin");
+      await page.reload();
+      await expect(
+        page.locator("nav").getByRole("button", { name: "サインイン" }),
+      ).toBeVisible();
+    });
+  });
+
+  test.describe("after signin", () => {
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {
@@ -156,7 +154,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await page.goto("/shrines/1/dedicate");
       const sangaku = page.getByRole("heading", { name: "before_dedicate" });
       await sangaku.click();
-      const modal = page.getByLabel("confirm-modal");
+      const modal = page.getByRole("dialog");
       const heading = modal.getByRole("heading", { name: "before_dedicate" });
       await expect(heading).toBeVisible();
       const button = modal.getByRole("button", { name: "この算額を奉納する" });

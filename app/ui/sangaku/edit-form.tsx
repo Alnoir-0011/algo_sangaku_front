@@ -206,7 +206,7 @@ export default function Form({ sangaku, initialUsage }: Props) {
                   問題文からコードを生成
                 </Button>
                 {generateErrorMessage && (
-                  <Typography variant="caption" sx={{ color: "error.main" }} aria-label="generateErrorMessage">
+                  <Typography variant="caption" sx={{ color: "error.main" }} role="alert" data-testid="generate-error-message">
                     {generateErrorMessage}
                   </Typography>
                 )}

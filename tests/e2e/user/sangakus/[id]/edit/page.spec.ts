@@ -13,7 +13,6 @@ const apiUrl = process.env.API_URL;
 test.describe("/user/sangakus/[id]/edit", () => {
   test.describe("before signin", () => {
     test("should not allow me to visit sangaku edit page without signing in and redirect to signin", async ({ page }) => {
-      await page.goto("/");
       await page.goto("/user/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
@@ -129,10 +128,10 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.keyboard.press("Enter");
       await page.keyboard.type('puts "test changed #{input}"');
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      const readOnlyEditor = page
-        .getByTestId("check-page-modal")
-        .locator(".monaco-editor");
-      await expect(readOnlyEditor).toBeVisible();
+      const checkModal = page.getByTestId("check-page-modal");
+      await expect(checkModal).toBeVisible();
+      const editorLines = checkModal.locator(".view-lines");
+      await expect(editorLines).toContainText("test changed");
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
@@ -217,12 +216,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await generateButton.click();
 
       // ローディング完了後にボタンが再び有効になる
-      await expect(generateButton).toBeEnabled({ timeout: 10000 });
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
 
       // 生成されたコードがMonaco Editorに反映されているか確認
       // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
       const editorLines = page.getByTestId("monaco-editor-source").locator(".view-lines");
-      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10000 });
+      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10_000 });
 
       // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
@@ -277,7 +276,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
       await expect(page.getByLabel("問題文")).toHaveValue("test_description");
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
-      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10000 });
+      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10_000 });
 
       const usageIndicator = page.getByText(/本日の残り生成回数: 4 \/ 5/);
       await expect(usageIndicator).toBeVisible();
@@ -297,8 +296,8 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
       await page.getByRole("button", { name: "問題文からコードを生成" }).click();
 
-      const errorMessage = page.getByLabel("generateErrorMessage");
-      await expect(errorMessage).toBeVisible({ timeout: 10000 });
+      const errorMessage = page.getByTestId("generate-error-message");
+      await expect(errorMessage).toBeVisible({ timeout: 10_000 });
       await expect(errorMessage).toHaveText(
         "本日の利用上限に達しました。明日 3 時以降に再度お試しください。",
       );
@@ -329,7 +328,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
-      await waitForMonacoEditor(page);
+      await expect(page.getByRole("combobox", { name: "難易度" })).toBeEnabled({ timeout: 10_000 });
 
       await page.getByRole("combobox", { name: "難易度" }).click();
       await page.getByRole("option", { name: "簡単" }).click();
@@ -338,6 +337,9 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
+      const flash = page.getByTestId('flash-message');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を更新しました");
     });
 
     test("should allow me to see validation errors on failed update", async ({ page, msw }) => {
@@ -363,10 +365,10 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus/1/edit");
 
-      await expect(page.getByLabel("titleError")).toBeVisible();
-      await expect(page.getByLabel("descriptionError")).toBeVisible();
-      await expect(page.getByLabel("fixedInputsError")).toBeVisible();
-      await expect(page.getByLabel("sourceError")).toBeVisible();
+      await expect(page.getByLabel("titleError")).toHaveText("を入力してください");
+      await expect(page.getByLabel("descriptionError")).toHaveText("を入力してください");
+      await expect(page.getByLabel("fixedInputsError")).toHaveText("固定入力が重複しています");
+      await expect(page.getByLabel("sourceError")).toHaveText("を入力してください");
     });
 
     test("should allow me to go back from the confirmation modal to the edit screen", async ({ page }) => {
@@ -377,7 +379,8 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByRole("button", { name: "確認画面へ" }).click();
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "作成画面に戻る" }).click();
-      await expect(page.getByTestId("check-page-modal")).not.toBeVisible();
+      await expect(page.getByTestId("check-page-modal")).not.toBeVisible({ timeout: 3_000 });
+      await expect(page.getByLabel("タイトル")).toBeVisible();
     });
   });
 

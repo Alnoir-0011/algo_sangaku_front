@@ -12,8 +12,7 @@ const apiUrl = process.env.API_URL;
 
 test.describe("/saved_sangakus/[id]/answer/create", () => {
   test.describe("before signin", () => {
-    test("should not allow me to create answer", async ({ page }) => {
-      await page.goto("/");
+    test("should not allow me to access create answer page without signing in", async ({ page }) => {
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
@@ -221,7 +220,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       ],
     });
 
-    test("should allow me to create answer", async ({ page }) => {
+    test("should allow me to submit answer and navigate to result page", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer/create");
       const title = page.getByRole("heading", { name: "test_title" });
@@ -245,6 +244,9 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(page).toHaveURL("/saved_sangakus/1/answer");
       const heading = page.getByRole("heading", { name: "test_titleの結果" });
       await expect(heading).toBeVisible();
+      const output = page.getByLabel("result-1");
+      await expect(output).toBeVisible();
+      await expect(output).toContainText("test");
     });
 
     test("should not allow me to end answer when confirm is dismissed", async ({

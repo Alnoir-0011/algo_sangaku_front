@@ -39,6 +39,10 @@ test.describe("/admin (dashboard)", () => {
     }) => {
       await page.goto("/admin");
       await expect(page).toHaveURL("/signin");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("サインインしてください");
+      await expect(page.locator("main").getByRole("heading", { name: "サインイン" })).toBeVisible();
     });
   });
 
@@ -47,6 +51,7 @@ test.describe("/admin (dashboard)", () => {
       await setSession(page);
       await page.goto("/admin");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 

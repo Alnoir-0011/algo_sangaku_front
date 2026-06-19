@@ -75,6 +75,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       await setSession(page);
       await page.goto("/admin/sangakus/1/edit");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 

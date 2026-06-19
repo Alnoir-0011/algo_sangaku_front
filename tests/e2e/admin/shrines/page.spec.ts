@@ -73,41 +73,37 @@ test.describe("/admin/shrines", () => {
       await setSession(page);
       await page.goto("/admin/shrines");
       await expect(page).toHaveURL("/");
+      await expect(page.getByRole("heading", { name: "アルゴ算額" })).toBeVisible();
     });
   });
 
   test.describe("after admin signin", () => {
-    test("should allow me to see the shrines list heading as admin", async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
+    });
+
+    test("should allow me to see the shrines list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "神社管理" }),
       ).toBeVisible();
     });
 
     test("should allow me to see shrine names from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/shrines");
       await expect(page.getByText("管理神社テスト")).toBeVisible();
     });
 
     test("should allow me to see shrine address from API", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/shrines");
       await expect(page.getByText("東京都千代田区1-1")).toBeVisible();
     });
 
     test("should allow me to see the create shrine button", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/shrines");
       await expect(
         page.getByRole("link", { name: "神社を追加" }),
       ).toBeVisible();
     });
 
     test("should allow me to see the edit link for each shrine", async ({ page }) => {
-      await setAdminSession(page);
-      await page.goto("/admin/shrines");
       await expect(page.getByRole("link", { name: "編集" })).toBeVisible();
     });
   });

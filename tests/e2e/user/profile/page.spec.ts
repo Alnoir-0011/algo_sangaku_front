@@ -11,18 +11,22 @@ const apiUrl = process.env.API_URL;
 
 test.describe("/user/profile", () => {
   test.describe("before signin", () => {
-    test("should not allow me to visit edit profile page", async ({ page }) => {
-      await page.goto("/");
+    test("should not allow me to visit edit profile page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("サインインしてください");
-      const mainNode = page.locator("main");
+      const mainNode = page.getByRole("main");
       const heading = mainNode.getByRole("heading", { name: "サインイン" });
       await expect(heading).toBeVisible();
+    });
+
+    test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
+      await page.goto("/user/profile");
+      await expect(page).toHaveURL("/signin");
       await page.reload();
-      const drawer = page.locator("nav");
+      const drawer = page.getByRole("navigation");
       const link = drawer.getByRole("button", { name: "サインイン" });
       await expect(link).toBeVisible();
     });

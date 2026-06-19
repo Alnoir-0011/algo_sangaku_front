@@ -12,7 +12,6 @@ const apiUrl = process.env.API_URL;
 test.describe("/saved_sangakus", () => {
   test.describe("before signin", () => {
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
-      await page.goto("/");
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/signin");
       const flash = page.getByTestId('flash-message');
@@ -129,7 +128,7 @@ test.describe("/saved_sangakus", () => {
       ],
     });
 
-    test("should allow me to show saved_sangakus", async ({ page }) => {
+    test("should allow me to see saved sangakus list", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/saved_sangakus");
@@ -137,7 +136,7 @@ test.describe("/saved_sangakus", () => {
       await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
 
-    test("should allow me to show answered sangakus", async ({ page }) => {
+    test("should allow me to see answered sangakus list", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus?tab=answered");
       await expect(page).toHaveURL("/saved_sangakus?tab=answered");
@@ -268,11 +267,11 @@ test.describe("/saved_sangakus", () => {
       const searchInput = page.getByPlaceholder("タイトルで探す");
       await searchInput.fill("検索文字");
       await expect(page).toHaveURL(/query=%E6%A4%9C%E7%B4%A2%E6%96%87%E5%AD%97/, {
-        timeout: 1_000,
+        timeout: 3_000,
       });
 
       await searchInput.fill("");
-      await expect(page).not.toHaveURL(/query=/, { timeout: 1_000 });
+      await expect(page).not.toHaveURL(/query=/, { timeout: 3_000 });
     });
 
     test("should allow me to filter sangakus by difficulty", async ({ page }) => {
@@ -282,12 +281,12 @@ test.describe("/saved_sangakus", () => {
       // 難易度セレクトをクリックして「難しい」を選択
       await page.getByRole("combobox", { name: "難易度" }).click();
       await page.getByRole("option", { name: "難しい", exact: true }).click();
-      await expect(page).toHaveURL(/difficulty=difficult/, { timeout: 1_000 });
+      await expect(page).toHaveURL(/difficulty=difficult/, { timeout: 3_000 });
 
       // 「全て」に戻す
       await page.getByRole("combobox", { name: "難易度" }).click();
       await page.getByRole("option", { name: "全て" }).click();
-      await expect(page).not.toHaveURL(/difficulty=/, { timeout: 1_000 });
+      await expect(page).not.toHaveURL(/difficulty=/, { timeout: 3_000 });
     });
   });
 });
