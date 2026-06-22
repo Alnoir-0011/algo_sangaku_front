@@ -77,7 +77,7 @@ test.describe("TopPage", () => {
         await setSession(page);
         await page.goto("/");
 
-        const drawer = page.locator("nav");
+        const drawer = page.getByRole("navigation");
         const link = drawer.getByRole("link", { name: "アルゴ算額" });
         await expect(link).toBeVisible();
         await expect(link).toHaveAttribute("href", "/");
@@ -112,8 +112,6 @@ test.describe("TopPage", () => {
       }) => {
         await setSession(page);
         await page.goto("/");
-        // WebKit では hydration が遅いため networkidle まで待機してからボタンを操作する
-        await page.waitForLoadState("networkidle");
 
         // window.confirm を false で上書きしてキャンセルをシミュレート
         await page.evaluate(() => {
@@ -121,6 +119,8 @@ test.describe("TopPage", () => {
         });
         await page.getByRole("button", { name: "サインアウト" }).click();
         await expect(page).toHaveURL("/");
+        // キャンセル後もサインアウトボタンが残っていること（セッションが維持されていること）を確認
+        await expect(page.getByRole("button", { name: "サインアウト" })).toBeVisible();
       });
     });
   });

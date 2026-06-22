@@ -108,3 +108,26 @@ test.describe("/admin/shrines", () => {
     });
   });
 });
+
+test.describe("/admin/shrines (API error)", () => {
+  test.use({
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/admin/shrines`, () => {
+          return HttpResponse.json({}, { status: 500 });
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should not allow me to see shrine list when API returns error", async ({ page }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/shrines");
+    await expect(page.getByRole("heading", { name: "神社管理" })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("データを取得できませんでした")).toBeVisible();
+    await expect(page.getByRole("link", { name: "神社を追加" })).toBeVisible();
+    await expect(page.getByText("管理神社テスト")).not.toBeVisible();
+  });
+});

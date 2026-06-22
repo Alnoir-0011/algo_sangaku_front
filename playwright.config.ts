@@ -96,6 +96,7 @@ export default defineConfig({
     env: {
       E2E_MOCK_MAPS: "true",
       COVERAGE: "true",
+      APP_ENV: "test",
     },
   },
   use: {

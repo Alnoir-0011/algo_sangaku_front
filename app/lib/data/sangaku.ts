@@ -8,7 +8,7 @@ import type {
   GenerateSourceUsage,
 } from "../definitions";
 import { buildHeaders } from "@/app/lib/client_headers";
-const apiUrl = process.env.API_URL;
+import { apiUrl } from "@/app/lib/config";
 
 export async function fetchUserSangakus(
   page: string,
@@ -19,12 +19,7 @@ export async function fetchUserSangakus(
 
   const params = new URLSearchParams();
   params.set("page", page);
-
-  if (typeof shrine_id === "number") {
-    params.set("shrine_id", String(shrine_id));
-  } else {
-    params.set("shrine_id", shrine_id);
-  }
+  params.set("shrine_id", String(shrine_id));
 
   if (query) {
     params.set("title", query);
@@ -40,7 +35,7 @@ export async function fetchUserSangakus(
 
     switch (res.status) {
       case 200:
-        const totalPage = parseInt(res.headers.get("total-pages")!);
+        const totalPage = Number(res.headers.get("total-pages"));
         const data = await res.json();
         const sangakus = data.data as Sangaku[];
         return { sangakus, totalPage };
@@ -62,6 +57,7 @@ export async function fetchUserSangakus(
     if (isRedirectError(error)) {
       throw error;
     } else {
+      console.error("[data/sangaku] fetchUserSangakus error:", error);
       return {
         sangakus: [],
         totalPage: 0,
@@ -92,6 +88,7 @@ export async function fetchUserSangaku(id: string) {
     if (isRedirectError(error)) {
       throw error;
     } else {
+      console.error("[data/sangaku] fetchUserSangaku error:", error);
       return null;
     }
   }
@@ -116,7 +113,7 @@ export async function fetchShrineSangakus(
     if (res.status === 200) {
       const data = await res.json();
       const sangakus = data.data as Sangaku[];
-      const totalPage = parseInt(res.headers.get("total-pages")!);
+      const totalPage = Number(res.headers.get("total-pages"));
       return { sangakus, totalPage };
     } else {
       return {
@@ -125,12 +122,17 @@ export async function fetchShrineSangakus(
         message: "リクエストに失敗しました",
       };
     }
-  } catch {
-    return {
-      sangakus: [] as Sangaku[],
-      totalPage: 0,
-      message: "予期せぬエラーが発生しました",
-    };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    } else {
+      console.error("[data/sangaku] fetchShrineSangakus error:", error);
+      return {
+        sangakus: [] as Sangaku[],
+        totalPage: 0,
+        message: "予期せぬエラーが発生しました",
+      };
+    }
   }
 }
 
@@ -157,7 +159,7 @@ export async function fetchSavedSangakus(
       case 200:
         const data = await res.json();
         const sangakus = data.data as Sangaku[];
-        const totalPage = parseInt(res.headers.get("total-pages")!);
+        const totalPage = Number(res.headers.get("total-pages"));
         return { sangakus, totalPage };
       case 401:
         return {
@@ -173,12 +175,17 @@ export async function fetchSavedSangakus(
           message: "リクエストに失敗しました",
         };
     }
-  } catch {
-    return {
-      sangakus: [] as Sangaku[],
-      totalPage: 0,
-      message: "予期せぬエラーが発生しました",
-    };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    } else {
+      console.error("[data/sangaku] fetchSavedSangakus error:", error);
+      return {
+        sangakus: [] as Sangaku[],
+        totalPage: 0,
+        message: "予期せぬエラーが発生しました",
+      };
+    }
   }
 }
 
@@ -213,6 +220,9 @@ export async function fetchSavedSangaku(
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    } else {
+      console.error("[data/sangaku] fetchSavedSangaku error:", error);
+      return null;
     }
   }
 }
@@ -241,6 +251,7 @@ export async function fetchGenerateSourceUsage(): Promise<
     if (isRedirectError(error)) {
       throw error;
     } else {
+      console.error("[data/sangaku] fetchGenerateSourceUsage error:", error);
       return undefined;
     }
   }
@@ -266,6 +277,9 @@ export async function fetchUserSangakuResult(id: string) {
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    } else {
+      console.error("[data/sangaku] fetchUserSangakuResult error:", error);
+      return null;
     }
   }
 }

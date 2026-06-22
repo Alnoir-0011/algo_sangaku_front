@@ -58,42 +58,7 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
-    test("should allow me to create a sangaku", async ({ page, msw }) => {
-      // NOTE:モックの定義
-      const backendResponse = {
-        data: {
-          id: "70",
-          type: "sangaku",
-          attributes: {
-            title: "test_title",
-            description: "test_description",
-            source: 'input = gets.chomp\nputs "test #{input}',
-            difficulty: "normal",
-            inputs: [
-              {
-                id: 15,
-                content: "example",
-              },
-            ],
-          },
-          relationships: {
-            user: {
-              data: {
-                id: "70",
-                type: "user",
-              },
-            },
-          },
-        },
-      };
-
-      msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
-          return HttpResponse.json(backendResponse, { status: 200 });
-        }),
-      );
-
-      // NOTE:Test start
+    test("should allow me to see filled form content in the confirmation modal", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
       await page.getByLabel("タイトル").fill("test_title");
@@ -114,6 +79,36 @@ test.describe("/sangakus/create", () => {
       await expect(editorLines).toContainText("test");
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
+    });
+
+    test("should allow me to save a sangaku and be redirected with a flash message", async ({ page, msw }) => {
+      const backendResponse = {
+        data: {
+          id: "70",
+          type: "sangaku",
+          attributes: {
+            title: "test_title",
+            description: "test_description",
+            source: 'input = gets.chomp\nputs "test #{input}"',
+            difficulty: "normal",
+            inputs: [{ id: 15, content: "example" }],
+          },
+          relationships: { user: { data: { id: "70", type: "user" } } },
+        },
+      };
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json(backendResponse, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.getByLabel("タイトル").fill("test_title");
+      await page.getByLabel("問題文").fill("test_description");
+      await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/");
       const flash = page.getByTestId('flash-message');
@@ -397,6 +392,22 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("button", { name: "作成画面に戻る" }).click();
       await expect(page.getByTestId("check-page-modal")).not.toBeVisible({ timeout: 3_000 });
       await expect(page.getByLabel("タイトル")).toBeVisible();
+    });
+
+    test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await waitForInteractive(page.getByLabel("問題文"));
+
+      const longDescription = "あ".repeat(2001);
+      await page.getByLabel("問題文").fill(longDescription);
+      await expect(
+        page.getByText("問題文は2000文字以内で入力してください"),
+      ).toBeVisible({ timeout: 5_000 });
+      // 文字数超過中は生成ボタンも無効
+      await expect(
+        page.getByRole("button", { name: "問題文からコードを生成" }),
+      ).toBeDisabled();
     });
   });
 

@@ -200,7 +200,7 @@ test.describe("/user/sangakus", () => {
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
       await page.reload();
-      const drawer = page.locator("nav");
+      const drawer = page.getByRole("navigation");
       const link = drawer.getByRole("button", { name: "サインイン" });
       await expect(link).toBeVisible();
     });
@@ -213,7 +213,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
     });
 
-    test("should allow me to open my sangaku menu", async ({ page }) => {
+    test("should allow me to see the edit link with correct href in sangaku menu", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
       // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複するため first() で対象を絞る
@@ -223,6 +223,14 @@ test.describe("/user/sangakus", () => {
       const editLink = page.getByRole("menuitem", { name: "編集" });
       await expect(editLink).toBeVisible();
       await expect(editLink).toHaveAttribute("href", "/user/sangakus/1/edit");
+    });
+
+    test("should allow me to see the delete option in sangaku menu", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      const menuButton = page.getByRole("button", { name: "算額のメニューを開く" }).first();
+      await waitForInteractive(menuButton);
+      await menuButton.click();
       await expect(page.getByRole("menuitem", { name: "削除" })).toBeVisible();
     });
 

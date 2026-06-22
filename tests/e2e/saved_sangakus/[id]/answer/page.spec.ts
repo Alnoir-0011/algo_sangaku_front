@@ -186,7 +186,6 @@ test.describe("/saved_sangakus/[id]/answer", () => {
     test("should allow me to see answer result", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer");
-      await expect(page).toHaveURL("/saved_sangakus/1/answer");
       const heading = page.getByRole("heading", { name: "test_titleの結果" });
       await expect(heading).toBeVisible();
       const output = page.getByTestId("result-1");

@@ -19,7 +19,23 @@ interface Props {
 
 export default async function AdminShrinesPage({ searchParams }: Props) {
   const { page, query } = await searchParams;
-  const { shrines, totalPages } = await fetchAdminShrines(Number(page) || 1, query);
+  const result = await fetchAdminShrines(Number(page) || 1, query);
+
+  if (!result) {
+    return (
+      <Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Typography variant="h4">神社管理</Typography>
+          <Button variant="contained" component={Link} href="/admin/shrines/new">
+            神社を追加
+          </Button>
+        </Box>
+        <Typography color="error">データを取得できませんでした</Typography>
+      </Box>
+    );
+  }
+
+  const { shrines, totalPages } = result;
 
   return (
     <Box>

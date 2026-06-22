@@ -17,7 +17,20 @@ interface Props {
 
 export default async function AdminSangakusPage({ searchParams }: Props) {
   const { page, query } = await searchParams;
-  const { sangakus, totalPages } = await fetchAdminSangakus(Number(page) || 1, query);
+  const result = await fetchAdminSangakus(Number(page) || 1, query);
+
+  if (!result) {
+    return (
+      <Box>
+        <Typography variant="h4" sx={{ mb: 3 }}>
+          算額管理
+        </Typography>
+        <Typography color="error">データを取得できませんでした</Typography>
+      </Box>
+    );
+  }
+
+  const { sangakus, totalPages } = result;
 
   return (
     <Box>

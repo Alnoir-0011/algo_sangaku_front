@@ -111,3 +111,25 @@ test.describe("/admin/users", () => {
     });
   });
 });
+
+test.describe("/admin/users (API error)", () => {
+  test.use({
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/admin/users`, () => {
+          return HttpResponse.json({}, { status: 500 });
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should not allow me to see user list when API returns error", async ({ page }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/users");
+    await expect(page.getByRole("heading", { name: "ユーザー管理" })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("データを取得できませんでした")).toBeVisible();
+    await expect(page.getByText("Admin User")).not.toBeVisible();
+  });
+});

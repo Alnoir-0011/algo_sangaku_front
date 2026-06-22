@@ -1,10 +1,8 @@
-"use server";
-
 import { auth } from "@/auth";
 import { MyProfile, PublicProfile } from "../definitions";
 import { buildHeaders } from "@/app/lib/client_headers";
-
-const apiUrl = process.env.API_URL!;
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { apiUrl } from "@/app/lib/config";
 
 export async function fetchMyProfile(): Promise<MyProfile | undefined> {
   const session = await auth();
@@ -19,7 +17,9 @@ export async function fetchMyProfile(): Promise<MyProfile | undefined> {
       return body.data as MyProfile;
     }
     return undefined;
-  } catch {
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    console.error("[data/profile] fetchMyProfile error:", error);
     return undefined;
   }
 }
@@ -41,7 +41,9 @@ export async function fetchPublicProfile(
       return body.data as PublicProfile;
     }
     return undefined;
-  } catch {
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    console.error("[data/profile] fetchPublicProfile error:", error);
     return undefined;
   }
 }

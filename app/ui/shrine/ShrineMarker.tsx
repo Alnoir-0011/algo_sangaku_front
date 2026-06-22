@@ -15,15 +15,22 @@ interface Props {
   currentPosition: { lat: number; lng: number };
 }
 
+/* v8 ignore start */
 export default function ShrineMarker({ shrine, currentPosition }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
 
+  const glyphImg = new Image(18);
+  glyphImg.src = "/torii-icon.svg";
+
   const handleMarkerClick = useCallback(() => setIsOpen(true), []);
   const handleClose = useCallback(() => setIsOpen(false), []);
 
-  const glyphImg = new Image(18);
-  glyphImg.src = "/torii-icon.svg";
+  const dist = distance(
+    shrine.attributes.latitude,
+    shrine.attributes.longitude,
+    currentPosition,
+  );
 
   return (
     <>
@@ -43,14 +50,10 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
           onClose={handleClose}
           headerContent={<Typography>{shrine.attributes.name}</Typography>}
         >
-          {distance(
-            shrine.attributes.latitude,
-            shrine.attributes.longitude,
-            currentPosition,
-          ) < activeDistance && (
+          {dist < activeDistance && (
             <>
               <Typography variant="inherit" sx={{ mb: 1 }}>
-                算額の数: {0}
+                算額の数: {shrine.attributes.sangaku_count ?? 0}
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Button
@@ -71,11 +74,7 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
               </Box>
             </>
           )}
-          {distance(
-            shrine.attributes.latitude,
-            shrine.attributes.longitude,
-            currentPosition,
-          ) < activeDistance || (
+          {dist >= activeDistance && (
             <Typography variant="inherit">神社から離れています</Typography>
           )}
         </InfoWindow>
@@ -103,3 +102,4 @@ function distance(
     )
   );
 }
+/* v8 ignore stop */

@@ -17,7 +17,20 @@ interface Props {
 
 export default async function AdminUsersPage({ searchParams }: Props) {
   const { page, query } = await searchParams;
-  const { users, totalPages } = await fetchAdminUsers(Number(page) || 1, query);
+  const result = await fetchAdminUsers(Number(page) || 1, query);
+
+  if (!result) {
+    return (
+      <Box>
+        <Typography variant="h4" sx={{ mb: 3 }}>
+          ユーザー管理
+        </Typography>
+        <Typography color="error">データを取得できませんでした</Typography>
+      </Box>
+    );
+  }
+
+  const { users, totalPages } = result;
 
   return (
     <Box>
