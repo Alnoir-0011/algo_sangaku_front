@@ -7,6 +7,7 @@ export const setSession = async (page: Page) => {
   await page.getByLabel("Email").fill("test_user@example.com");
   await page.getByLabel("Password").fill("password");
   await page.getByRole("button", { name: "Sign in with Credentials" }).click();
+  await page.waitForURL("/", { timeout: 15_000 });
 };
 
 export const setAdminSession = async (page: Page) => {
@@ -15,6 +16,7 @@ export const setAdminSession = async (page: Page) => {
   await page.getByLabel("Email").fill("admin_user@example.com");
   await page.getByLabel("Password").fill("password");
   await page.getByRole("button", { name: "Sign in with Credentials" }).click();
+  await page.waitForURL("/", { timeout: 15_000 });
 };
 
 // Note: コンポーネントテスト用

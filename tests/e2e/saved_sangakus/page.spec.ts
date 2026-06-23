@@ -265,12 +265,13 @@ test.describe("/saved_sangakus", () => {
       await page.goto("/saved_sangakus");
 
       const searchInput = page.getByPlaceholder("タイトルで探す");
-      await searchInput.fill("検索文字");
+      await searchInput.pressSequentially("検索文字");
       await expect(page).toHaveURL(/query=%E6%A4%9C%E7%B4%A2%E6%96%87%E5%AD%97/, {
         timeout: 10_000,
       });
 
-      await searchInput.fill("");
+      await searchInput.selectText();
+      await page.keyboard.press("Delete");
       await expect(page).not.toHaveURL(/query=/, { timeout: 3_000 });
     });
 

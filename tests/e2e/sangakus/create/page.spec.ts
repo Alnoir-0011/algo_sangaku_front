@@ -401,6 +401,9 @@ test.describe("/sangakus/create", () => {
 
       const longDescription = "あ".repeat(2001);
       await page.getByLabel("問題文").fill(longDescription);
+      // WebKit では fill() 後に React の onChange が発火しない場合があるため
+      // 実際のキー入力で確実にトリガーする（2002文字になるが > 2000 の条件は変わらない）
+      await page.keyboard.type("あ");
       await expect(
         page.getByText("問題文は2000文字以内で入力してください"),
       ).toBeVisible({ timeout: 5_000 });
