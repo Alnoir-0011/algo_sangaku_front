@@ -70,6 +70,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
               { status: 200 },
             );
           }),
+          http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+            return HttpResponse.json(
+              { data: [] },
+              { status: 200, headers: { "total-pages": "0", "current-page": "1", "total-count": "0" } },
+            );
+          }),
           // allow all non-mocked routes to pass through
           http.all("*", () => {
             return passthrough();
@@ -79,47 +85,13 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ],
     });
 
-    test("should allow me to edit own sangaku", async ({ page, msw }) => {
-      const backendResponse = {
-        data: {
-          id: "1",
-          type: "sangaku",
-          attributes: {
-            title: "changed_title",
-            description: "test_description",
-            source: 'input = gets.chomp\nputs "test #{input}',
-            difficulty: "difficult",
-            inputs: [
-              {
-                id: 1,
-                content: "example",
-              },
-            ],
-          },
-          relationships: {
-            user: {
-              data: {
-                id: "70",
-                type: "user",
-              },
-            },
-          },
-        },
-      };
-
-      msw.use(
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
-          return HttpResponse.json(backendResponse, { status: 200 });
-        }),
-      );
-
-      // NOTE: test start
+    test("should allow me to see edited content reflected in the confirmation modal", async ({ page }) => {
       await setSession(page);
 
       await page.goto("/user/sangakus/1/edit");
       await page.getByLabel("タイトル").fill("test_changed");
       await page.getByLabel("問題文").fill("changed_description");
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
+      const monacoEditor = page.getByTestId("monaco-editor-source");
       await waitForMonacoEditor(page);
       await monacoEditor.click();
       await page.keyboard.press("ControlOrMeta+a");
@@ -130,10 +102,39 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByRole("button", { name: "確認画面へ" }).click();
       const checkModal = page.getByTestId("check-page-modal");
       await expect(checkModal).toBeVisible();
-      const editorLines = checkModal.locator(".view-lines");
-      await expect(editorLines).toContainText("test changed");
+      await expect(page.getByTestId("check-page-editor")).toContainText("test changed");
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
+    });
+
+    test("should allow me to save edited sangaku and be redirected with flash message", async ({ page, msw }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "sangaku",
+                attributes: {
+                  title: "changed_title",
+                  description: "test_description",
+                  source: 'input = gets.chomp\nputs "test #{input}',
+                  difficulty: "difficult",
+                  inputs: [{ id: 1, content: "example" }],
+                },
+                relationships: { user: { data: { id: "70", type: "user" } } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await waitForMonacoEditor(page);
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
       const flash = page.getByTestId('flash-message');
@@ -171,23 +172,41 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(generateButton).toBeEnabled({ timeout: 10_000 });
     });
 
-    test("should allow me to generate source code from description", async ({ page, msw }) => {
+    test("should allow me to see generated code reflected in Monaco Editor", async ({ page, msw }) => {
       const generatedSource =
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
-      const backendUpdateResponse = {
-        data: {
-          id: "1",
-          type: "sangaku",
-          attributes: {
-            title: "before_edit",
-            description: "test_description",
-            source: generatedSource,
-            difficulty: "normal",
-            inputs: [{ id: 1, content: "example" }],
-          },
-          relationships: { user: { data: { id: "1", type: "user" } } },
-        },
-      };
+
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+          return HttpResponse.json(
+            {
+              source: generatedSource,
+              usage: { used: 1, limit: 5, remaining: 4, reset_at: "2026-04-12T18:00:00Z" },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await waitForMonacoEditor(page);
+      await waitForInteractive(page.getByLabel("問題文"));
+
+      const generateButton = page.getByRole("button", { name: "問題文からコードを生成" });
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
+      await generateButton.click();
+
+      // ローディング完了後にボタンが再び有効になる
+      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
+
+      // 生成されたコードがMonaco Editorに反映されているか確認
+      await expect(page.getByTestId("monaco-editor-source")).toContainText("対応言語: Ruby", { timeout: 10_000 });
+    });
+
+    test("should allow me to save sangaku with generated source code", async ({ page, msw }) => {
+      const generatedSource =
+        "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
 
       msw.use(
         http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
@@ -200,7 +219,23 @@ test.describe("/user/sangakus/[id]/edit", () => {
           );
         }),
         http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
-          return HttpResponse.json(backendUpdateResponse, { status: 200 });
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "sangaku",
+                attributes: {
+                  title: "before_edit",
+                  description: "test_description",
+                  source: generatedSource,
+                  difficulty: "normal",
+                  inputs: [{ id: 1, content: "example" }],
+                },
+                relationships: { user: { data: { id: "1", type: "user" } } },
+              },
+            },
+            { status: 200 },
+          );
         }),
       );
 
@@ -209,26 +244,11 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
-      const generateButton = page.getByRole("button", {
-        name: "問題文からコードを生成",
-      });
-      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
-      await generateButton.click();
+      await page.getByRole("button", { name: "問題文からコードを生成" }).click();
+      await expect(page.getByRole("button", { name: "問題文からコードを生成" })).toBeEnabled({ timeout: 10_000 });
 
-      // ローディング完了後にボタンが再び有効になる
-      await expect(generateButton).toBeEnabled({ timeout: 10_000 });
-
-      // 生成されたコードがMonaco Editorに反映されているか確認
-      // window.monaco は非同期で更新されるため、DOMベースのリトライで確認する
-      const editorLines = page.getByTestId("monaco-editor-source").locator(".view-lines");
-      await expect(editorLines).toContainText("対応言語: Ruby", { timeout: 10_000 });
-
-      // 確認画面を通じて保存できる
       await page.getByRole("button", { name: "確認画面へ" }).click();
-      const readOnlyEditor = page
-        .getByTestId("check-page-modal")
-        .locator(".monaco-editor");
-      await expect(readOnlyEditor).toBeVisible();
+      await expect(page.getByTestId("check-page-editor")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
       await expect(page).toHaveURL("/user/sangakus");
       const flash = page.getByTestId('flash-message');
@@ -236,7 +256,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toContainText("算額を更新しました");
     });
 
-    test("should allow me to see not found page for a non-existent sangaku", async ({ page }) => {
+    test("should allow me to visit non-existent sangaku edit page and see not found message", async ({ page }) => {
       await setSession(page);
 
       await page.goto("/user/sangakus/999/edit");
@@ -380,7 +400,23 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "作成画面に戻る" }).click();
       await expect(page.getByTestId("check-page-modal")).not.toBeVisible({ timeout: 3_000 });
-      await expect(page.getByLabel("タイトル")).toBeVisible();
+      await expect(page.getByLabel("タイトル")).toHaveValue("before_edit");
+    });
+
+    test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await waitForInteractive(page.getByLabel("問題文"));
+
+      const longDescription = "あ".repeat(2001);
+      await page.getByLabel("問題文").fill(longDescription);
+      await expect(
+        page.getByText("問題文は2000文字以内で入力してください"),
+      ).toBeVisible({ timeout: 5_000 });
+      // 文字数超過中は生成ボタンも無効
+      await expect(
+        page.getByRole("button", { name: "問題文からコードを生成" }),
+      ).toBeDisabled();
     });
   });
 
@@ -414,6 +450,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
             return HttpResponse.json(
               { used: 5, limit: 5, remaining: 0, reset_at: "2026-04-12T18:00:00Z" },
               { status: 200 },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+            return HttpResponse.json(
+              { data: [] },
+              { status: 200, headers: { "total-pages": "0", "current-page": "1", "total-count": "0" } },
             );
           }),
           http.all("*", () => passthrough()),

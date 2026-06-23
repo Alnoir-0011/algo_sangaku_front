@@ -65,6 +65,8 @@ test.describe("/admin/sangakus/[id]/edit", () => {
     }) => {
       await page.goto("/admin/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
+      const mainNode = page.locator("main");
+      await expect(mainNode.getByRole("heading", { name: "サインイン" })).toBeVisible();
     });
   });
 
@@ -105,5 +107,27 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額を更新しました");
     });
+  });
+});
+
+test.describe("/admin/sangakus/[id]/edit (not found)", () => {
+  test.use({
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/admin/sangakus/1`, () => {
+          return HttpResponse.json({}, { status: 404 });
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should not allow me to see sangaku edit page when sangaku is not found", async ({ page }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/sangakus/1/edit");
+    await expect(
+      page.getByRole("heading", { name: "This page could not be found." }),
+    ).toBeVisible({ timeout: 10_000 });
   });
 });

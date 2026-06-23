@@ -61,6 +61,8 @@ test.describe("/admin/shrines/[id]/edit", () => {
     }) => {
       await page.goto("/admin/shrines/1/edit");
       await expect(page).toHaveURL("/signin");
+      const mainNode = page.locator("main");
+      await expect(mainNode.getByRole("heading", { name: "サインイン" })).toBeVisible();
     });
   });
 
@@ -99,5 +101,27 @@ test.describe("/admin/shrines/[id]/edit", () => {
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("神社を更新しました");
     });
+  });
+});
+
+test.describe("/admin/shrines/[id]/edit (not found)", () => {
+  test.use({
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/admin/shrines/1`, () => {
+          return HttpResponse.json({}, { status: 404 });
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should not allow me to see shrine edit page when shrine is not found", async ({ page }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/shrines/1/edit");
+    await expect(
+      page.getByRole("heading", { name: "This page could not be found." }),
+    ).toBeVisible({ timeout: 10_000 });
   });
 });

@@ -1,11 +1,10 @@
 "use server";
 
 import { auth } from "@/auth";
-import type { Answer, AnswerResult } from "../definitions";
+import type { Answer } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { buildHeaders } from "@/app/lib/client_headers";
-
-const apiUrl = process.env.API_URL!;
+import { apiUrl } from "@/app/lib/config";
 
 export const fetchUserAnswer = async (id: string) => {
   const session = await auth();
@@ -23,22 +22,25 @@ export const fetchUserAnswer = async (id: string) => {
         return undefined;
       case 404:
         return null;
+      default:
+        return null;
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     } else {
+      console.error("[data/answer] fetchUserAnswer error:", error);
       return null;
     }
   }
 };
 
-export const fetchUserAnswerWithSangakuId = async (sangaku_id: string) => {
+export const fetchUserAnswerWithSangakuId = async (sangakuId: string) => {
   const session = await auth();
 
   try {
     const res = await fetch(
-      `${apiUrl}/api/v1/user/saved_sangakus/${sangaku_id}/answer`,
+      `${apiUrl}/api/v1/user/saved_sangakus/${sangakuId}/answer`,
       {
         headers: buildHeaders(session?.accessToken),
       },
@@ -52,45 +54,14 @@ export const fetchUserAnswerWithSangakuId = async (sangaku_id: string) => {
         return undefined;
       case 404:
         return null;
+      default:
+        return null;
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     } else {
-      return null;
-    }
-  }
-};
-
-export const fetchUserAnswerResult = async (id: string) => {
-  const session = await auth();
-
-  try {
-    while (true) {
-      const res = await fetch(`${apiUrl}/api/v1/user/answer_results/${id}`, {
-        headers: buildHeaders(session?.accessToken),
-        cache: "no-store",
-      });
-
-      switch (res.status) {
-        case 200:
-          const data = (await res.json()).data as AnswerResult;
-          if (data.attributes.status !== "pending") {
-            return data;
-          } else {
-            await new Promise((resolve) => setTimeout(resolve, 250));
-          }
-          break;
-        case 401:
-          return undefined;
-        case 404:
-          return null;
-      }
-    }
-  } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
-    } else {
+      console.error("[data/answer] fetchUserAnswerWithSangakuId error:", error);
       return null;
     }
   }

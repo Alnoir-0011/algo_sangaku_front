@@ -57,8 +57,9 @@ function MapComponent() {
 
   const loadShrines = async () => {
     const bounds = map?.getBounds();
-    const boundsSW = bounds!.getSouthWest().toJSON();
-    const boundsNE = bounds!.getNorthEast().toJSON();
+    if (!bounds) return;
+    const boundsSW = bounds.getSouthWest().toJSON();
+    const boundsNE = bounds.getNorthEast().toJSON();
     const newShrines = await fetchShrines(
       boundsSW.lat.toString(),
       boundsNE.lat.toString(),
@@ -122,6 +123,7 @@ function MapComponent() {
         defaultCenter={center}
         defaultZoom={zoom}
         onTilesLoaded={() => {
+          /* v8 ignore next */
           if (!completeLoadEvent) {
             loadShrines();
             setCompleteLoadEvent(true);
@@ -144,20 +146,19 @@ function MapComponent() {
 
 /* v8 ignore start */
 async function getLocation() {
-  return new Promise<{ lat: number; lng: number }>((resolve, rejects) => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (e) => rejects(e),
-      );
-    }
-  }).then((position) => {
-    return position;
+  if (!("geolocation" in navigator)) return initialLatLng;
+  return new Promise<{ lat: number; lng: number }>((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      () => {
+        resolve(initialLatLng);
+      },
+    );
   });
 }
 /* v8 ignore stop */

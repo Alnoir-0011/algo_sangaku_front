@@ -6,7 +6,7 @@ export type Sangaku = {
     description: string;
     source?: string;
     difficulty: Difficulty;
-    inputs: input[];
+    inputs: Input[];
     author_name: string;
   };
   relationships: {
@@ -27,7 +27,7 @@ export type Sangaku = {
 
 export type Difficulty = "easy" | "normal" | "difficult" | "very_difficult";
 
-type input = {
+type Input = {
   id: number;
   content: string;
 };
@@ -41,6 +41,7 @@ export type Shrine = {
     latitude: string;
     longitude: string;
     place_id: string;
+    sangaku_count?: number;
   };
 };
 

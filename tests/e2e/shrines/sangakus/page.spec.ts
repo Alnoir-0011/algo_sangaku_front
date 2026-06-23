@@ -150,7 +150,7 @@ test.describe("/shrines/[id]/sangakus", () => {
   });
 
   test.describe("after signin", () => {
-    test("should allow me to create sangakuSave", async ({ page }) => {
+    test("should allow me to copy a sangaku from the shrine page", async ({ page }) => {
       await setSession(page);
 
       await page.goto("/shrines/1/sangakus");
