@@ -37,6 +37,7 @@ export async function fetchAdminStats(): Promise<AdminStats | undefined | null> 
 export async function fetchAdminUsers(
   page?: number,
   query?: string,
+  sort?: "asc" | "desc",
 ): Promise<{ users: AdminUser[]; totalPages: number } | undefined | null> {
   const session = await requireAdmin();
   if (!session) return undefined;
@@ -44,6 +45,7 @@ export async function fetchAdminUsers(
     const params = new URLSearchParams();
     if (page !== undefined) params.set("page", String(page));
     if (query) params.set("query", query);
+    if (sort) params.set("sort", sort);
     const res = await fetch(`${apiUrl}/api/v1/admin/users?${params}`, {
       headers: buildHeaders(session.accessToken),
     });

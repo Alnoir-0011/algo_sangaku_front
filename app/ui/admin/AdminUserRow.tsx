@@ -6,16 +6,21 @@ interface Props {
   user: AdminUser;
 }
 
+function formatDate(isoString: string): string {
+  return isoString.slice(0, 10).replace(/-/g, "/");
+}
+
 export default function AdminUserRow({ user }: Props) {
   const { id, attributes } = user;
 
   return (
     <TableRow>
-      <TableCell>{attributes.name}</TableCell>
+      <TableCell>{attributes.nickname}</TableCell>
       <TableCell>{attributes.email}</TableCell>
       <TableCell>{attributes.role}</TableCell>
       <TableCell>{attributes.sangaku_count}</TableCell>
       <TableCell>{attributes.answer_count}</TableCell>
+      <TableCell>{formatDate(attributes.created_at)}</TableCell>
       <TableCell>
         <Button
           component={Link}
