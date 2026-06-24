@@ -11,6 +11,7 @@ import { fetchAdminUsers } from "@/app/lib/data/admin";
 import AdminUserRow from "@/app/ui/admin/AdminUserRow";
 import AdminUserSortHeader from "@/app/ui/admin/AdminUserSortHeader";
 import Pagination from "@/app/ui/Pagination";
+import Search from "@/app/ui/Search";
 
 interface Props {
   searchParams: Promise<{ page?: string; query?: string; sort?: string }>;
@@ -39,6 +40,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       <Typography variant="h4" sx={{ mb: 3 }}>
         ユーザー管理
       </Typography>
+      <Search placeholder="ユーザーを検索" />
       <Table>
         <TableHead>
           <TableRow>
@@ -47,7 +49,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             <TableCell>ロール</TableCell>
             <TableCell>算額数</TableCell>
             <TableCell>解答数</TableCell>
-            <AdminUserSortHeader currentSort={sortParam} />
+            <AdminUserSortHeader currentSort={sortParam} query={query} />
             <TableCell>操作</TableCell>
           </TableRow>
         </TableHead>

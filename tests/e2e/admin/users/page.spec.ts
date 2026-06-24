@@ -137,6 +137,45 @@ test.describe("/admin/users", () => {
       // Assert
       await expect(page).toHaveURL(/[?&]sort=desc/);
     });
+
+    // RED: AdminUserSearchForm が未実装（検索フォームが存在しない）
+    test("should allow me to see search form on the users page", async ({ page }) => {
+      // Arrange: beforeEach で /admin/users に遷移済み
+      // Act: （レンダリングのみ）
+      // Assert
+      await expect(page.getByPlaceholder("ユーザーを検索")).toBeVisible({ timeout: 10_000 });
+    });
+
+    // RED: AdminUserSearchForm が未実装（URL への query パラメータ反映が未実装）
+    test("should allow me to see query param in URL when typing in search form", async ({ page }) => {
+      // Arrange: beforeEach で /admin/users に遷移済み
+      // Act
+      await page.getByPlaceholder("ユーザーを検索").fill("Admin");
+      // Assert
+      await expect(page).toHaveURL(/[?&]query=Admin/, { timeout: 5_000 });
+    });
+
+    // RED: AdminUserSearchForm が未実装（sort パラメータを保持したまま query を反映する機能が未実装）
+    test("should allow me to preserve sort param when typing in search form after sorting", async ({ page }) => {
+      // Arrange
+      await page.goto("/admin/users?sort=asc");
+      // Act
+      await page.getByPlaceholder("ユーザーを検索").fill("Admin");
+      // Assert: sort と query の両パラメータが URL に存在すること
+      await expect(page).toHaveURL(/[?&]sort=asc/, { timeout: 5_000 });
+      await expect(page).toHaveURL(/[?&]query=Admin/);
+    });
+
+    // RED: AdminUserSearchForm が未実装（query パラメータを保持したままソートヘッダーをクリックする機能が未実装）
+    test("should allow me to preserve query param when clicking sort header after searching", async ({ page }) => {
+      // Arrange
+      await page.goto("/admin/users?query=Admin");
+      // Act
+      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("button").click();
+      // Assert: query と sort の両パラメータが URL に存在すること
+      await expect(page).toHaveURL(/[?&]query=Admin/);
+      await expect(page).toHaveURL(/[?&]sort=asc/);
+    });
   });
 });
 

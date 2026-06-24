@@ -5,28 +5,32 @@ import Link from "next/link";
 
 interface Props {
   currentSort: "asc" | "desc" | undefined;
+  query?: string;
 }
 
-function toAriaSort(sort: "asc" | "desc"): "ascending" | "descending" {
+function toAriaSort(sort: "asc" | "desc" | undefined): "ascending" | "descending" {
   return sort === "asc" ? "ascending" : "descending";
 }
 
-export default function AdminUserSortHeader({ currentSort }: Props) {
+export default function AdminUserSortHeader({ currentSort, query }: Props) {
   const nextSort = currentSort === "asc" ? "desc" : "asc";
+  const params = new URLSearchParams();
+  if (query) params.set("query", query);
+  params.set("sort", nextSort);
+  const href = `?${params.toString()}`;
 
   return (
     <TableCell
       component="th"
       scope="col"
-      aria-sort={currentSort ? toAriaSort(currentSort) : undefined}
+      aria-sort={toAriaSort(currentSort)}
     >
       <TableSortLabel
-        active={currentSort !== undefined}
-        direction={currentSort ?? "asc"}
+        active={true}
+        direction={currentSort ?? "desc"}
         component={Link}
-        href={`?sort=${nextSort}`}
+        href={href}
         data-testid="sort-link"
-        role="button"
       >
         登録日時
       </TableSortLabel>
