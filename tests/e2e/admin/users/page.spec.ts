@@ -123,7 +123,7 @@ test.describe("/admin/users", () => {
     test("should allow me to see URL changed to ?sort=asc when clicking the created_at sort header with no current sort", async ({ page }) => {
       // Arrange: beforeEach で /admin/users に遷移済み（sort パラメータなし）
       // Act
-      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("button").click();
+      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("link").click();
       // Assert
       await expect(page).toHaveURL(/[?&]sort=asc/);
     });
@@ -133,7 +133,7 @@ test.describe("/admin/users", () => {
       // Arrange
       await page.goto("/admin/users?sort=asc");
       // Act
-      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("button").click();
+      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("link").click();
       // Assert
       await expect(page).toHaveURL(/[?&]sort=desc/);
     });
@@ -171,7 +171,7 @@ test.describe("/admin/users", () => {
       // Arrange
       await page.goto("/admin/users?query=Admin");
       // Act
-      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("button").click();
+      await page.getByRole("columnheader", { name: /登録日時/ }).getByRole("link").click();
       // Assert: query と sort の両パラメータが URL に存在すること
       await expect(page).toHaveURL(/[?&]query=Admin/);
       await expect(page).toHaveURL(/[?&]sort=asc/);
