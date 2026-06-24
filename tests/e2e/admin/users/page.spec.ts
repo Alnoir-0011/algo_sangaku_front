@@ -17,7 +17,7 @@ const usersResponse = {
       attributes: {
         name: "Admin User",
         email: "admin@example.com",
-        nickname: "admin",
+        nickname: "admin_nick",
         role: "admin",
         created_at: "2026-01-01T00:00:00.000+09:00",
         sangaku_count: 2,
@@ -30,7 +30,7 @@ const usersResponse = {
       attributes: {
         name: "General User",
         email: "general@example.com",
-        nickname: "general",
+        nickname: "general_nick",
         role: "general",
         created_at: "2026-01-02T00:00:00.000+09:00",
         sangaku_count: 3,
@@ -103,9 +103,9 @@ test.describe("/admin/users", () => {
       ).toBeVisible({ timeout: 10_000 });
     });
 
-    test("should allow me to see user names from API", async ({ page }) => {
-      await expect(page.getByText("Admin User")).toBeVisible();
-      await expect(page.getByText("General User")).toBeVisible();
+    test("should allow me to see user nicknames from API", async ({ page }) => {
+      await expect(page.getByText("admin_nick")).toBeVisible();
+      await expect(page.getByText("general_nick")).toBeVisible();
     });
 
     test("should allow me to see the edit link for each user", async ({ page }) => {

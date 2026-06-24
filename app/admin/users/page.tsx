@@ -44,7 +44,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>名前</TableCell>
+            <TableCell>ニックネーム</TableCell>
             <TableCell>メール</TableCell>
             <TableCell>ロール</TableCell>
             <TableCell>算額数</TableCell>

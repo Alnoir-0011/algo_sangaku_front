@@ -15,7 +15,7 @@ export default function AdminUserRow({ user }: Props) {
 
   return (
     <TableRow>
-      <TableCell>{attributes.name}</TableCell>
+      <TableCell>{attributes.nickname}</TableCell>
       <TableCell>{attributes.email}</TableCell>
       <TableCell>{attributes.role}</TableCell>
       <TableCell>{attributes.sangaku_count}</TableCell>

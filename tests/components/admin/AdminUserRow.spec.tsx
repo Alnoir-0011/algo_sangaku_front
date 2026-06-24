@@ -16,11 +16,11 @@ const user = {
 };
 
 test.describe("AdminUserRow", () => {
-  test("should allow me to see user name", async ({ mount }) => {
+  test("should allow me to see user nickname", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
     );
-    await expect(component.getByText("Test User")).toBeVisible();
+    await expect(component.getByText("testuser")).toBeVisible();
   });
 
   test("should allow me to see user email", async ({ mount }) => {
