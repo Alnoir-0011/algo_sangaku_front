@@ -39,7 +39,7 @@ test.describe("AdminUserSortHeader", () => {
   });
 
   // RED: AdminUserSortHeader コンポーネントが未実装
-  test("should allow me to see sort button when currentSort is undefined", async ({ mount }) => {
+  test("should allow me to see sort link when currentSort is undefined", async ({ mount }) => {
     // Arrange
     // Act
     const component = await mount(
@@ -52,7 +52,7 @@ test.describe("AdminUserSortHeader", () => {
       </table>,
     );
     // Assert
-    await expect(component.getByRole("button")).toBeVisible();
+    await expect(component.getByRole("link", { name: /登録日時/ })).toBeVisible();
   });
 
   // RED: AdminUserSortHeader コンポーネントが未実装（currentSort=undefined 時は降順をデフォルト表示する仕様）
