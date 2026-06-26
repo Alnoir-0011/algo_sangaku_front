@@ -36,7 +36,7 @@ export default defineConfig({
         outputFile: "./coverage-reports/e2e/index.html",
         coverage: {
           outputDir: "./coverage-reports/e2e/v8",
-          reports: ["v8", "console-summary", "raw"],
+          reports: ["v8", "console-summary", "raw", "json-summary"],
           // monocart の entryFilter/sourceFilter はオブジェクトキーの定義順で
           // 先勝ち判定（最初にマッチしたキーの値が採用される）。順序を変えないこと。
           // E2E は Next.js のページ全体（ページ本体・外部スクリプト等）が対象に
@@ -50,33 +50,6 @@ export default defineConfig({
             "tests": false,
             "app/": true,
             "theme.ts": true,
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onEnd: (results: any) => {
-            const thresholds = {
-              statements: 80,
-              branches: 80,
-              functions: 80,
-              lines: 80,
-            };
-            const errors: string[] = [];
-            const { summary } = results;
-            for (const [metric, threshold] of Object.entries(thresholds)) {
-              const pct = summary[metric]?.pct;
-              if (pct === undefined) {
-                errors.push(`Coverage metric "${metric}" not found in summary`);
-                continue;
-              }
-              if (pct < threshold) {
-                errors.push(
-                  `Coverage threshold for ${metric} (${pct}%) not met: ${threshold}%`,
-                );
-              }
-            }
-            if (errors.length) {
-              console.error(errors.join("\n"));
-              process.exitCode = 1;
-            }
           },
         },
       },
