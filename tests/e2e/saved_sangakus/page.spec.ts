@@ -289,5 +289,44 @@ test.describe("/saved_sangakus", () => {
       await page.getByRole("option", { name: "全て" }).click();
       await expect(page).not.toHaveURL(/difficulty=/, { timeout: 3_000 });
     });
+
+    // RED: SavedSangaku の作者名テキストがリンクになっていないため、クリックによる /profiles/1 への遷移が発生しない
+    test("should allow me to navigate to author profile page when clicking author name link", async ({
+      page,
+      msw,
+    }) => {
+      // Arrange
+      msw.use(
+        http.get(`${apiUrl}/api/v1/profiles/1`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "profile",
+                attributes: {
+                  nickname: "another_user",
+                  created_at: "2026-01-01T00:00:00.000Z",
+                  sangaku_count: 0,
+                  dedicated_sangaku_count: 0,
+                  answer_count: null,
+                  dedicated_sangakus: [],
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+      const authorLink = page.getByRole("link", { name: "another_user" });
+      await expect(authorLink).toBeVisible({ timeout: 10_000 }); // 要素ロード待ち
+
+      // Act
+      await authorLink.click();
+
+      // Assert
+      await expect(page).toHaveURL("/profiles/1", { timeout: 10_000 });
+    });
   });
 });

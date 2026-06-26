@@ -4,13 +4,14 @@ import Grid from "@mui/material/Grid2";
 import { Box, Button, Typography } from "@mui/material";
 import { difficultyTranslation } from "../utility";
 import Link from "next/link";
+import { profilePath } from "@/routes";
 
 interface Props {
   sangaku: Sangaku;
-  answerd?: boolean;
+  answered?: boolean;
 }
 
-export default function SavedSangaku({ sangaku, answerd }: Props) {
+export default function SavedSangaku({ sangaku, answered }: Props) {
   return (
     <Grid key={sangaku.id}>
       <Ema width={18}>
@@ -45,6 +46,7 @@ export default function SavedSangaku({ sangaku, answerd }: Props) {
             }}
           >
             <Typography
+              component="span"
               sx={{
                 textAlign: "center",
                 overflow: "hidden",
@@ -56,7 +58,13 @@ export default function SavedSangaku({ sangaku, answerd }: Props) {
                 alignContent: "center",
               }}
             >
-              {sangaku.attributes.author_name}
+              {sangaku.relationships.user.data?.id ? (
+                <Link href={profilePath(sangaku.relationships.user.data.id)}>
+                  {sangaku.attributes.author_name}
+                </Link>
+              ) : (
+                sangaku.attributes.author_name
+              )}
             </Typography>
             <Typography
               component="p"
@@ -74,7 +82,7 @@ export default function SavedSangaku({ sangaku, answerd }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        {answerd || (
+        {answered || (
           <Button
             variant="contained"
             href={`/saved_sangakus/${sangaku.id}/answer/create`}
@@ -83,7 +91,7 @@ export default function SavedSangaku({ sangaku, answerd }: Props) {
             算額を解く
           </Button>
         )}
-        {answerd && (
+        {answered && (
           <Button
             variant="contained"
             href={`/saved_sangakus/${sangaku.id}/answer`}

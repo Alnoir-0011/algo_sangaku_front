@@ -14,7 +14,7 @@ export type Sangaku = {
       data: {
         id: string;
         type: "user";
-      };
+      } | null;
     };
     shrine: {
       data: {

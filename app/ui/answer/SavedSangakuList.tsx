@@ -47,7 +47,7 @@ export default async function SavedSangakuList({
             <SavedSangaku
               sangaku={sangaku}
               key={sangaku.id}
-              answerd={type === "answered"}
+              answered={type === "answered"}
             />
           ))}
         {sangakus.length > 0 || (
