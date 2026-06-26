@@ -1,5 +1,5 @@
 import { test, expect } from "@/tests/fixtures.ct";
-import NicknameForm from "@/app/ui/profile/nickname-form";
+import NicknameForm from "@/app/ui/profile/NicknameForm";
 
 test.describe("NicknameForm", () => {
   test("should allow me to see the initial nickname in the text field", async ({ mount }) => {

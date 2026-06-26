@@ -3,7 +3,7 @@ import Grid from "@mui/material/Grid2";
 import Ema from "@/app/ui/Ema";
 import { Box, Typography } from "@mui/material";
 import { difficultyTranslation } from "@/app/ui/utility";
-import { SangakuSaveButton } from "./buttons";
+import { SangakuSaveButton } from "./SangakuSaveButton";
 
 interface Props {
   sangaku: Sangaku;

@@ -7,7 +7,7 @@ import type {
   SangakuResult,
   GenerateSourceUsage,
 } from "../definitions";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
 
 export async function fetchUserSangakus(
@@ -26,11 +26,9 @@ export async function fetchUserSangakus(
   }
 
   try {
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus?${params.toString()}`,
-      {
-        headers: buildHeaders(session?.accessToken),
-      },
+      { token: session?.accessToken },
     );
 
     switch (res.status) {
@@ -71,8 +69,8 @@ export async function fetchUserSangaku(id: string) {
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+      token: session?.accessToken,
     });
 
     switch (res.status) {
@@ -103,11 +101,8 @@ export async function fetchShrineSangakus(
   try {
     const params = new URLSearchParams({ page, title: query, difficulty });
 
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/shrines/${shrine_id}/sangakus?${params}`,
-      {
-        headers: buildHeaders(),
-      },
     );
 
     if (res.status === 200) {
@@ -151,8 +146,8 @@ export async function fetchSavedSangakus(
       params.set("type", type);
     }
 
-    const res = await fetch(`${apiUrl}/api/v1/user/saved_sangakus?${params}`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/saved_sangakus?${params}`, {
+      token: session?.accessToken,
     });
 
     switch (res.status) {
@@ -201,11 +196,9 @@ export async function fetchSavedSangaku(
       params.set("type", type);
     }
 
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/saved_sangakus/${id}?${params}`,
-      {
-        headers: buildHeaders(session?.accessToken),
-      },
+      { token: session?.accessToken },
     );
 
     switch (res.status) {
@@ -233,9 +226,9 @@ export async function fetchGenerateSourceUsage(): Promise<
   const session = await auth();
 
   try {
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus/generate_source_usage`,
-      { headers: buildHeaders(session?.accessToken) },
+      { token: session?.accessToken },
     );
 
     switch (res.status) {
@@ -261,8 +254,8 @@ export async function fetchUserSangakuResult(id: string) {
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}/result`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}/result`, {
+      token: session?.accessToken,
     });
 
     switch (res.status) {

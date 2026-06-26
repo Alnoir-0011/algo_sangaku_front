@@ -20,7 +20,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import type { Difficulty, GenerateSourceUsage } from "@/app/lib/definitions";
-import GenerateSourceUsageIndicator from "@/app/ui/sangaku/generate-source-usage-indicator";
+import GenerateSourceUsageIndicator from "@/app/ui/sangaku/GenerateSourceUsageIndicator";
 
 const DESCRIPTION_MAX_LENGTH = 2000;
 

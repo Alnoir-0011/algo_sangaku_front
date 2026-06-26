@@ -1,4 +1,4 @@
-import Form from "@/app/ui/sangaku/create-form";
+import Form from "@/app/ui/sangaku/CreateForm";
 import { Box } from "@mui/material";
 import { Metadata } from "next";
 import { fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";

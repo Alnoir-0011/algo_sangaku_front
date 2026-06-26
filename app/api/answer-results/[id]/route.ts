@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { NextRequest } from "next/server";
 import { apiUrl } from "@/app/lib/config";
 
@@ -20,8 +20,8 @@ export async function GET(
   }
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/answer_results/${id}`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/answer_results/${id}`, {
+      token: session?.accessToken,
       cache: "no-store",
     });
 

@@ -1,5 +1,5 @@
 import { test, expect } from "@/tests/fixtures.ct";
-import GenerateSourceUsageIndicator from "@/app/ui/sangaku/generate-source-usage-indicator";
+import GenerateSourceUsageIndicator from "@/app/ui/sangaku/GenerateSourceUsageIndicator";
 
 test.describe("GenerateSourceUsageIndicator", () => {
   test("should allow me to see placeholder when usage is undefined", async ({ mount }) => {

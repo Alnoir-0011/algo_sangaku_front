@@ -3,7 +3,7 @@
 import { setFlash } from "../actions/flash";
 import { handleApiError } from "../handle_api_error";
 import { Shrine } from "../definitions";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { apiUrl } from "@/app/lib/config";
 
@@ -33,7 +33,7 @@ export async function fetchShrines(
     params.set("lowLng", lowLng);
     params.set("highLng", highLng);
 
-    const res = await fetch(`${apiUrl}/api/v1/shrines?${params}`, { headers: buildHeaders() });
+    const res = await serverFetch(`${apiUrl}/api/v1/shrines?${params}`);
 
     if (res.status === 200) {
       const data = await res.json();
@@ -55,9 +55,7 @@ export async function fetchShrines(
 
 export async function fetchShrine(id: string) {
   try {
-    const res = await fetch(`${apiUrl}/api/v1/shrines/${id}`, {
-      headers: buildHeaders(),
-    });
+    const res = await serverFetch(`${apiUrl}/api/v1/shrines/${id}`);
 
     if (res.status === 200) {
       const data = await res.json();

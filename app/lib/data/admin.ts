@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
 import type { AdminUser, AdminSangaku, AdminShrine, AdminStats } from "@/app/lib/definitions";
 
@@ -14,8 +14,8 @@ export async function fetchAdminStats(): Promise<AdminStats | undefined | null> 
   const session = await requireAdmin();
   if (!session) return undefined;
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/stats`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/stats`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -46,8 +46,8 @@ export async function fetchAdminUsers(
     if (page !== undefined) params.set("page", String(page));
     if (query) params.set("query", query);
     if (sort) params.set("sort", sort);
-    const res = await fetch(`${apiUrl}/api/v1/admin/users?${params}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users?${params}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -71,8 +71,8 @@ export async function fetchAdminUser(id: string): Promise<AdminUser | undefined 
   const session = await requireAdmin();
   if (!session) return undefined;
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -104,8 +104,8 @@ export async function fetchAdminSangakus(
     const params = new URLSearchParams();
     if (page !== undefined) params.set("page", String(page));
     if (query) params.set("query", query);
-    const res = await fetch(`${apiUrl}/api/v1/admin/sangakus?${params}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus?${params}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -129,8 +129,8 @@ export async function fetchAdminSangaku(id: string): Promise<AdminSangaku | unde
   const session = await requireAdmin();
   if (!session) return undefined;
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -162,8 +162,8 @@ export async function fetchAdminShrines(
     const params = new URLSearchParams();
     if (page !== undefined) params.set("page", String(page));
     if (query) params.set("query", query);
-    const res = await fetch(`${apiUrl}/api/v1/admin/shrines?${params}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines?${params}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -187,8 +187,8 @@ export async function fetchAdminShrine(id: string): Promise<AdminShrine | undefi
   const session = await requireAdmin();
   if (!session) return undefined;
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
-      headers: buildHeaders(session.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:

@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { User } from "../definitions";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -33,14 +33,14 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
   };
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/profile`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/profile`, {
       method: "PATCH",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
       body: JSON.stringify(params),
     });
 
     switch (res.status) {
-      case 200:
+      case 200: {
         const userData = (await res.json()).data as User;
         const newNickname = userData.attributes.nickname;
         await unstable_update({ user: { ...user, nickname: newNickname } });
@@ -50,6 +50,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
         });
         revalidatePath("/user/profile");
         redirect("/user/profile");
+      }
       case 401:
         await setFlash({
           type: "error",
@@ -91,9 +92,9 @@ export const updateShowAnswerCount = async (
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/profile`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/profile`, {
       method: "PATCH",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
       body: JSON.stringify({ user: { show_answer_count: showAnswerCount } }),
     });
 

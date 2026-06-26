@@ -8,8 +8,8 @@ export const fetchShrine = async (_id: string): Promise<Shrine | null> => ({
   attributes: {
     name: "テスト神社",
     address: "東京都テスト区1-1-1",
-    latitude: "35.6762",
-    longitude: "139.6503",
+    latitude: 35.6762,
+    longitude: 139.6503,
     place_id: "place123",
   },
 });

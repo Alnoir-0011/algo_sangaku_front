@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
 import { Difficulty, GenerateSourceUsage } from "../definitions";
 import { customSignOut } from "./auth";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -52,17 +52,18 @@ export const createSangaku = async (
   };
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus`, {
       method: "POST",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
       body: JSON.stringify(params),
     });
 
     switch (res.status) {
-      case 200:
+      case 200: {
         await setFlash({ type: "success", message: "算額を作成しました" });
         revalidatePath("/user/sangakus");
         redirect("/");
+      }
       case 401:
         await setFlash({
           type: "error",
@@ -122,17 +123,18 @@ export const updateSangaku = async (
   };
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
       method: "PATCH",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
       body: JSON.stringify(params),
     });
 
     switch (res.status) {
-      case 200:
+      case 200: {
         await setFlash({ type: "success", message: "算額を更新しました" });
         revalidatePath("/user/sangakus");
         redirect("/user/sangakus");
+      }
       case 401:
         await setFlash({
           type: "error",
@@ -172,15 +174,16 @@ export const deleteSangaku = async (id: string) => {
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
       method: "DELETE",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
     });
 
     switch (res.status) {
-      case 200:
+      case 200: {
         await setFlash({ type: "success", message: "算額を削除しました" });
         redirect("/user/sangakus");
+      }
       case 401:
         await setFlash({
           type: "error",
@@ -310,9 +313,9 @@ export const generateSource = async (
 }> => {
   const session = await auth();
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
       method: "POST",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
       body: JSON.stringify({ description }),
     });
 

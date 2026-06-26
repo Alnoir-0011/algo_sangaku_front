@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { MyProfile, PublicProfile } from "../definitions";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { apiUrl } from "@/app/lib/config";
 
@@ -8,8 +8,8 @@ export async function fetchMyProfile(): Promise<MyProfile | undefined> {
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/profile`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/profile`, {
+      token: session?.accessToken,
     });
 
     if (res.status === 200) {
@@ -32,9 +32,7 @@ export async function fetchPublicProfile(
   }
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/profiles/${id}`, {
-      headers: buildHeaders(),
-    });
+    const res = await serverFetch(`${apiUrl}/api/v1/profiles/${id}`);
 
     if (res.status === 200) {
       const body = await res.json();

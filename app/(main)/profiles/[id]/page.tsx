@@ -2,8 +2,8 @@ import { Avatar, Box, Paper, Typography } from "@mui/material";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicProfile } from "@/app/lib/data/profile";
-import ActivitySummary from "@/app/ui/profile/activity-summary";
-import DedicatedSangakuList from "@/app/ui/profile/dedicated-sangaku-list";
+import ActivitySummary from "@/app/ui/profile/ActivitySummary";
+import DedicatedSangakuList from "@/app/ui/profile/DedicatedSangakuList";
 
 export const metadata: Metadata = {
   title: "プロフィール",
