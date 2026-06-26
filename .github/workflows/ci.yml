@@ -126,6 +126,8 @@ jobs:
         with:
           name: coverage-e2e-chromium
           path: coverage-reports/e2e
+      - name: Check coverage thresholds
+        run: node scripts/check-coverage.mjs
       # 注意: このレポートにはソースコードが埋め込まれる。リポジトリを public 化する場合は
       # artifact の公開範囲についても見直すこと
       - uses: actions/upload-artifact@v4
