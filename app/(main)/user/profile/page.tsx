@@ -3,9 +3,9 @@ import { Avatar, Box, Divider, Paper, Typography } from "@mui/material";
 import { Metadata } from "next";
 import { fetchMyProfile } from "@/app/lib/data/profile";
 import { fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";
-import NicknameForm from "@/app/ui/profile/nickname-form";
-import ActivitySummary from "@/app/ui/profile/activity-summary";
-import PrivacySettingsCard from "@/app/ui/profile/privacy-settings-card";
+import NicknameForm from "@/app/ui/profile/NicknameForm";
+import ActivitySummary from "@/app/ui/profile/ActivitySummary";
+import PrivacySettingsCard from "@/app/ui/profile/PrivacySettingsCard";
 
 export const metadata: Metadata = {
   title: "マイページ",

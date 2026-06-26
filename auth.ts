@@ -51,11 +51,13 @@ export const providerMap = providers
 // テスト時のサインイン画面切り替え用
 const pages = process.env.APP_ENV === "test" ? {} : { signIn: "/signin" };
 
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7日
+
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24 * 7, // 7日（絶対有効期限）
-    updateAge: 60 * 60 * 24 * 7, // maxAge と同値にしてローリングを無効化（案A）
+    maxAge: SESSION_MAX_AGE,
+    updateAge: SESSION_MAX_AGE, // maxAge と同値にしてローリングを無効化（案A）
   },
   providers,
   callbacks: {
@@ -107,7 +109,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       }
 
       // ログインから7日経過していたらセッションを強制無効化（案B）
-      const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
       if (
         token.signedInAt &&
         Math.floor(Date.now() / 1000) - token.signedInAt > SESSION_MAX_AGE
@@ -118,7 +119,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       return token;
     },
     async session({ token, session }) {
-      session.accessToken = token.accessToken as string;
+      session.accessToken = token.accessToken ?? null;
       session.user.nickname = token.nickname as string;
       session.role = token.role;
       return session;

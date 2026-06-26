@@ -3,15 +3,15 @@
 import { auth } from "@/auth";
 import type { Answer } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
 
 export const fetchUserAnswer = async (id: string) => {
   const session = await auth();
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/user/answers/${id}`, {
-      headers: buildHeaders(session?.accessToken),
+    const res = await serverFetch(`${apiUrl}/api/v1/user/answers/${id}`, {
+      token: session?.accessToken,
     });
 
     switch (res.status) {
@@ -39,11 +39,9 @@ export const fetchUserAnswerWithSangakuId = async (sangakuId: string) => {
   const session = await auth();
 
   try {
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/saved_sangakus/${sangakuId}/answer`,
-      {
-        headers: buildHeaders(session?.accessToken),
-      },
+      { token: session?.accessToken },
     );
 
     switch (res.status) {

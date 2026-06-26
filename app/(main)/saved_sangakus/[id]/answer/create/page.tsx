@@ -1,6 +1,6 @@
 import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
-import Form from "@/app/ui/answer/create-form";
+import Form from "@/app/ui/answer/CreateForm";
 import { Metadata } from "next";
 import { cache } from "react";
 

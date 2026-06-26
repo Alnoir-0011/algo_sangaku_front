@@ -37,8 +37,8 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
       <AdvancedMarker
         ref={markerRef}
         position={{
-          lat: Number(shrine.attributes.latitude),
-          lng: Number(shrine.attributes.longitude),
+          lat: shrine.attributes.latitude,
+          lng: shrine.attributes.longitude,
         }}
         onClick={handleMarkerClick}
       >
@@ -86,12 +86,12 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
 const R = Math.PI / 180;
 
 function distance(
-  pos1lat: string,
-  pos1lng: string,
+  pos1lat: number,
+  pos1lng: number,
   currentPosition: { lat: number; lng: number },
 ) {
-  const lat1 = parseFloat(pos1lat) * R;
-  const lng1 = parseFloat(pos1lng) * R;
+  const lat1 = pos1lat * R;
+  const lng1 = pos1lng * R;
   const lat2 = currentPosition.lat * R;
   const lng2 = currentPosition.lng * R;
   return (

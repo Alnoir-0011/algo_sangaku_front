@@ -1,6 +1,6 @@
 import { fetchUserSangaku, fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
-import Form from "@/app/ui/sangaku/edit-form";
+import Form from "@/app/ui/sangaku/EditForm";
 import { Box } from "@mui/material";
 import { Metadata } from "next";
 

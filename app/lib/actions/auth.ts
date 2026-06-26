@@ -3,7 +3,7 @@
 import { auth, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "./flash";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -11,9 +11,9 @@ export async function customSignOut() {
   const session = await auth();
 
   try {
-    await fetch(`${apiUrl}/api/v1/authenticate`, {
+    await serverFetch(`${apiUrl}/api/v1/authenticate`, {
       method: "DELETE",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
     });
     await setFlash({ type: "success", message: "サインアウトしました" });
     await signOut({ redirectTo: "/signin" });

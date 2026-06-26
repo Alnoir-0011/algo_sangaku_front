@@ -6,7 +6,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -25,11 +25,11 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
   };
 
   try {
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/answers`,
       {
         method: "POST",
-        headers: buildHeaders(session?.accessToken),
+        token: session?.accessToken,
         body: JSON.stringify(params),
       },
     );

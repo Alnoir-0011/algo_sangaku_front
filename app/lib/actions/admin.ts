@@ -5,7 +5,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "@/app/lib/actions/auth";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -25,9 +25,9 @@ export async function updateUserRole(
     return false;
   }
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
       method: "PATCH",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
       body: JSON.stringify({ user: { role } }),
     });
     switch (res.status) {
@@ -78,9 +78,9 @@ export async function updateUser(
     },
   };
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
       method: "PATCH",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
       body: JSON.stringify(body),
     });
     switch (res.status) {
@@ -117,9 +117,9 @@ export async function deleteSangaku(id: string): Promise<boolean> {
     return false;
   }
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
       method: "DELETE",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:
@@ -165,9 +165,9 @@ export async function updateSangaku(
     },
   };
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
       method: "PATCH",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
       body: JSON.stringify(body),
     });
     switch (res.status) {
@@ -228,9 +228,9 @@ export async function createShrine(formData: FormData): Promise<boolean> {
     },
   };
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/shrines`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines`, {
       method: "POST",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
       body: JSON.stringify(body),
     });
     switch (res.status) {
@@ -274,9 +274,9 @@ export async function updateShrine(
     },
   };
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
       method: "PATCH",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
       body: JSON.stringify(body),
     });
     switch (res.status) {
@@ -313,9 +313,9 @@ export async function deleteShrine(id: string): Promise<boolean> {
     return false;
   }
   try {
-    const res = await fetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
       method: "DELETE",
-      headers: buildHeaders(session.accessToken),
+      token: session.accessToken,
     });
     switch (res.status) {
       case 200:

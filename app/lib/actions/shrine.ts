@@ -5,7 +5,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "./flash";
 import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
-import { buildHeaders } from "@/app/lib/client_headers";
+import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;
 
@@ -18,11 +18,11 @@ export async function dedicateSangaku(
   const params = { shrine_id, ...location };
 
   try {
-    const res = await fetch(
+    const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/dedicate`,
       {
         method: "POST",
-        headers: buildHeaders(session?.accessToken),
+        token: session?.accessToken,
         body: JSON.stringify(params),
       },
     );
@@ -61,9 +61,9 @@ export async function createSangakuSave(sangaku_id: string) {
   }
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/sangakus/${sangaku_id}/save`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/sangakus/${sangaku_id}/save`, {
       method: "POST",
-      headers: buildHeaders(session?.accessToken),
+      token: session?.accessToken,
     });
 
     switch (res.status) {

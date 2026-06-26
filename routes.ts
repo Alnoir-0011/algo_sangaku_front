@@ -1,8 +1,8 @@
 export const publicRoutes: (string | RegExp)[] = [
   "/",
   "/shrines",
-  /\/shrines\/.*\/sangakus/,
-  /\/profiles\/.+/,
+  /^\/shrines\/[^/]+\/sangakus$/,
+  /^\/profiles\/.+$/,
   "/privacy_policy",
   "/terms_of_use",
 ];

@@ -38,8 +38,8 @@ export type Shrine = {
   attributes: {
     name: string;
     address: string;
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
     place_id: string;
     sangaku_count?: number;
   };
