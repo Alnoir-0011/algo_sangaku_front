@@ -20,8 +20,19 @@ try {
 }
 
 const totals = summary.total;
-const errors = [];
 
+const nf = (n) => Number(n).toLocaleString("en-US");
+const pf = (n) => `${Number(n).toFixed(2)} %`;
+
+const rows = METRICS.map((metric) => {
+  const { total, covered, pct } = totals[metric] ?? {};
+  const uncovered = total - covered;
+  return [capitalize(metric), pf(pct), nf(covered), nf(uncovered), nf(total)];
+});
+
+console.log(renderTable(["Name", "Coverage %", "Covered", "Uncovered", "Total"], rows));
+
+const errors = [];
 for (const metric of METRICS) {
   const pct = totals?.[metric]?.pct;
   if (pct === undefined) {
@@ -41,3 +52,38 @@ if (errors.length > 0) {
 }
 
 console.log(`All coverage thresholds met (>= ${THRESHOLD}%)`);
+
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function renderTable(headers, rows) {
+  const allRows = [headers, ...rows];
+  const colCount = headers.length;
+
+  const widths = Array.from({ length: colCount }, (_, i) =>
+    Math.max(...allRows.map((r) => String(r[i]).length)),
+  );
+
+  const hr = (l, m, r) =>
+    l + widths.map((w) => "─".repeat(w + 2)).join(m) + r;
+
+  const dataRow = (cells) =>
+    "│" +
+    cells
+      .map((c, i) =>
+        i === 0
+          ? ` ${String(c).padEnd(widths[i])} `
+          : ` ${String(c).padStart(widths[i])} `,
+      )
+      .join("│") +
+    "│";
+
+  return [
+    hr("┌", "┬", "┐"),
+    dataRow(headers),
+    hr("├", "┼", "┤"),
+    ...rows.map(dataRow),
+    hr("└", "┴", "┘"),
+  ].join("\n");
+}
