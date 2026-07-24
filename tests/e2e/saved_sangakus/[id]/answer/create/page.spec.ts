@@ -299,7 +299,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(errorMessage).toBeVisible();
     });
 
-    test("should show a clear error message when the sangaku is already answered", async ({
+    test("should not allow me to submit an answer for an already-answered sangaku", async ({
       page,
       msw,
     }) => {
