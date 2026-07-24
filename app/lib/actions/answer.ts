@@ -54,6 +54,12 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
           errors: Object.fromEntries(data.errors),
           message: "入力に誤りがあります",
         } as State;
+      case 409:
+        await setFlash({
+          type: "error",
+          message: "この算額にはすでに解答済みです",
+        });
+        return { message: "この算額にはすでに解答済みです" } as State;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return { message: "リクエストに失敗しました" } as State;
