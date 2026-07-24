@@ -81,6 +81,13 @@ export async function createSangakuSave(sangaku_id: string) {
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
         await customSignOut();
+        break;
+      case 409:
+        await setFlash({
+          type: "error",
+          message: "この算額はすでに保存済みです",
+        });
+        break;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
     }

@@ -168,5 +168,28 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("算額の写しを作成しました");
     });
+
+    test("should show a clear error message when the sangaku is already saved", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.post(`${apiUrl}/api/v1/sangakus/1/save`, () => {
+          return HttpResponse.json({ message: "Conflict" }, { status: 409 });
+        }),
+      );
+      await setSession(page);
+
+      await page.goto("/shrines/1/sangakus");
+      const heading = page.getByRole("heading", {
+        name: "test_shrineの算額一覧",
+      });
+      await expect(heading).toBeVisible();
+      const button = page.getByRole("button", { name: "算額を写す" });
+      await button.click();
+      const flash = page.getByTestId('flash-message');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("この算額はすでに保存済みです");
+    });
   });
 });
