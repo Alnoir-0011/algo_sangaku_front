@@ -7,9 +7,10 @@ import { SangakuSaveButton } from "./SangakuSaveButton";
 
 interface Props {
   sangaku: Sangaku;
+  saved: boolean;
 }
 
-export default function Sangaku({ sangaku }: Props) {
+export default function Sangaku({ sangaku, saved }: Props) {
   return (
     <Grid key={sangaku.id}>
       <Ema width={18}>
@@ -59,7 +60,7 @@ export default function Sangaku({ sangaku }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <SangakuSaveButton id={sangaku.id} />
+        <SangakuSaveButton id={sangaku.id} saved={saved} />
       </Box>
     </Grid>
   );
