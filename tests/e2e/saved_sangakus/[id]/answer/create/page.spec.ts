@@ -298,5 +298,38 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       const errorMessage = page.getByLabel("sourceError");
       await expect(errorMessage).toBeVisible();
     });
+
+    test("should not allow me to submit an answer for an already-answered sangaku", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+          return HttpResponse.json(
+            { message: "Conflict" },
+            { status: 409 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
+      await waitForMonacoEditor(page);
+      await monacoEditor.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.press("Backspace");
+      await page.keyboard.type("input = gets.chomp");
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("puts input");
+      const button = page.getByRole("button", { name: "解答を終了する" });
+      page.once("dialog", async (dialog) => {
+        await dialog.accept();
+      });
+      await button.click();
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("この算額にはすでに解答済みです");
+    });
   });
 });
