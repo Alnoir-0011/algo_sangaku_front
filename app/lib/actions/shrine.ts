@@ -53,11 +53,13 @@ export async function dedicateSangaku(
   }
 }
 
-export async function createSangakuSave(sangaku_id: string) {
+export async function createSangakuSave(
+  sangaku_id: string,
+): Promise<boolean> {
   const session = await auth();
   if (!session) {
     setFlash({ type: "error", message: "サインインしてください" });
-    return null;
+    return false;
   }
 
   try {
@@ -72,8 +74,7 @@ export async function createSangakuSave(sangaku_id: string) {
           type: "success",
           message: "算額の写しを作成しました",
         });
-        // revalidatePath("/user/saved_sangakus");
-        break;
+        return true;
       case 401:
         await setFlash({
           type: "error",
@@ -81,13 +82,22 @@ export async function createSangakuSave(sangaku_id: string) {
             "セッションの有効期限が切れています。\n再度ログインしてください",
         });
         await customSignOut();
+        return false;
+      case 409:
+        await setFlash({
+          type: "error",
+          message: "この算額はすでに保存済みです",
+        });
+        return true;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
+        return false;
     }
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return false;
   }
 }

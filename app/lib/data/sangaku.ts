@@ -131,6 +131,43 @@ export async function fetchShrineSangakus(
   }
 }
 
+export async function fetchSavedSangakuIds(
+  sangaku_ids: string[],
+): Promise<Set<string>> {
+  if (sangaku_ids.length === 0) {
+    return new Set();
+  }
+
+  const session = await auth();
+  if (!session?.accessToken) {
+    return new Set();
+  }
+
+  try {
+    const params = new URLSearchParams();
+    sangaku_ids.forEach((id) => params.append("sangaku_ids[]", id));
+
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/saved_sangaku_ids?${params}`,
+      { token: session.accessToken },
+    );
+
+    if (res.status !== 200) {
+      return new Set();
+    }
+
+    const body = await res.json();
+    const savedIds = body.saved_sangaku_ids as number[];
+    return new Set(savedIds.map(String));
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    console.error("[data/sangaku] fetchSavedSangakuIds error:", error);
+    return new Set();
+  }
+}
+
 export async function fetchSavedSangakus(
   page: string,
   query: string,

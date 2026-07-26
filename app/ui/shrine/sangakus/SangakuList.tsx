@@ -1,4 +1,4 @@
-import { fetchShrineSangakus } from "@/app/lib/data/sangaku";
+import { fetchShrineSangakus, fetchSavedSangakuIds } from "@/app/lib/data/sangaku";
 import { Box, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Pagination from "@/app/ui/Pagination";
@@ -23,6 +23,7 @@ export default async function SangakuList({
     query,
     difficulty,
   );
+  const savedIds = await fetchSavedSangakuIds(sangakus.map((s) => s.id));
 
   return (
     <Box
@@ -45,7 +46,11 @@ export default async function SangakuList({
           sx={{ mt: 3, mb: 2, flexGrow: 1 }}
         >
           {sangakus.map((sangaku) => (
-            <Sangaku sangaku={sangaku} key={sangaku.id} />
+            <Sangaku
+              sangaku={sangaku}
+              saved={savedIds.has(sangaku.id)}
+              key={sangaku.id}
+            />
           ))}
         </Grid>
         <Box sx={{ display: "flex", justifyContent: "center" }}>

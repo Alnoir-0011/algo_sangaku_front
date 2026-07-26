@@ -1,2 +1,2 @@
-export const createSangakuSave = async (_id: string): Promise<void> => {};
+export const createSangakuSave = async (_id: string): Promise<boolean> => true;
 export const dedicateSangaku = async () => ({});
