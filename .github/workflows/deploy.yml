@@ -17,11 +17,6 @@ permissions:
   checks: read
   statuses: write
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
 jobs:
   deploy:
     timeout-minutes: 30
@@ -49,15 +44,41 @@ jobs:
             || { echo "::error::$INPUT_SHA is not an ancestor of main"; exit 1; }
           git checkout --detach "$INPUT_SHA"
 
+      # check-runs が 0 件（[skip ci] 等で CI 自体が実行されなかった場合）でも
+      # 空配列は無条件で合格してしまうため、必須チェック名を明示的に列挙して検証する。
+      # ci.yml のジョブ名（e2etest は matrix のため各ブラウザ名を含む）と対応させること。
       - name: Verify CI passed for sha
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_SHA: ${{ inputs.sha }}
         run: |
-          failing=$(gh api "repos/${{ github.repository }}/commits/$INPUT_SHA/check-runs" \
-            --jq '[.check_runs[] | select(.conclusion != "success")] | length')
-          if [ "$failing" -gt 0 ]; then
-            echo "::error::CI has not passed (or is incomplete) for $INPUT_SHA"
+          set -euo pipefail
+
+          successful=$(gh api --paginate "repos/${{ github.repository }}/commits/$INPUT_SHA/check-runs" \
+            --jq '.check_runs[] | select(.conclusion == "success") | .name')
+
+          if [ -z "$successful" ]; then
+            echo "::error::no successful check runs found for $INPUT_SHA"
+            exit 1
+          fi
+
+          missing=0
+          while IFS= read -r required; do
+            if ! grep -qxF "$required" <<< "$successful"; then
+              echo "::error::required check '$required' is missing or not successful"
+              missing=1
+            fi
+          done <<REQUIRED
+          build
+          lint
+          componentstest
+          coverage
+          e2etest (chromium)
+          e2etest (firefox)
+          e2etest (webkit)
+          REQUIRED
+
+          if [ "$missing" -eq 1 ]; then
             exit 1
           fi
 
@@ -68,18 +89,38 @@ jobs:
         run: npm install -g pnpm@10.0.0
       - name: Install Vercel CLI
         run: npm install -g vercel@58.0.0
+      # VERCEL_TOKEN は npm install 等のインストールステップからは見えないよう、
+      # Vercel CLI を実際に使うステップにのみ env でスコープする。
       - name: Pull Vercel Environment Information
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel pull --yes --environment=production
       - name: Build Project Artifacts
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: vercel build --prod
       - name: Deploy Project Artifacts to Vercel
         id: deploy
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          url=$(vercel deploy --prebuilt --prod)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          url=$(vercel deploy --prebuilt --prod | tail -n 1)
+          if [[ ! "$url" =~ ^https://[A-Za-z0-9.-]+$ ]]; then
+            echo "::error::unexpected deploy url: $url"
+            exit 1
+          fi
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
 
       - name: Health check
-        run: curl -fsS --retry 5 --retry-delay 5 --retry-connrefused "${{ steps.deploy.outputs.url }}" > /dev/null
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: curl -fsS --retry 5 --retry-delay 5 --retry-connrefused "$URL" > /dev/null
 
       - name: Report deployment status
         if: always()
