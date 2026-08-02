@@ -47,6 +47,8 @@ jobs:
       # check-runs が 0 件（[skip ci] 等で CI 自体が実行されなかった場合）でも
       # 空配列は無条件で合格してしまうため、必須チェック名を明示的に列挙して検証する。
       # ci.yml のジョブ名（e2etest は matrix のため各ブラウザ名を含む）と対応させること。
+      # 同名チェックが再実行されている場合、check-runs には新旧両方のconclusionが
+      # 混在して返る。id（作成順）が最大＝最新の実行結果のみを判定対象にする。
       - name: Verify CI passed for sha
         env:
           GH_TOKEN: ${{ github.token }}
@@ -54,18 +56,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          successful=$(gh api --paginate "repos/${{ github.repository }}/commits/$INPUT_SHA/check-runs" \
-            --jq '.check_runs[] | select(.conclusion == "success") | .name')
+          runs=$(gh api --paginate "repos/${{ github.repository }}/commits/$INPUT_SHA/check-runs" \
+            --jq '.check_runs[] | {id, name, conclusion}')
 
-          if [ -z "$successful" ]; then
-            echo "::error::no successful check runs found for $INPUT_SHA"
+          if [ -z "$runs" ]; then
+            echo "::error::no check runs found for $INPUT_SHA"
             exit 1
           fi
+
+          successful=$(jq -s -r 'group_by(.name) | map(max_by(.id)) | .[] | select(.conclusion == "success") | .name' <<< "$runs")
 
           missing=0
           while IFS= read -r required; do
             if ! grep -qxF "$required" <<< "$successful"; then
-              echo "::error::required check '$required' is missing or not successful"
+              echo "::error::required check '$required' is missing or not successful in its latest run"
               missing=1
             fi
           done <<REQUIRED
