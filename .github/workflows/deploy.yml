@@ -46,7 +46,10 @@ jobs:
 
       # check-runs が 0 件（[skip ci] 等で CI 自体が実行されなかった場合）でも
       # 空配列は無条件で合格してしまうため、必須チェック名を明示的に列挙して検証する。
-      # ci.yml のジョブ名（e2etest は matrix のため各ブラウザ名を含む）と対応させること。
+      # ci.yml のジョブ名（e2etest は matrix のため各ブラウザ名を含む）、および main の
+      # ruleset「protect main」の required_status_checks と一致させること。ジョブ名を変える
+      # 場合はこの3箇所すべての更新が必要で、片方だけ直すと「main にはマージできるが
+      # デプロイで弾かれる」またはその逆の状態になる。
       # 同名チェックが再実行されている場合、check-runs には新旧両方のconclusionが
       # 混在して返る。id（作成順）が最大＝最新の実行結果のみを判定対象にする。
       - name: Verify CI passed for sha
