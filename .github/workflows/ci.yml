@@ -9,14 +9,14 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
       - name: Install dependencies
         run: npm install -g pnpm@10 && pnpm install
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -28,7 +28,7 @@ jobs:
         run: cp env.template .env
       - name: Run Playwright tests
         run: pnpm run test:components
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-components
@@ -39,8 +39,8 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
       - name: Install dependencies
@@ -55,7 +55,7 @@ jobs:
           COVERAGE: "true"
         run: pnpm run build
       - name: Upload .next
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: next-build
           path: .next/
@@ -71,14 +71,14 @@ jobs:
       matrix:
         project: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
       - name: Install dependencies
         run: npm install -g pnpm@10 && pnpm install
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -87,7 +87,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps ${{ matrix.project }}
       - name: Download .next
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: next-build
           path: .next/
@@ -99,13 +99,13 @@ jobs:
         env:
           APP_ENV: test
         run: pnpm exec playwright test --project=${{ matrix.project }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-e2e-${{ matrix.project }}
           path: playwright-report/
           retention-days: 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && matrix.project == 'chromium' }}
         with:
           name: coverage-e2e-chromium
@@ -117,12 +117,12 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
       - name: Download E2E Chromium coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: coverage-e2e-chromium
           path: coverage-reports/e2e
@@ -130,7 +130,7 @@ jobs:
         run: node scripts/check-coverage.mjs
       # 注意: このレポートにはソースコードが埋め込まれる。リポジトリを public 化する場合は
       # artifact の公開範囲についても見直すこと
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: coverage-report
@@ -141,8 +141,8 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
       - name: Install dependencies
