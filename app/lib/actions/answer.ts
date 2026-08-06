@@ -51,7 +51,9 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Object.fromEntries(data.errors),
+          errors: Array.isArray(data.errors)
+            ? Object.fromEntries(data.errors)
+            : {},
           message: "入力に誤りがあります",
         } as State;
       case 409:

@@ -76,7 +76,9 @@ export const createSangaku = async (
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Object.fromEntries(data.errors),
+          errors: Array.isArray(data.errors)
+            ? Object.fromEntries(data.errors)
+            : {},
           // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
@@ -147,7 +149,9 @@ export const updateSangaku = async (
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Object.fromEntries(data.errors),
+          errors: Array.isArray(data.errors)
+            ? Object.fromEntries(data.errors)
+            : {},
           // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
@@ -193,11 +197,13 @@ export const deleteSangaku = async (id: string) => {
         await customSignOut();
         break;
       default:
+        await setFlash({ type: "error", message: "リクエストに失敗しました" });
     }
   } catch (e) {
     if (isRedirectError(e)) {
       throw e;
     }
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
   }
 };
 

@@ -58,7 +58,7 @@ export async function createSangakuSave(
 ): Promise<boolean> {
   const session = await auth();
   if (!session) {
-    setFlash({ type: "error", message: "サインインしてください" });
+    await setFlash({ type: "error", message: "サインインしてください" });
     return false;
   }
 
