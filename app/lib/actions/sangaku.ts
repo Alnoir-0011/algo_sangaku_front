@@ -8,6 +8,8 @@ import { setFlash } from "@/app/lib/actions/flash";
 import { Difficulty, GenerateSourceUsage } from "../definitions";
 import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
+import { parseApiErrors } from "@/app/lib/parse-api-errors";
+import { isValidId } from "@/app/lib/validate-id";
 
 const apiUrl = process.env.API_URL!;
 
@@ -76,9 +78,7 @@ export const createSangaku = async (
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Array.isArray(data.errors)
-            ? Object.fromEntries(data.errors)
-            : {},
+          errors: parseApiErrors(data.errors),
           // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
@@ -112,6 +112,11 @@ export const updateSangaku = async (
 ) => {
   const session = await auth();
 
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return {} as State;
+  }
+
   const title = formData.get("title");
 
   const params = {
@@ -125,11 +130,14 @@ export const updateSangaku = async (
   };
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
-      method: "PATCH",
-      token: session?.accessToken,
-      body: JSON.stringify(params),
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        token: session?.accessToken,
+        body: JSON.stringify(params),
+      },
+    );
 
     switch (res.status) {
       case 200: {
@@ -149,9 +157,7 @@ export const updateSangaku = async (
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Array.isArray(data.errors)
-            ? Object.fromEntries(data.errors)
-            : {},
+          errors: parseApiErrors(data.errors),
           // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
@@ -176,12 +182,23 @@ export const updateSangaku = async (
 
 export const deleteSangaku = async (id: string) => {
   const session = await auth();
+  if (!session) {
+    await setFlash({ type: "error", message: "サインインしてください" });
+    return;
+  }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return;
+  }
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
-      method: "DELETE",
-      token: session?.accessToken,
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        token: session.accessToken,
+      },
+    );
 
     switch (res.status) {
       case 200: {

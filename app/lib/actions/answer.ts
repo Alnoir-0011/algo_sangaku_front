@@ -7,6 +7,8 @@ import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
 import { serverFetch } from "@/app/lib/server-fetch";
+import { parseApiErrors } from "@/app/lib/parse-api-errors";
+import { isValidId } from "@/app/lib/validate-id";
 
 const apiUrl = process.env.API_URL!;
 
@@ -20,13 +22,18 @@ export type State = {
 export const createAnswer = async (sangaku_id: string, source: string) => {
   const session = await auth();
 
+  if (!isValidId(sangaku_id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return { message: "リクエストに失敗しました" } as State;
+  }
+
   const params = {
     source,
   };
 
   try {
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/answers`,
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(sangaku_id)}/answers`,
       {
         method: "POST",
         token: session?.accessToken,
@@ -51,9 +58,7 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
-          errors: Array.isArray(data.errors)
-            ? Object.fromEntries(data.errors)
-            : {},
+          errors: parseApiErrors(data.errors),
           message: "入力に誤りがあります",
         } as State;
       case 409:
