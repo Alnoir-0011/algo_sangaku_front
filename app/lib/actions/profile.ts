@@ -8,6 +8,7 @@ import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "./auth";
 import { User } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
+import { parseApiErrors } from "@/app/lib/parse-api-errors";
 
 const apiUrl = process.env.API_URL!;
 
@@ -62,11 +63,8 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
       case 400:
         const data = await res.json();
         await setFlash({ type: "error", message: "入力に誤りがあります" });
-        const errors = Array.isArray(data.errors)
-          ? Object.fromEntries(data.errors)
-          : {};
         return {
-          errors,
+          errors: parseApiErrors(data.errors),
           values: { nickname },
         } as State;
       default:

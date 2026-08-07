@@ -47,5 +47,8 @@ export async function setFlash(flash: Flash) {
     maxAge: 60,
     httpOnly: true,
     sameSite: "lax",
+    // next.config.ts の CSP 判定と同様、E2E テストは APP_ENV=test で next build && next
+    // start を実行するため NODE_ENV は使えない（テスト実行時も "production" になる）
+    secure: process.env.APP_ENV !== "test",
   });
 }

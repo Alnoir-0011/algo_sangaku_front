@@ -294,6 +294,30 @@ test.describe("/user/sangakus", () => {
       await expect(flash).toContainText("算額を削除しました");
     });
 
+    test("should not allow me to delete sangaku when the API request fails", async ({
+      page,
+      msw,
+    }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      msw.use(
+        http.delete(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+          return HttpResponse.json({}, { status: 500 });
+        }),
+      );
+      const menuButton = page.getByRole("button", { name: "算額のメニューを開く" }).first();
+      await waitForInteractive(menuButton);
+      await menuButton.click();
+      const deleteButton = page.getByRole("menuitem", { name: "削除" });
+      page.once("dialog", async (dialog) => {
+        await dialog.accept();
+      });
+      await deleteButton.click();
+      const flash = page.getByTestId('flash-message');
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("リクエストに失敗しました");
+    });
+
     test("should allow me to see difficult and very_difficult difficulty labels on dedicated tab", async ({
       page,
       msw,

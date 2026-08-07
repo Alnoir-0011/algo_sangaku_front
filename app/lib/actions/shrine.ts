@@ -6,6 +6,7 @@ import { setFlash } from "./flash";
 import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
+import { isValidId } from "@/app/lib/validate-id";
 
 const apiUrl = process.env.API_URL!;
 
@@ -15,11 +16,17 @@ export async function dedicateSangaku(
   location: { lat: number; lng: number },
 ) {
   const session = await auth();
+
+  if (!isValidId(sangaku_id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
+
   const params = { shrine_id, ...location };
 
   try {
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/sangakus/${sangaku_id}/dedicate`,
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(sangaku_id)}/dedicate`,
       {
         method: "POST",
         token: session?.accessToken,
@@ -58,15 +65,22 @@ export async function createSangakuSave(
 ): Promise<boolean> {
   const session = await auth();
   if (!session) {
-    setFlash({ type: "error", message: "サインインしてください" });
+    await setFlash({ type: "error", message: "サインインしてください" });
+    return false;
+  }
+  if (!isValidId(sangaku_id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
     return false;
   }
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/sangakus/${sangaku_id}/save`, {
-      method: "POST",
-      token: session?.accessToken,
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/sangakus/${encodeURIComponent(sangaku_id)}/save`,
+      {
+        method: "POST",
+        token: session?.accessToken,
+      },
+    );
 
     switch (res.status) {
       case 200:

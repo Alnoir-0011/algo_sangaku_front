@@ -266,6 +266,39 @@ test.describe("/sangakus/create", () => {
       await expect(sourceErrorMessage).toHaveText("を入力してください");
     });
 
+    test("should not crash and show a generic error when the API returns a malformed errors field", async ({
+      page,
+      msw,
+    }) => {
+      // NOTE: ActionController::ParameterMissing 等で errors がフラットな文字列配列になるケースを再現
+      const backendResponse = {
+        message: "Bad Request",
+        errors: ["param is missing or the value is empty: sangaku"],
+      };
+
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json(backendResponse, { status: 400 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await page.getByLabel("タイトル").fill("test_title");
+      await page.getByLabel("問題文").fill("test_description");
+      await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      await expect(page).toHaveURL("/sangakus/create");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("入力に誤りがあります");
+      // NOTE: errors の形状が不正な場合はフィールド別エラーを出さずフォールバックする
+      await expect(page.getByLabel("titleError")).not.toBeVisible();
+    });
+
     test("should allow me to see usage indicator with remaining count", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
