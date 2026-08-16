@@ -142,14 +142,17 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", reason: "crawler-scope" });
   });
 
-  test("should not allow me to see a prefetch consume the rate limit", async () => {
+  test("should not allow me to skip the rate limit by claiming to be a prefetch", async () => {
     // Arrange
+    // Next.js は middleware の手前で Next-Router-Prefetch を削除するため、
+    // このヘッダーを見て除外する分岐は本番で成立しない。仮に届いたとしても
+    // 予算を消費しないと回避経路になるため、必ず数える
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 60, windowMs: 60_000 }));
     const request = publicGet();
     request.headers.set("Next-Router-Prefetch", "1");
 
     // Act
-    const decision = await runGuard(request, {
+    await runGuard(request, {
       mode: "enforce",
       email: null,
       getLimiter: () => spy.limiter,
@@ -157,23 +160,23 @@ test.describe("runGuard", () => {
     });
 
     // Assert
-    expect({ action: decision.action, storeCalls: spy.calls.length }).toEqual({
-      action: "allow",
-      storeCalls: 0,
-    });
+    expect(spy.calls).toHaveLength(1);
   });
 
-  test("should not allow me to see an unmetered route consume the rate limit", async () => {
+  test("should not allow me to skip the rate limit with an unusual method", async () => {
     // Arrange
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 60, windowMs: 60_000 }));
     const request = {
       method: "DELETE",
       pathname: "/sangakus/1",
-      headers: new Headers({ "user-agent": CHROME_UA }),
+      headers: new Headers({
+        "user-agent": CHROME_UA,
+        "x-forwarded-for": "198.51.100.20",
+      }),
     };
 
     // Act
-    const decision = await runGuard(request, {
+    await runGuard(request, {
       mode: "enforce",
       email: null,
       getLimiter: () => spy.limiter,
@@ -181,9 +184,30 @@ test.describe("runGuard", () => {
     });
 
     // Assert
-    expect({ action: decision.action, storeCalls: spy.calls.length }).toEqual({
+    expect(spy.calls).toEqual(["guard:server-action:ip:198.51.100.20"]);
+  });
+
+  test("should allow me to keep browsing when the guard itself throws", async () => {
+    // Arrange
+    // fail-open を Upstash 呼び出しの例外（checkLimit が捕捉する）だけでなく、
+    // 判定処理そのものにも効かせる。ここで例外が漏れると middleware ごと
+    // 500 になり全リクエストが落ちる
+    const getLimiter = (): Limiter => {
+      throw new Error("failed to construct the limiter");
+    };
+
+    // Act
+    const decision = await runGuard(publicGet(), {
+      mode: "enforce",
+      email: null,
+      getLimiter,
+      now: NOW,
+    });
+
+    // Assert
+    expect({ action: decision.action, reason: decision.reason }).toEqual({
       action: "allow",
-      storeCalls: 0,
+      reason: "guard-error",
     });
   });
 
@@ -263,7 +287,7 @@ test.describe("runGuard", () => {
     });
 
     // Assert
-    expect(spy.calls[0]).toMatch(/^guard:server-action:user:[0-9a-f]{16}$/);
+    expect(spy.calls[0]).toMatch(/^guard:server-action:user:[0-9a-f]{32}$/);
   });
 
   test("should allow me to see the same verdict in shadow mode as in enforce mode", async () => {

@@ -76,80 +76,85 @@ test.describe("resolveGuardMode", () => {
 
 test.describe("classifyRoute", () => {
   test("should allow me to classify a server action request", () => {
-    // Arrange
-    const headers = new Headers({ "next-action": "7f9a0c1b2d" });
-
     // Act
-    const group = classifyRoute("POST", "/sangakus/1", headers);
+    const group = classifyRoute("POST", "/sangakus/1");
 
     // Assert
     expect(group).toBe("server-action");
   });
 
   test("should allow me to classify a sign-in request", () => {
-    // Arrange
-    const headers = new Headers();
-
     // Act
-    const group = classifyRoute("POST", "/api/auth/signin", headers);
+    const group = classifyRoute("POST", "/api/auth/signin");
 
     // Assert
     expect(group).toBe("signin");
   });
 
   test("should allow me to classify a callback under the auth prefix as a sign-in request", () => {
-    // Arrange
-    const headers = new Headers();
-
     // Act
-    const group = classifyRoute("POST", "/api/auth/callback/google", headers);
+    const group = classifyRoute("POST", "/api/auth/callback/google");
 
     // Assert
     expect(group).toBe("signin");
   });
 
   test("should allow me to classify a page request as a public get", () => {
-    // Arrange
-    const headers = new Headers();
-
     // Act
-    const group = classifyRoute("GET", "/shrines", headers);
+    const group = classifyRoute("GET", "/shrines");
 
     // Assert
     expect(group).toBe("public-get");
-  });
-
-  test("should not allow me to see a plain post counted as a server action", () => {
-    // Arrange
-    const headers = new Headers();
-
-    // Act
-    const group = classifyRoute("POST", "/sangakus/1", headers);
-
-    // Assert
-    expect(group).toBe("other");
   });
 
   test("should not allow me to see a sign-in get counted as a sign-in attempt", () => {
-    // Arrange
-    const headers = new Headers();
-
     // Act
-    const group = classifyRoute("GET", "/api/auth/session", headers);
+    const group = classifyRoute("GET", "/api/auth/session");
 
     // Assert
     expect(group).toBe("public-get");
   });
 
-  test("should allow me to classify an unsupported method as other", () => {
-    // Arrange
-    const headers = new Headers();
-
+  test("should allow me to fetch a page with a head request as a public get", () => {
     // Act
-    const group = classifyRoute("DELETE", "/sangakus/1", headers);
+    const group = classifyRoute("HEAD", "/shrines");
 
     // Assert
-    expect(group).toBe("other");
+    expect(group).toBe("public-get");
+  });
+
+  test("should not allow me to escape the rate limit with an unusual method", () => {
+    // Arrange
+    // PUT でもページはフルレンダリングされるため、数えなければ回避経路になる
+
+    // Act
+    const group = classifyRoute("PUT", "/sangakus/1");
+
+    // Assert
+    expect(group).toBe("server-action");
+  });
+
+  test("should not allow me to escape the rate limit with a body based server action", () => {
+    // Arrange
+    // Server Action は next-action ヘッダーがなくてもボディの $ACTION_ID_* で起動できる
+
+    // Act
+    const group = classifyRoute("POST", "/sangakus/create");
+
+    // Assert
+    expect(group).toBe("server-action");
+  });
+
+  test("should not allow me to relax the sign-in limit by adding a next-action header", () => {
+    // Arrange
+    // next-action はクライアントが自由に付けられる。パス判定を先に行わないと
+    // signin（10/分）が server-action（20/分）へ格上げされてしまう
+
+    // Act
+    const group = classifyRoute("POST", "/api/auth/callback/credentials");
+
+    // Assert
+    expect(group).toBe("signin");
   });
 });
 
@@ -165,7 +170,7 @@ test.describe("buildRateLimitKey", () => {
     });
 
     // Assert
-    expect(key).toMatch(/^guard:server-action:user:[0-9a-f]{16}$/);
+    expect(key).toMatch(/^guard:server-action:user:[0-9a-f]{32}$/);
   });
 
   test("should allow me to key an anonymous server action by ip", async () => {

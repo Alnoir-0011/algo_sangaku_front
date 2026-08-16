@@ -2,38 +2,39 @@ import { test, expect } from "@/tests/e2e/fixtures";
 import type { TestInfo } from "@playwright/test";
 
 /**
- * ブラウザごとの project は同じサーバー（ポート 4020）を共有するため、
- * IP を固定するとカウンタがプロジェクト間で混ざる。project ごとに
+ * 通常の E2E サーバー（ポート 4020）は GUARD_MODE=shadow で動く。
+ * shadow は遮断せず観測ヘッダーだけを返すため、既存のテストには影響しない。
+ *
+ * x-guard-* は GUARD_DEBUG_TOKEN と一致する x-guard-debug ヘッダーを
+ * 付けたときだけ返る。誰にでも返すと、遮断されるリスクなしに回避手法を
+ * 総当たりされてしまうため。
+ *
+ * テストごとに x-forwarded-for で固有の IP を名乗る。そうしないと他の
+ * E2E と同じカウンタ（localhost）を共有してしまい、しきい値を超えて落ちる。
+ * ブラウザごとの project は同じサーバーを共有するため、project ごとに
  * 別の /24 を割り当てて分離する。
  */
+const DEBUG_TOKEN = "e2e-guard-debug";
+
 const PROJECT_OCTET: Record<string, number> = {
   chromium: 1,
   firefox: 2,
   webkit: 3,
 };
 
-function clientIp(testInfo: TestInfo, id: number): string {
-  return `198.51.${PROJECT_OCTET[testInfo.project.name] ?? 9}.${id}`;
+function debugHeaders(testInfo: TestInfo, id: number): Record<string, string> {
+  return {
+    "x-guard-debug": DEBUG_TOKEN,
+    "x-forwarded-for": `198.51.${PROJECT_OCTET[testInfo.project.name] ?? 9}.${id}`,
+  };
 }
 
-/**
- * 通常の E2E サーバー（ポート 4020）は GUARD_MODE=shadow で動く。
- * shadow は遮断せず観測ヘッダーだけを返すため、既存のテストには影響しない。
- *
- * テストごとに x-forwarded-for で固有の IP を名乗る。そうしないと他の
- * E2E と同じカウンタ（localhost）を共有してしまい、しきい値を超えて落ちる。
- *
- * prefetch を除外する挙動はここでは検証できない。Next.js が外部から注入された
- * Next-Router-Prefetch ヘッダーを middleware に渡す前に除去するため
- * （middleware に届くのは accept / host / user-agent / x-forwarded-* のみ）。
- * この分岐は tests/components/guard/runGuard.spec.ts で担保している。
- */
 test.describe("Middleware guard (shadow)", () => {
-  test("should allow me to see the guard verdict in the response headers", async ({
+  test("should allow me to see the guard verdict when I present the debug token", async ({
     request,
   }, testInfo) => {
     const response = await request.get("/", {
-      headers: { "x-forwarded-for": clientIp(testInfo, 10) },
+      headers: debugHeaders(testInfo, 10),
     });
 
     expect({
@@ -43,11 +44,25 @@ test.describe("Middleware guard (shadow)", () => {
     }).toEqual({ mode: "shadow", decision: "allow", reason: "ok" });
   });
 
+  test("should not allow me to see the guard verdict without the debug token", async ({
+    request,
+  }, testInfo) => {
+    const response = await request.get("/", {
+      headers: { "x-forwarded-for": `198.51.${PROJECT_OCTET[testInfo.project.name] ?? 9}.20` },
+    });
+
+    expect({
+      mode: response.headers()["x-guard-mode"],
+      reason: response.headers()["x-guard-reason"],
+      remaining: response.headers()["x-guard-remaining"],
+    }).toEqual({ mode: undefined, reason: undefined, remaining: undefined });
+  });
+
   test("should allow me to see my remaining budget for public pages", async ({
     request,
   }, testInfo) => {
     const response = await request.get("/shrines", {
-      headers: { "x-forwarded-for": clientIp(testInfo, 11) },
+      headers: debugHeaders(testInfo, 11),
     });
 
     expect(Number(response.headers()["x-guard-remaining"])).toBe(59);
@@ -57,10 +72,7 @@ test.describe("Middleware guard (shadow)", () => {
     request,
   }, testInfo) => {
     const response = await request.get("/", {
-      headers: {
-        "user-agent": "curl/8.4.0",
-        "x-forwarded-for": clientIp(testInfo, 13),
-      },
+      headers: { ...debugHeaders(testInfo, 13), "user-agent": "curl/8.4.0" },
     });
 
     expect({
@@ -73,7 +85,7 @@ test.describe("Middleware guard (shadow)", () => {
   test("should not allow me to see the guard block a request in shadow mode", async ({
     request,
   }, testInfo) => {
-    const headers = { "x-forwarded-for": clientIp(testInfo, 14) };
+    const headers = debugHeaders(testInfo, 14);
 
     const responses = await Promise.all(
       Array.from({ length: 65 }, () => request.get("/", { headers })),

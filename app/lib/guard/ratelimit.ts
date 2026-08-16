@@ -28,6 +28,9 @@ export type LimiterConfig = {
 /** インメモリのエントリ上限。超えたら期限切れのキーを掃除する */
 const MAX_ENTRIES = 10_000;
 
+/** Upstash の応答を待つ上限。超えたら通す（可用性優先） */
+const UPSTASH_TIMEOUT_MS = 300;
+
 /**
  * プロセス内のスライディングログによるレート制限。
  *
@@ -67,6 +70,14 @@ export function createMemoryLimiter({ limit, windowMs }: LimiterConfig): Limiter
 
       if (hits.size >= MAX_ENTRIES) {
         pruneExpired(threshold);
+        // 期限切れが 1 件も無い場合（新しいキーばかりを送り付けられた場合）
+        // pruneExpired だけでは縮まない。挿入順＝おおむね古い順に必ず落として
+        // 上限を守る。そうしないとアイソレートのメモリを攻撃者に食い潰される
+        while (hits.size >= MAX_ENTRIES) {
+          const oldestKey = hits.keys().next().value;
+          if (oldestKey === undefined) break;
+          hits.delete(oldestKey);
+        }
       }
 
       recent.push(now);
@@ -106,7 +117,13 @@ export function createLimiter({
     redis: new Redis({ url, token }),
     limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
     analytics: false,
-    prefix: "guard",
+    // Upstash が「応答しない」場合は例外が出ないため try/catch では拾えず、
+    // middleware がハングして全リクエストのレイテンシに直結する。
+    // タイムアウト時は success: true が返り、意図どおりの fail-open になる
+    timeout: UPSTASH_TIMEOUT_MS,
+    // キーは呼び出し側で "guard:" から組み立てているため、ここでは付けない
+    // （付けると guard:guard:... と二重になる）
+    prefix: "",
   });
 
   return {
@@ -136,7 +153,13 @@ export async function checkLimit(
     const result = await limiter.limit(key, now);
     return { ...result, unavailable: false };
   } catch (error) {
-    console.error("[guard] rate limit store unavailable:", error);
+    // 例外オブジェクトをそのまま出さない。HTTP クライアント由来の例外は
+    // リクエスト設定（Authorization ヘッダー＝Upstash トークン）を
+    // 抱えていることがある
+    console.error(
+      "[guard] rate limit store unavailable:",
+      error instanceof Error ? error.message : "unknown error",
+    );
     return {
       success: true,
       limit: 0,

@@ -75,6 +75,9 @@ export default defineConfig({
         APP_ENV: "test",
         // 既存の E2E に影響を出さないため、通常のサーバーでは観測のみ行う
         GUARD_MODE: "shadow",
+        // x-guard-* は誰にでも返すと回避手法の総当たりに使われるため、
+        // このトークンを提示したリクエストにだけ返す
+        GUARD_DEBUG_TOKEN: "e2e-guard-debug",
       },
     },
     {
