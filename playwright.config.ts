@@ -57,21 +57,40 @@ export default defineConfig({
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
-  webServer: {
-    // CI では build ジョブで生成した .next を artifact 経由で受け取り start のみ実行する
-    // ローカルでは毎回クリーンビルドしてから起動する
-    command: process.env.CI
-      ? "pnpm run start -p 4020"
-      : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
-    url: "http://localhost:4020",
-    reuseExistingServer: false,
-    // ローカルビルド時に Google Maps をモックへ差し替え、ソースマップを有効化する（CI は build ジョブ側で設定）
-    env: {
-      E2E_MOCK_MAPS: "true",
-      COVERAGE: "true",
-      APP_ENV: "test",
+  // webServer は配列でも順次起動される（並列ではない）。
+  // 1 本目のビルドが終わってから 2 本目が立ち上がるため、.next を共有できる
+  webServer: [
+    {
+      // CI では build ジョブで生成した .next を artifact 経由で受け取り start のみ実行する
+      // ローカルでは毎回クリーンビルドしてから起動する
+      command: process.env.CI
+        ? "pnpm run start -p 4020"
+        : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
+      url: "http://localhost:4020",
+      reuseExistingServer: false,
+      // ローカルビルド時に Google Maps をモックへ差し替え、ソースマップを有効化する（CI は build ジョブ側で設定）
+      env: {
+        E2E_MOCK_MAPS: "true",
+        COVERAGE: "true",
+        APP_ENV: "test",
+        // 既存の E2E に影響を出さないため、通常のサーバーでは観測のみ行う
+        GUARD_MODE: "shadow",
+      },
     },
-  },
+    {
+      // ガードの遮断挙動（403 / 429）を検証するための専用サーバー。
+      // 1 本目と同じ .next を使うため再ビルドは発生しない
+      command: "pnpm run start -p 4021",
+      url: "http://localhost:4021",
+      reuseExistingServer: false,
+      env: {
+        E2E_MOCK_MAPS: "true",
+        COVERAGE: "true",
+        APP_ENV: "test",
+        GUARD_MODE: "enforce",
+      },
+    },
+  ],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
@@ -83,19 +102,32 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // ガードの遮断挙動を検証する専用 project。
+    // インメモリのカウンタはプロセス内で共有されるため、直列実行のうえ
+    // テストごとに x-forwarded-for で別 IP を名乗ってカウンタを分離する
+    {
+      name: "guard-enforce",
+      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:4021" },
+      testMatch: /guard\/enforce\.spec\.ts/,
+      fullyParallel: false,
+      workers: 1,
+    },
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: /guard\/enforce\.spec\.ts/,
     },
 
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
+      testIgnore: /guard\/enforce\.spec\.ts/,
     },
 
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
+      testIgnore: /guard\/enforce\.spec\.ts/,
     },
 
     /* Test against mobile viewports. */
