@@ -26,6 +26,9 @@ jobs:
         run: pnpm exec playwright install --with-deps
       - name: copy env.template
         run: cp env.template .env
+      # レート制限キーの導出に AUTH_SECRET を使うため、build / e2etest と同様に生成する
+      - name: Create AuthSecret
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
       - name: Run Playwright tests
         run: pnpm run test:components
       - uses: actions/upload-artifact@v7
