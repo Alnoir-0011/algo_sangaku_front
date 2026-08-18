@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/experimental-ct-react";
-import { runGuard, RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
+import {
+  runGuard,
+  RATE_LIMIT_BUCKETS,
+  getDefaultLimiter,
+} from "@/app/lib/guard";
 import { createMemoryLimiter, type Limiter } from "@/app/lib/guard/ratelimit";
 
 const NOW = 1_700_000_000_000;
@@ -87,7 +91,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", status: 403, reason: "bot-ua" });
   });
 
-  test("should allow me to crawl a public page as a verified crawler", async () => {
+  test("should allow me to crawl a public page as a claimed crawler", async () => {
     // Arrange
     const request = publicGet(GOOGLEBOT_UA);
 
@@ -103,7 +107,7 @@ test.describe("runGuard", () => {
     expect(decision.action).toBe("allow");
   });
 
-  test("should not allow me to invoke a server action as a verified crawler", async () => {
+  test("should not allow me to invoke a server action as a claimed crawler", async () => {
     // Arrange
     const request = serverAction(GOOGLEBOT_UA);
 
@@ -318,9 +322,51 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
 
     // Assert
     expect(buckets).toEqual({
-      "server-action": { limit: 20, windowMs: 60_000 },
-      signin: { limit: 10, windowMs: 60_000 },
-      "public-get": { limit: 60, windowMs: 60_000 },
+      "server-action": { limit: 20, windowMs: 60_000, store: "shared" },
+      signin: { limit: 10, windowMs: 60_000, store: "shared" },
+      "public-get": { limit: 60, windowMs: 60_000, store: "isolated" },
+    });
+  });
+
+  test("should allow me to spend the shared store only on the buckets worth protecting", () => {
+    // Arrange
+    // 全リクエストの大半を占める公開 GET を Upstash で数えると
+    // 無料枠（月 500K コマンド）を使い切り、全経路の制限が失われる
+
+    // Act
+    const sharedGroups = Object.entries(RATE_LIMIT_BUCKETS)
+      .filter(([, bucket]) => bucket.store === "shared")
+      .map(([group]) => group);
+
+    // Assert
+    expect(sharedGroups.sort()).toEqual(["server-action", "signin"]);
+  });
+});
+
+test.describe("getDefaultLimiter", () => {
+  test("should allow me to reuse the same limiter for a group", async () => {
+    // Arrange & Act
+    const first = getDefaultLimiter("public-get");
+    const second = getDefaultLimiter("public-get");
+
+    // Assert
+    expect(first).toBe(second);
+  });
+
+  test("should allow me to count an isolated bucket without reaching the shared store", async () => {
+    // Arrange
+    // public-get は Upstash の設定有無に関わらずインメモリで数える。
+    // ネットワークへ出ないため、この呼び出しは即座に完了する
+    const limiter = getDefaultLimiter("public-get");
+    const key = `guard:public-get:ip:198.51.100.${Math.floor(Math.random() * 250)}`;
+
+    // Act
+    const result = await limiter.limit(key, Date.now());
+
+    // Assert
+    expect({ limit: result.limit, success: result.success }).toEqual({
+      limit: RATE_LIMIT_BUCKETS["public-get"].limit,
+      success: true,
     });
   });
 });

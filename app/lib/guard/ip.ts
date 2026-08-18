@@ -31,7 +31,8 @@ function isIpLiteral(value: string): boolean {
  * x-forwarded-for は Vercel 以外（ローカルの next start・E2E）向けの
  * フォールバック。x-real-ip が付かない環境で全員が同じカウンタを共有して
  * サイト全体が 1 バケットに落ちるのを避けるために残している。
- * この経路は詐称可能なので、Vercel 以外へデプロイする場合は必ず見直すこと。
+ * ただしクライアントが自由に名乗れるヘッダーなので、Vercel 上では候補にすら
+ * 入れない。コメントで注意するのではなく、環境で構造的に閉じる。
  *
  * cf-connecting-ip は読まない。Cloudflare を経由していない構成では
  * このヘッダーを取り除く主体が経路上に存在せず、クライアントが名乗った値を
@@ -41,7 +42,9 @@ function isIpLiteral(value: string): boolean {
 export function getClientIp(headers: Headers): string {
   const candidates = [
     ipAddress(headers),
-    headers.get("x-forwarded-for")?.split(",")[0].trim(),
+    ...(process.env.VERCEL
+      ? []
+      : [headers.get("x-forwarded-for")?.split(",")[0].trim()]),
   ];
 
   for (const candidate of candidates) {

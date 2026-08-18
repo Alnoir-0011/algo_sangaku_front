@@ -67,6 +67,9 @@ function applyDebugHeaders(
   if (decision.remaining !== undefined) {
     response.headers.set("x-guard-remaining", String(decision.remaining));
   }
+  if (decision.degraded) {
+    response.headers.set("x-guard-degraded", "1");
+  }
 }
 
 export default auth(async (req) => {
