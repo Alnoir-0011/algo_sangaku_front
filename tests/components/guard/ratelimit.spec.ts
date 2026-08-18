@@ -147,6 +147,53 @@ test.describe("withMemoryFallback", () => {
     expect([first.success, second.success]).toEqual([true, false]);
   });
 
+  test("should allow me to see that the counter degraded to the in-memory store", async () => {
+    // Arrange
+    const broken: Limiter = {
+      limit: () => Promise.reject(new Error("unreachable")),
+    };
+    const limiter = withMemoryFallback(broken, { limit: 5, windowMs: WINDOW_MS });
+
+    // Act
+    const result = await limiter.limit("guard:signin:ip:198.51.100.20", NOW);
+
+    // Assert
+    // 「制限がかかっていない」ではなく「精度が落ちている」ことを区別できる
+    expect({ success: result.success, degraded: result.degraded }).toEqual({
+      success: true,
+      degraded: true,
+    });
+  });
+
+  test("should allow me to go back to the primary store once it recovers", async () => {
+    // Arrange
+    let failing = true;
+    const flaky: Limiter = {
+      limit: (key, now) => {
+        if (failing) return Promise.reject(new Error("temporarily down"));
+        return Promise.resolve({
+          success: true,
+          limit: 99,
+          remaining: 98,
+          reset: (now ?? NOW) + WINDOW_MS,
+        });
+      },
+    };
+    const limiter = withMemoryFallback(flaky, { limit: 1, windowMs: WINDOW_MS });
+    const key = "guard:server-action:ip:198.51.100.20";
+    await limiter.limit(key, NOW);
+
+    // Act
+    failing = false;
+    const recovered = await limiter.limit(key, NOW);
+
+    // Assert
+    expect({ limit: recovered.limit, degraded: recovered.degraded }).toEqual({
+      limit: 99,
+      degraded: undefined,
+    });
+  });
+
   test("should allow me to keep the fallback counters separate per key", async () => {
     // Arrange
     const broken: Limiter = {
@@ -160,6 +207,39 @@ test.describe("withMemoryFallback", () => {
 
     // Assert
     expect(other.success).toBe(true);
+  });
+});
+
+test.describe("createMemoryLimiter の追い出し", () => {
+  test("should not allow me to reset an active counter by flooding new keys", async () => {
+    // Arrange
+    // Map#set は既存キーの挿入位置を変えないため、delete してから set し直さないと
+    // 「最初に観測したキー」から追い出される。アクセスされ続けているキーほど
+    // 古い位置に残るので、連打中の相手が真っ先にリセットされてしまう。
+    //
+    // なお、これを直しても「自分のキーを触らずに大量の新規キーを流し込んで
+    // 自分を追い出す」攻撃は防げない。有限のメモリで数える以上は避けられず、
+    // public-get を「無制限よりまし」の層と位置づけている理由でもある。
+    const limit = 100;
+    const limiter = createMemoryLimiter({ limit, windowMs: WINDOW_MS });
+    const activeKey = "guard:public-get:ip:198.51.100.20";
+    let touches = 0;
+
+    // Act
+    // 上限（10,000）を超える新規キーを送り込みつつ、対象キーも触り続ける
+    for (let i = 0; i < 10_050; i += 1) {
+      await limiter.limit(`guard:public-get:ip:10.0.${i >> 8}.${i & 255}`, NOW);
+      if (i % 2000 === 0) {
+        await limiter.limit(activeKey, NOW);
+        touches += 1;
+      }
+    }
+    const result = await limiter.limit(activeKey, NOW);
+    touches += 1;
+
+    // Assert
+    // 追い出されていなければ、それまでのアクセス回数がそのまま残っている
+    expect(result.remaining).toBe(limit - touches);
   });
 });
 

@@ -29,8 +29,13 @@ export type GuardDecision = {
   limit?: number;
   remaining?: number;
   resetSec?: number;
-  /** ストア障害により fail-open した場合に true */
+  /** 判定そのものができず素通しした場合に true */
   unavailable?: boolean;
+  /**
+   * 共有ストアが使えず、インメモリの近似カウンタで数えた場合に true。
+   * 制限はかかっているが精度が落ちている状態を表す。
+   */
+  degraded?: boolean;
 };
 
 export type GuardReason =
@@ -65,10 +70,10 @@ const ONE_MINUTE_MS = 60_000;
 
 type BucketConfig = LimiterConfig & {
   /**
-   * true なら Upstash（アイソレート間で共有・正確）、false ならインメモリ
-   * （アイソレート単位・近似）でカウントする。
+   * shared   … Upstash で数える（アイソレート間で共有・正確）
+   * isolated … インメモリで数える（アイソレート単位・近似）
    */
-  shared: boolean;
+  store: "shared" | "isolated";
 };
 
 /**
@@ -76,17 +81,22 @@ type BucketConfig = LimiterConfig & {
  *
  * しきい値はすべて仮の初期値であり、shadow での観測を経てから調整する。
  *
- * public-get だけインメモリにしているのは Upstash の消費を抑えるため。
+ * public-get だけ isolated にしているのは Upstash の消費を抑えるため。
  * 全リクエストの大半は公開 GET（App Router の自動 prefetch を含む）で、
  * これを Upstash で数えると無料枠の月 500K コマンドをすぐ使い切る。
  * 使い切ると全経路のレート制限が失われるため、守る優先度が最も高い
  * 従量課金 API（server-action）とサインインに枠を回している。
- * 公開 GET が守るのは back の負荷であり、近似の制限で足りる。
+ *
+ * ただし isolated は「アイソレートごとに limit」なので、実効上限は
+ * アイソレート数に応じて緩む。しかも負荷が高いほど Vercel が
+ * スケールアウトしてアイソレートが増えるため、**制限が最も必要な瞬間ほど
+ * 効きが弱くなる**。公開 GET の防御は「無制限よりまし」の水準であり、
+ * back 側の防御が別途成立していることが前提になる。
  */
 export const RATE_LIMIT_BUCKETS = {
-  "server-action": { limit: 20, windowMs: ONE_MINUTE_MS, shared: true },
-  signin: { limit: 10, windowMs: ONE_MINUTE_MS, shared: true },
-  "public-get": { limit: 60, windowMs: ONE_MINUTE_MS, shared: false },
+  "server-action": { limit: 20, windowMs: ONE_MINUTE_MS, store: "shared" },
+  signin: { limit: 10, windowMs: ONE_MINUTE_MS, store: "shared" },
+  "public-get": { limit: 60, windowMs: ONE_MINUTE_MS, store: "isolated" },
 } as const satisfies Record<RouteGroup, BucketConfig>;
 
 const AUTH_ROUTE_PREFIX = "/api/auth";
@@ -195,9 +205,12 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
   const cached = limiterCache.get(group);
   if (cached) return cached;
 
-  const { shared, ...config } = RATE_LIMIT_BUCKETS[group];
+  const bucket = RATE_LIMIT_BUCKETS[group];
+  // フィールドを明示的に取り出す。rest 展開だと BucketConfig にフィールドが
+  // 増えたとき、構造的部分型のため気付かないまま limiter 側へ流れてしまう
+  const config = { limit: bucket.limit, windowMs: bucket.windowMs };
 
-  if (!shared) {
+  if (bucket.store === "isolated") {
     const memoryLimiter = createMemoryLimiter(config);
     limiterCache.set(group, memoryLimiter);
     return memoryLimiter;
@@ -266,7 +279,7 @@ async function evaluateGuard(
 
   // クローラーには公開ページの閲覧だけを許す
   const isCrawler =
-    botClass === "verified-crawler" || botClass === "seo-crawler";
+    botClass === "claimed-crawler" || botClass === "seo-crawler";
   if (isCrawler && group !== "public-get") {
     return { mode, action: "block", status: 403, reason: "crawler-scope" };
   }
@@ -303,6 +316,7 @@ async function evaluateGuard(
     limit: result.limit,
     remaining: result.remaining,
     resetSec: toResetSeconds(result.reset, now),
+    degraded: result.degraded,
   };
 
   if (!result.success) {

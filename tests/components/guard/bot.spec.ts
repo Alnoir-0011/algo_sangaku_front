@@ -7,7 +7,7 @@ const HEADLESS_CHROME_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36";
 
 test.describe("classifyBot", () => {
-  test("should allow me to classify Googlebot as a verified crawler", () => {
+  test("should allow me to classify Googlebot as a claimed crawler", () => {
     // Arrange
     const ua =
       "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
@@ -16,10 +16,10 @@ test.describe("classifyBot", () => {
     const result = classifyBot(ua);
 
     // Assert
-    expect(result).toBe("verified-crawler");
+    expect(result).toBe("claimed-crawler");
   });
 
-  test("should allow me to classify a verified crawler regardless of letter case", () => {
+  test("should allow me to classify a claimed crawler regardless of letter case", () => {
     // Arrange
     const ua = "Mozilla/5.0 (compatible; BINGBOT/2.0; +http://www.bing.com/bingbot.htm)";
 
@@ -27,10 +27,10 @@ test.describe("classifyBot", () => {
     const result = classifyBot(ua);
 
     // Assert
-    expect(result).toBe("verified-crawler");
+    expect(result).toBe("claimed-crawler");
   });
 
-  test("should allow me to classify facebookexternalhit as a verified crawler", () => {
+  test("should allow me to classify facebookexternalhit as a claimed crawler", () => {
     // Arrange
     const ua = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)";
 
@@ -38,7 +38,7 @@ test.describe("classifyBot", () => {
     const result = classifyBot(ua);
 
     // Assert
-    expect(result).toBe("verified-crawler");
+    expect(result).toBe("claimed-crawler");
   });
 
   test("should allow me to classify AhrefsBot as an seo crawler", () => {
@@ -117,6 +117,19 @@ test.describe("classifyBot", () => {
 
     // Assert
     expect(result).toBe("unknown");
+  });
+
+  test("should not allow me to evade the malicious check by claiming to be a crawler", () => {
+    // Arrange
+    // 悪性判定をクローラーの名乗りより先に行わないと、この UA が
+    // claimed-crawler になって 403 を回避できてしまう
+    const ua = "curl/8.4.0 Googlebot";
+
+    // Act
+    const result = classifyBot(ua);
+
+    // Assert
+    expect(result).toBe("malicious");
   });
 
   test("should allow me to classify an empty user agent as unknown", () => {
