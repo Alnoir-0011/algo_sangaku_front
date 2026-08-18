@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/e2e/fixtures";
 import type { TestInfo } from "@playwright/test";
+import { RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
 
 /**
  * 通常の E2E サーバー（ポート 4020）は GUARD_MODE=shadow で動く。
@@ -65,7 +66,9 @@ test.describe("Middleware guard (shadow)", () => {
       headers: debugHeaders(testInfo, 11),
     });
 
-    expect(Number(response.headers()["x-guard-remaining"])).toBe(59);
+    expect(Number(response.headers()["x-guard-remaining"])).toBe(
+      RATE_LIMIT_BUCKETS["public-get"].limit - 1,
+    );
   });
 
   test("should allow me to keep browsing with a malicious user agent while only observing", async ({
@@ -88,7 +91,9 @@ test.describe("Middleware guard (shadow)", () => {
     const headers = debugHeaders(testInfo, 14);
 
     const responses = await Promise.all(
-      Array.from({ length: 65 }, () => request.get("/", { headers })),
+      Array.from({ length: RATE_LIMIT_BUCKETS["public-get"].limit + 5 }, () =>
+        request.get("/", { headers }),
+      ),
     );
     const blocked = responses.filter((response) => response.status() !== 200);
 

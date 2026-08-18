@@ -92,11 +92,22 @@ type BucketConfig = LimiterConfig & {
  * スケールアウトしてアイソレートが増えるため、**制限が最も必要な瞬間ほど
  * 効きが弱くなる**。公開 GET の防御は「無制限よりまし」の水準であり、
  * back 側の防御が別途成立していることが前提になる。
+ *
+ * public-get の 300 は実測に基づく。App Router は表示領域内のリンクを
+ * 自動 prefetch するため、1 ページ閲覧で `?_rsc=` 付きの GET が数件飛び、
+ * 合計 5 リクエスト前後（トップページは 7）を消費する。当初の 60 では
+ * 12 ページ/分（5 秒に 1 ページ）で上限に達し、通常の回遊で 429 になった。
+ * 300 は 1 秒 1 ページ相当の閲覧を許容する値で、人間の操作としては
+ * ほぼ上限にあたる。これを超えるのはスクリプトである。
+ *
+ * prefetch の件数はコンテンツ件数に比例しない（算額 4 件のページと 0 件の
+ * ページが同じリクエスト数だった）。カードが <Link> を持たず、地図の
+ * マーカーもクライアント側描画のため、ヘッダー/フッターのナビ分で固定される。
  */
 export const RATE_LIMIT_BUCKETS = {
   "server-action": { limit: 20, windowMs: ONE_MINUTE_MS, store: "shared" },
   signin: { limit: 10, windowMs: ONE_MINUTE_MS, store: "shared" },
-  "public-get": { limit: 60, windowMs: ONE_MINUTE_MS, store: "isolated" },
+  "public-get": { limit: 300, windowMs: ONE_MINUTE_MS, store: "isolated" },
 } as const satisfies Record<RouteGroup, BucketConfig>;
 
 const AUTH_ROUTE_PREFIX = "/api/auth";
