@@ -3,6 +3,8 @@ import {
   createMemoryLimiter,
   createLimiter,
   checkLimit,
+  withMemoryFallback,
+  type Limiter,
 } from "@/app/lib/guard/ratelimit";
 
 const NOW = 1_700_000_000_000;
@@ -105,6 +107,59 @@ test.describe("createLimiter", () => {
 
     // Assert
     expect([first.success, second.success]).toEqual([true, false]);
+  });
+});
+
+test.describe("withMemoryFallback", () => {
+  test("should allow me to use the primary store while it is healthy", async () => {
+    // Arrange
+    const primary = createMemoryLimiter({ limit: 5, windowMs: WINDOW_MS });
+    const limiter = withMemoryFallback(primary, { limit: 1, windowMs: WINDOW_MS });
+
+    // Act
+    const result = await limiter.limit("guard:signin:ip:198.51.100.20", NOW);
+
+    // Assert
+    expect({ limit: result.limit, remaining: result.remaining }).toEqual({
+      limit: 5,
+      remaining: 4,
+    });
+  });
+
+  test("should not allow me to escape the rate limit when the store is exhausted", async () => {
+    // Arrange
+    // Upstash の無料枠を使い切ると以降は全部エラーになる。素通しにすると
+    // 月末にレート制限が消えてしまうため、粗くても数え続ける
+    const exhausted: Limiter = {
+      limit: () => Promise.reject(new Error("max monthly commands exceeded")),
+    };
+    const limiter = withMemoryFallback(exhausted, {
+      limit: 1,
+      windowMs: WINDOW_MS,
+    });
+    const key = "guard:server-action:ip:198.51.100.20";
+
+    // Act
+    const first = await limiter.limit(key, NOW);
+    const second = await limiter.limit(key, NOW);
+
+    // Assert
+    expect([first.success, second.success]).toEqual([true, false]);
+  });
+
+  test("should allow me to keep the fallback counters separate per key", async () => {
+    // Arrange
+    const broken: Limiter = {
+      limit: () => Promise.reject(new Error("unreachable")),
+    };
+    const limiter = withMemoryFallback(broken, { limit: 1, windowMs: WINDOW_MS });
+    await limiter.limit("guard:server-action:ip:198.51.100.20", NOW);
+
+    // Act
+    const other = await limiter.limit("guard:server-action:ip:203.0.113.10", NOW);
+
+    // Assert
+    expect(other.success).toBe(true);
   });
 });
 

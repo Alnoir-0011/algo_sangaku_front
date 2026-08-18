@@ -318,9 +318,23 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
 
     // Assert
     expect(buckets).toEqual({
-      "server-action": { limit: 20, windowMs: 60_000 },
-      signin: { limit: 10, windowMs: 60_000 },
-      "public-get": { limit: 60, windowMs: 60_000 },
+      "server-action": { limit: 20, windowMs: 60_000, shared: true },
+      signin: { limit: 10, windowMs: 60_000, shared: true },
+      "public-get": { limit: 60, windowMs: 60_000, shared: false },
     });
+  });
+
+  test("should allow me to spend the shared store only on the buckets worth protecting", () => {
+    // Arrange
+    // 全リクエストの大半を占める公開 GET を Upstash で数えると
+    // 無料枠（月 500K コマンド）を使い切り、全経路の制限が失われる
+
+    // Act
+    const sharedGroups = Object.entries(RATE_LIMIT_BUCKETS)
+      .filter(([, bucket]) => bucket.shared)
+      .map(([group]) => group);
+
+    // Assert
+    expect(sharedGroups.sort()).toEqual(["server-action", "signin"]);
   });
 });

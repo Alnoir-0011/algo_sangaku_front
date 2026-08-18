@@ -3,6 +3,7 @@ import { getClientIp } from "./ip";
 import {
   checkLimit,
   createLimiter,
+  createMemoryLimiter,
   type Limiter,
   type LimiterConfig,
 } from "./ratelimit";
@@ -62,16 +63,31 @@ type Identity = {
 
 const ONE_MINUTE_MS = 60_000;
 
+type BucketConfig = LimiterConfig & {
+  /**
+   * true なら Upstash（アイソレート間で共有・正確）、false ならインメモリ
+   * （アイソレート単位・近似）でカウントする。
+   */
+  shared: boolean;
+};
+
 /**
- * 経路グループごとのしきい値。
+ * 経路グループごとのしきい値とカウント先。
  *
- * すべて仮の初期値であり、shadow での観測を経てから調整する。
+ * しきい値はすべて仮の初期値であり、shadow での観測を経てから調整する。
+ *
+ * public-get だけインメモリにしているのは Upstash の消費を抑えるため。
+ * 全リクエストの大半は公開 GET（App Router の自動 prefetch を含む）で、
+ * これを Upstash で数えると無料枠の月 500K コマンドをすぐ使い切る。
+ * 使い切ると全経路のレート制限が失われるため、守る優先度が最も高い
+ * 従量課金 API（server-action）とサインインに枠を回している。
+ * 公開 GET が守るのは back の負荷であり、近似の制限で足りる。
  */
 export const RATE_LIMIT_BUCKETS = {
-  "server-action": { limit: 20, windowMs: ONE_MINUTE_MS },
-  signin: { limit: 10, windowMs: ONE_MINUTE_MS },
-  "public-get": { limit: 60, windowMs: ONE_MINUTE_MS },
-} as const satisfies Record<RouteGroup, LimiterConfig>;
+  "server-action": { limit: 20, windowMs: ONE_MINUTE_MS, shared: true },
+  signin: { limit: 10, windowMs: ONE_MINUTE_MS, shared: true },
+  "public-get": { limit: 60, windowMs: ONE_MINUTE_MS, shared: false },
+} as const satisfies Record<RouteGroup, BucketConfig>;
 
 const AUTH_ROUTE_PREFIX = "/api/auth";
 
@@ -179,6 +195,14 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
   const cached = limiterCache.get(group);
   if (cached) return cached;
 
+  const { shared, ...config } = RATE_LIMIT_BUCKETS[group];
+
+  if (!shared) {
+    const memoryLimiter = createMemoryLimiter(config);
+    limiterCache.set(group, memoryLimiter);
+    return memoryLimiter;
+  }
+
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -187,17 +211,13 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
   // enforce にしても実質的な制限がかからない
   if (!url || !token) {
     console.error(
-      "[guard] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN が未設定のため、" +
-        "アイソレート間で共有されないインメモリカウンタで動作します。" +
-        "本番では必ず設定してください。",
+      `[guard] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN が未設定のため、` +
+        `${group} をアイソレート間で共有されないインメモリカウンタで数えます。` +
+        `本番では必ず設定してください。`,
     );
   }
 
-  const limiter = createLimiter({
-    url,
-    token,
-    ...RATE_LIMIT_BUCKETS[group],
-  });
+  const limiter = createLimiter({ url, token, ...config });
   limiterCache.set(group, limiter);
   return limiter;
 }

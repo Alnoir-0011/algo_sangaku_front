@@ -94,6 +94,40 @@ export function createMemoryLimiter({ limit, windowMs }: LimiterConfig): Limiter
 }
 
 /**
+ * ストアが使えないときにインメモリのカウンタへ退避する limiter を作る。
+ *
+ * 素通しにはしない。Upstash の無料枠（月 500K コマンド）を使い切ると
+ * 以降のリクエストが全部エラーになるため、素通しだと「月末になると
+ * レート制限が消える」ことになり、守りたい従量課金 API が一番無防備になる。
+ * アイソレート間で共有されない粗い制限でも、無制限よりははるかにましである。
+ */
+export function withMemoryFallback(
+  primary: Limiter,
+  config: LimiterConfig,
+): Limiter {
+  const fallback = createMemoryLimiter(config);
+  // 障害中は毎リクエスト出力されてログが膨らむため、最初の 1 回だけ記録する
+  let reported = false;
+
+  return {
+    limit: async (key, now) => {
+      try {
+        return await primary.limit(key, now);
+      } catch (error) {
+        if (!reported) {
+          reported = true;
+          console.error(
+            "[guard] ストアが使えないためインメモリのカウンタへ退避します:",
+            error instanceof Error ? error.message : "unknown error",
+          );
+        }
+        return fallback.limit(key, now);
+      }
+    },
+  };
+}
+
+/**
  * Upstash が設定されていれば Upstash 版を、未設定ならインメモリ版を返す。
  *
  * analytics は無効にしている。無料枠のコマンド数を節約でき、Edge で
@@ -126,7 +160,7 @@ export function createLimiter({
     prefix: "",
   });
 
-  return {
+  const upstashLimiter: Limiter = {
     limit: async (key) => {
       const result = await ratelimit.limit(key);
       return {
@@ -137,6 +171,8 @@ export function createLimiter({
       };
     },
   };
+
+  return withMemoryFallback(upstashLimiter, { limit, windowMs });
 }
 
 /**
