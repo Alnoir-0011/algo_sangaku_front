@@ -324,7 +324,9 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
     expect(buckets).toEqual({
       "server-action": { limit: 20, windowMs: 60_000, store: "shared" },
       signin: { limit: 10, windowMs: 60_000, store: "shared" },
-      "public-get": { limit: 60, windowMs: 60_000, store: "isolated" },
+      // 1 ページ閲覧で prefetch 込み 5 リクエスト前後を消費するため、
+      // 60 では 12 ページ/分で上限に達し通常の回遊で 429 になる（実測）
+      "public-get": { limit: 300, windowMs: 60_000, store: "isolated" },
     });
   });
 
