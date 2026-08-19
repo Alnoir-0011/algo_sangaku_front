@@ -209,6 +209,26 @@ export function toResetSeconds(reset: number, now: number): number {
   return Math.max(1, Math.floor((reset - now) / 1000));
 }
 
+/**
+ * E2E 用にしきい値を引き下げる。
+ *
+ * 本番のしきい値のまま超過させると、public-get の 300 req/分に対して
+ * 305 リクエストのバーストが必要になり CI が現実的な時間で終わらない。
+ * E2E が担保すべきなのは「超過したら 429 が返る」という挙動であって
+ * しきい値そのものではない（本番の数値は CT で担保している）。
+ *
+ * 引き上げは決してしない（`Math.min`）。テスト用の環境変数が本番に
+ * 紛れ込んでも、制限が緩む方向には働かない。
+ */
+function resolveTestLimit(limit: number): number {
+  if (process.env.APP_ENV !== "test") return limit;
+
+  const override = Number(process.env.GUARD_TEST_LIMIT);
+  if (!Number.isInteger(override) || override <= 0) return limit;
+
+  return Math.min(limit, override);
+}
+
 /** グループごとの limiter を遅延生成してキャッシュする */
 const limiterCache = new Map<RouteGroup, Limiter>();
 
@@ -219,7 +239,10 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
   const bucket = RATE_LIMIT_BUCKETS[group];
   // フィールドを明示的に取り出す。rest 展開だと BucketConfig にフィールドが
   // 増えたとき、構造的部分型のため気付かないまま limiter 側へ流れてしまう
-  const config = { limit: bucket.limit, windowMs: bucket.windowMs };
+  const config = {
+    limit: resolveTestLimit(bucket.limit),
+    windowMs: bucket.windowMs,
+  };
 
   if (bucket.store === "isolated") {
     const memoryLimiter = createMemoryLimiter(config);

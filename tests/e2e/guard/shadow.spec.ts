@@ -1,6 +1,6 @@
 import { test, expect } from "@/tests/e2e/fixtures";
 import type { TestInfo } from "@playwright/test";
-import { RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
+import { GUARD_TEST_LIMIT } from "./test-limit";
 
 /**
  * 通常の E2E サーバー（ポート 4020）は GUARD_MODE=shadow で動く。
@@ -67,7 +67,7 @@ test.describe("Middleware guard (shadow)", () => {
     });
 
     expect(Number(response.headers()["x-guard-remaining"])).toBe(
-      RATE_LIMIT_BUCKETS["public-get"].limit - 1,
+      GUARD_TEST_LIMIT - 1,
     );
   });
 
@@ -91,7 +91,7 @@ test.describe("Middleware guard (shadow)", () => {
     const headers = debugHeaders(testInfo, 14);
 
     const responses = await Promise.all(
-      Array.from({ length: RATE_LIMIT_BUCKETS["public-get"].limit + 5 }, () =>
+      Array.from({ length: GUARD_TEST_LIMIT + 5 }, () =>
         request.get("/", { headers }),
       ),
     );

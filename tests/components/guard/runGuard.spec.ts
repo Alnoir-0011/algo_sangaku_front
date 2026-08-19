@@ -345,6 +345,33 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
   });
 });
 
+test.describe("GUARD_TEST_LIMIT による上書き", () => {
+  test("should not allow me to raise a threshold through the test override", async () => {
+    // Arrange
+    // E2E 用の引き下げ機構が、万一本番へ紛れ込んでも制限を緩める方向には
+    // 働かないことを固定する。signin は 10 なので 999 を渡しても上がらない
+    const original = { appEnv: process.env.APP_ENV, limit: process.env.GUARD_TEST_LIMIT };
+    process.env.APP_ENV = "test";
+    process.env.GUARD_TEST_LIMIT = "999";
+
+    // Act
+    // limiterCache を避けるため、しきい値の解決だけを間接的に確認する
+    const limiter = getDefaultLimiter("signin");
+    const result = await limiter.limit(
+      `guard:signin:ip:198.51.100.${Math.floor(Math.random() * 250)}`,
+      Date.now(),
+    );
+
+    // Assert
+    expect(result.limit).toBeLessThanOrEqual(
+      RATE_LIMIT_BUCKETS.signin.limit,
+    );
+
+    process.env.APP_ENV = original.appEnv;
+    process.env.GUARD_TEST_LIMIT = original.limit;
+  });
+});
+
 test.describe("getDefaultLimiter", () => {
   test("should allow me to reuse the same limiter for a group", async () => {
     // Arrange & Act
