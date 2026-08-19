@@ -26,6 +26,9 @@ jobs:
         run: pnpm exec playwright install --with-deps
       - name: copy env.template
         run: cp env.template .env
+      # レート制限キーの導出に AUTH_SECRET を使うため、build / e2etest と同様に生成する
+      - name: Create AuthSecret
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
       - name: Run Playwright tests
         run: pnpm run test:components
       - uses: actions/upload-artifact@v7
@@ -108,10 +111,17 @@ jobs:
         run: cp env.template .env
       - name: Create AuthSecret
         run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
+      # ガードの遮断挙動を見る guard-enforce project は Chromium 専用のため、
+      # matrix を増やさず chromium ジョブに相乗りさせる
       - name: Run Playwright tests
         env:
           APP_ENV: test
-        run: pnpm exec playwright test --project=${{ matrix.project }}
+        run: |
+          if [ "${{ matrix.project }}" = "chromium" ]; then
+            pnpm exec playwright test --project=chromium --project=guard-enforce
+          else
+            pnpm exec playwright test --project=${{ matrix.project }}
+          fi
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
