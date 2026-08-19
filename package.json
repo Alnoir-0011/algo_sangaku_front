@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test:e2e": "APP_ENV=test playwright test",
     "test:components": "playwright test -c playwright-ct.config.ts",
+    "test:unit": "vitest run",
     "show-report": "playwright show-report",
     "show-coverage": "monocart show-report"
   },
@@ -45,6 +46,8 @@
     "eslint-config-next": "15.1.6",
     "monocart-reporter": "^2.11.2",
     "msw": "^2.10.3",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.11"
   }
 }

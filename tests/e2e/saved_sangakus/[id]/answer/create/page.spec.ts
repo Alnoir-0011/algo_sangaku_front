@@ -331,5 +331,34 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("この算額にはすでに解答済みです");
     });
+
+    test("should allow me to see PaizaIO output after clicking the run button", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.post("https://api.paiza.io/runners/create.json", () => {
+          return HttpResponse.json({ id: "paiza-run-id" });
+        }),
+        http.get("https://api.paiza.io/runners/get_status.json", () => {
+          return HttpResponse.json({ status: "completed" });
+        }),
+        http.get("https://api.paiza.io/runners/get_details.json", () => {
+          return HttpResponse.json({
+            build_stdout: null,
+            build_stderr: null,
+            stdout: "paiza mock output\n",
+            stderr: null,
+          });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      await waitForMonacoEditor(page);
+      await page.getByRole("button", { name: "実行" }).click();
+      const output = page.getByLabel("出力");
+      await expect(output).toHaveValue("paiza mock output\n", { timeout: 10_000 });
+    });
   });
 });

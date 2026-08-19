@@ -16,9 +16,14 @@ export default function SourceExecution({ source }: Props) {
 
   const handleRunSource = async () => {
     setIsLoading(true);
-    const result = await runSource(source, [input]);
-    setOutput(result[0]);
-    setIsLoading(false);
+    try {
+      const result = await runSource(source, [input]);
+      setOutput(result[0]);
+    } catch (error) {
+      setOutput(error instanceof Error ? error.message : "実行できませんでした");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

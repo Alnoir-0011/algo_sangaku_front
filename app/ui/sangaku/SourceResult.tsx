@@ -16,9 +16,14 @@ export default function SourceResult({ source, fixedInputs }: Props) {
   useEffect(() => {
     async function getResult() {
       setIsLoading(true);
-      const newResult = await runSource(source, fixedInputs);
-      setResults(newResult);
-      setIsLoading(false);
+      try {
+        const newResult = await runSource(source, fixedInputs);
+        setResults(newResult);
+      } catch (error) {
+        setResults([error instanceof Error ? error.message : "実行できませんでした"]);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     getResult();
