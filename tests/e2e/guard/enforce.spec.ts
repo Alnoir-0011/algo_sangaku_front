@@ -1,5 +1,5 @@
 import { test, expect } from "@/tests/e2e/fixtures";
-import { GUARD_TEST_LIMIT } from "./test-limit";
+import { RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
 
 /**
  * ガードの遮断挙動を検証する。GUARD_MODE=enforce のサーバー（ポート 4021）に対して実行する。
@@ -7,8 +7,8 @@ import { GUARD_TEST_LIMIT } from "./test-limit";
  * インメモリのカウンタはプロセス内で共有されるため、テストごとに
  * x-forwarded-for で別 IP を名乗ってカウンタを分離する。
  */
-/** 本番のしきい値ではなく E2E 用に引き下げた値を使う（test-limit.ts 参照） */
-const PUBLIC_GET_LIMIT = GUARD_TEST_LIMIT;
+/** しきい値を実装から取得する。ハードコードすると変更時に静かにずれる */
+const PUBLIC_GET_LIMIT = RATE_LIMIT_BUCKETS["public-get"].limit;
 
 test.describe("Middleware guard (enforce)", () => {
   test("should not allow me to reach the app with a malicious user agent", async ({

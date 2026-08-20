@@ -1,7 +1,6 @@
 // import { defineConfig, devices } from "@playwright/test";
 import { defineConfig, devices } from "next/experimental/testmode/playwright";
 import dotenv from "dotenv";
-import { GUARD_TEST_LIMIT } from "./tests/e2e/guard/test-limit";
 import path from "path";
 
 /**
@@ -76,8 +75,6 @@ export default defineConfig({
         APP_ENV: "test",
         // 既存の E2E に影響を出さないため、通常のサーバーでは観測のみ行う
         GUARD_MODE: "shadow",
-        // 本番のしきい値で超過させると CI が終わらないため引き下げる
-        GUARD_TEST_LIMIT: String(GUARD_TEST_LIMIT),
         // x-guard-* は誰にでも返すと回避手法の総当たりに使われるため、
         // このトークンを提示したリクエストにだけ返す
         GUARD_DEBUG_TOKEN: "e2e-guard-debug",
@@ -94,7 +91,6 @@ export default defineConfig({
         COVERAGE: "true",
         APP_ENV: "test",
         GUARD_MODE: "enforce",
-        GUARD_TEST_LIMIT: String(GUARD_TEST_LIMIT),
       },
     },
   ],
