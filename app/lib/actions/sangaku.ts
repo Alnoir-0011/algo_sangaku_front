@@ -17,6 +17,11 @@ const apiUrl = process.env.API_URL!;
 const PAIZA_API_KEY = process.env.PAIZAIO_API_KEY ?? "guest";
 const POLL_INTERVAL_MS = 200;
 const MAX_POLL_ATTEMPTS = 30; // back PaizaioApi と同値
+// back の Sangaku#source / Answer#source / FixedInput#content と同じ上限。
+// JS の string.length は UTF-16 コードユニット数、Rails の length validator は
+// 概ね Unicode コードポイント単位でカウントするため、絵文字等の境界値では厳密には一致しない
+const MAX_SOURCE_LENGTH = 65_535;
+const MAX_FIXED_INPUTS = 20;
 
 export type State = {
   errors?: {
@@ -225,6 +230,31 @@ export const deleteSangaku = async (id: string) => {
 };
 
 export const runSource = async (source: string, fixedInputs: string[]) => {
+  // Server Action はどのルートからでも起動できる公開エンドポイントになるため、
+  // ページの middleware 認証とは独立にここで未認証アクセスを拒否する
+  const session = await auth();
+  if (!session) {
+    throw new Error("認証が必要です");
+  }
+  // Server Action の引数はクライアントが完全に制御できるため、TypeScript の型注釈は
+  // 実行時には効かない。文字数上限チェックを迂回されないよう、まず型そのものを検証する
+  if (
+    typeof source !== "string" ||
+    !Array.isArray(fixedInputs) ||
+    !fixedInputs.every((input) => typeof input === "string")
+  ) {
+    throw new Error("不正なリクエストです");
+  }
+  if (fixedInputs.length > MAX_FIXED_INPUTS) {
+    throw new Error("入力ケースが多すぎます");
+  }
+  if (
+    source.length > MAX_SOURCE_LENGTH ||
+    fixedInputs.some((input) => input.length > MAX_SOURCE_LENGTH)
+  ) {
+    throw new Error("入力が長すぎます");
+  }
+
   const inputs = fixedInputs.length ? fixedInputs : [""];
   const results = await Promise.all(
     inputs.map(async (input) => {
@@ -266,25 +296,30 @@ const sleep = (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time)); //timeはミリ秒
 
 const postSource = async (source: string, input: string, language: string) => {
-  const params = new URLSearchParams({
-    api_key: PAIZA_API_KEY,
-    source_code: source,
-    input,
-    language,
-  });
-  const reqUri = `https://api.paiza.io:443/runners/create.json?${params}`;
+  // source_code に長い入力が入り得るため、back の create_runner と同様に
+  // クエリ文字列ではなく POST body（JSON）で送る
+  const reqUri = "https://api.paiza.io/runners/create.json";
   try {
-    const res = await fetch(reqUri, { method: "POST" });
+    const res = await fetch(reqUri, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: PAIZA_API_KEY,
+        source_code: source,
+        input,
+        language,
+      }),
+    });
     switch (res.status) {
       case 200:
         const data = await res.json();
         return data.id as string;
       default:
-        throw Error;
+        throw new Error(`paiza create failed: ${res.status}`);
     }
   } catch (error) {
     console.error(error);
-    throw Error("request fail");
+    throw new Error("request fail");
   }
 };
 
@@ -293,7 +328,7 @@ const getStatus = async (id: string) => {
     api_key: PAIZA_API_KEY,
     id,
   });
-  const reqUri = `https://api.paiza.io:443/runners/get_status.json?${params}`;
+  const reqUri = `https://api.paiza.io/runners/get_status.json?${params}`;
   try {
     const res = await fetch(reqUri);
     switch (res.status) {
@@ -301,11 +336,11 @@ const getStatus = async (id: string) => {
         const data = await res.json();
         return data.status === "completed";
       default:
-        throw Error;
+        throw new Error(`paiza get_status failed: ${res.status}`);
     }
   } catch (error) {
     console.error(error);
-    throw Error("request fail");
+    throw new Error("request fail");
   }
 };
 
@@ -371,7 +406,7 @@ const getDetails = async (id: string) => {
     api_key: PAIZA_API_KEY,
     id,
   });
-  const reqUri = `https://api.paiza.io:443/runners/get_details.json?${params}`;
+  const reqUri = `https://api.paiza.io/runners/get_details.json?${params}`;
   try {
     const res = await fetch(reqUri);
     switch (res.status) {
@@ -379,10 +414,10 @@ const getDetails = async (id: string) => {
         const data = await res.json();
         return data as Details;
       default:
-        throw Error;
+        throw new Error(`paiza get_details failed: ${res.status}`);
     }
   } catch (error) {
     console.error(error);
-    throw Error("request fail");
+    throw new Error("request fail");
   }
 };
