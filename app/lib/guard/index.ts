@@ -227,15 +227,18 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
     return memoryLimiter;
   }
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Vercel の Upstash 統合が注入する変数名に合わせている。
+  // KV_REST_API_READ_ONLY_TOKEN も同時に注入されるが、レート制限は
+  // カウンタを書き込むため読み取り専用トークンでは動かない
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
 
   // 未設定のまま本番へ出ると「有効化したつもりで無防備」になる。
   // インメモリのカウンタは Edge のアイソレート間で共有されないため、
   // enforce にしても実質的な制限がかからない
   if (!url || !token) {
     console.error(
-      `[guard] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN が未設定のため、` +
+      `[guard] KV_REST_API_URL / KV_REST_API_TOKEN が未設定のため、` +
         `${group} をアイソレート間で共有されないインメモリカウンタで数えます。` +
         `本番では必ず設定してください。`,
     );
