@@ -28,12 +28,14 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
   }
 
   const params = {
-    source,
+    answer: {
+      source,
+    },
   };
 
   try {
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(sangaku_id)}/answers`,
+      `${apiUrl}/api/v1/user/saved_sangakus/${encodeURIComponent(sangaku_id)}/answer`,
       {
         method: "POST",
         token: session?.accessToken,
@@ -45,7 +47,7 @@ export const createAnswer = async (sangaku_id: string, source: string) => {
       case 200:
         await setFlash({ type: "success", message: "算額を解答しました" });
         revalidatePath("/saved_sangakus");
-        redirect(`/saved_sangakus/${sangaku_id}/answer`);
+        redirect(`/saved_sangakus/${sangaku_id}/answer`); // 必ず throw するため case 401 へは落ちない
       case 401:
         await setFlash({
           type: "error",
