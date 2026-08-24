@@ -68,7 +68,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
               },
             );
           }),
-          http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+          http.post(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, () => {
             return HttpResponse.json(
               {
                 data: {
@@ -268,7 +268,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       msw,
     }) => {
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+        http.post(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, () => {
           return HttpResponse.json(
             {
               message: "Bad Request",
@@ -304,7 +304,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       msw,
     }) => {
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/1/answers`, () => {
+        http.post(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, () => {
           return HttpResponse.json(
             { message: "Conflict" },
             { status: 409 },

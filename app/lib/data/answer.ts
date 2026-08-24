@@ -5,14 +5,22 @@ import type { Answer } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
+import { isValidId } from "@/app/lib/validate-id";
 
 export const fetchUserAnswer = async (id: string) => {
+  if (!isValidId(id)) {
+    return null;
+  }
+
   const session = await auth();
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/answers/${id}`, {
-      token: session?.accessToken,
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/answers/${encodeURIComponent(id)}`,
+      {
+        token: session?.accessToken,
+      },
+    );
 
     switch (res.status) {
       case 200:
@@ -36,11 +44,15 @@ export const fetchUserAnswer = async (id: string) => {
 };
 
 export const fetchUserAnswerWithSangakuId = async (sangakuId: string) => {
+  if (!isValidId(sangakuId)) {
+    return null;
+  }
+
   const session = await auth();
 
   try {
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/saved_sangakus/${sangakuId}/answer`,
+      `${apiUrl}/api/v1/user/saved_sangakus/${encodeURIComponent(sangakuId)}/answer`,
       { token: session?.accessToken },
     );
 
