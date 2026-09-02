@@ -101,3 +101,18 @@ export function MapSkeleton() {
     </>
   );
 }
+
+export function ShrineSearchSkeleton() {
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+      {[...Array(3)].map((_, i: number) => (
+        <Skeleton
+          key={i}
+          data-testid="skeleton-item"
+          variant="rounded"
+          height="7rem"
+        />
+      ))}
+    </Box>
+  );
+}

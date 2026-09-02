@@ -9,6 +9,7 @@ import type { Shrine } from "../../lib/definitions";
 import NextLink from "next/link";
 import { Box, Typography, Button } from "@mui/material";
 import { activeDistance } from "./Map";
+import { distance } from "@/app/lib/distance";
 
 interface Props {
   shrine: Shrine;
@@ -80,26 +81,6 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
         </InfoWindow>
       )}
     </>
-  );
-}
-
-const R = Math.PI / 180;
-
-function distance(
-  pos1lat: number,
-  pos1lng: number,
-  currentPosition: { lat: number; lng: number },
-) {
-  const lat1 = pos1lat * R;
-  const lng1 = pos1lng * R;
-  const lat2 = currentPosition.lat * R;
-  const lng2 = currentPosition.lng * R;
-  return (
-    6371 *
-    Math.acos(
-      Math.cos(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1) +
-        Math.sin(lat1) * Math.sin(lat2),
-    )
   );
 }
 /* v8 ignore stop */

@@ -8,6 +8,7 @@ import ShrineMarker from "./ShrineMarker";
 import { fetchShrines } from "../../lib/data/shrine";
 import { MapSkeleton } from "../skeletons";
 import { useSearchParams } from "next/navigation";
+import { getCurrentPosition } from "@/app/lib/geolocation";
 
 export const activeDistance = 0.1;
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅
@@ -47,7 +48,7 @@ function MapComponent() {
       const lat = Number(searchParams.get("lat"));
       const lng = Number(searchParams.get("lng"));
       if (lat && lng) setZoom(18);
-      const newLocation = await getLocation();
+      const newLocation = (await getCurrentPosition()) ?? initialLatLng;
       const newCenter = lat && lng ? { lat, lng } : newLocation;
       setLocation(newLocation);
       setCenter(newCenter);
@@ -68,7 +69,7 @@ function MapComponent() {
     );
     setShrines(newShrines);
 
-    const location = await getLocation();
+    const location = (await getCurrentPosition()) ?? initialLatLng;
 
     /* v8 ignore start */
     if (circle) {
@@ -143,22 +144,3 @@ function MapComponent() {
     </>
   );
 }
-
-/* v8 ignore start */
-async function getLocation() {
-  if (!("geolocation" in navigator)) return initialLatLng;
-  return new Promise<{ lat: number; lng: number }>((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      () => {
-        resolve(initialLatLng);
-      },
-    );
-  });
-}
-/* v8 ignore stop */
