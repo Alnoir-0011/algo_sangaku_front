@@ -1,6 +1,7 @@
 // import { defineConfig, devices } from "@playwright/test";
 import { defineConfig, devices } from "next/experimental/testmode/playwright";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 
 /**
@@ -9,7 +10,17 @@ import path from "path";
  */
 dotenv.config({
   path: path.resolve(__dirname, ".env"),
+  quiet: true,
 });
+
+/**
+ * webServer の出力先ログディレクトリ。
+ *
+ * ビルド警告・[guard] 系ログなどが大量に出るため、通常はターミナルに
+ * 流さずファイルへ退避する。テスト失敗時の原因調査にはこのファイルを開く。
+ */
+const logsDir = path.resolve(__dirname, "logs");
+fs.mkdirSync(logsDir, { recursive: true });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -63,9 +74,13 @@ export default defineConfig({
     {
       // CI では build ジョブで生成した .next を artifact 経由で受け取り start のみ実行する
       // ローカルでは毎回クリーンビルドしてから起動する
+      //
+      // stdout/stderr はターミナルに出さずログファイルへ退避する（ビルド警告や
+      // [guard] のログでテスト結果が読みにくくなるため）。失敗時の調査は
+      // logs/webserver-4020.log を参照する。
       command: process.env.CI
-        ? "pnpm run start -p 4020"
-        : "rm -rf .next && pnpm run build && pnpm run start -p 4020",
+        ? "pnpm run start -p 4020 > logs/webserver-4020.log 2>&1"
+        : "(rm -rf .next && pnpm run build && pnpm run start -p 4020) > logs/webserver-4020.log 2>&1",
       url: "http://localhost:4020",
       reuseExistingServer: false,
       // ローカルビルド時に Google Maps をモックへ差し替え、ソースマップを有効化する（CI は build ジョブ側で設定）
@@ -83,7 +98,9 @@ export default defineConfig({
     {
       // ガードの遮断挙動（403 / 429）を検証するための専用サーバー。
       // 1 本目と同じ .next を使うため再ビルドは発生しない
-      command: "pnpm run start -p 4021",
+      //
+      // stdout/stderr は logs/webserver-4021.log へ退避する（1本目と同じ理由）。
+      command: "pnpm run start -p 4021 > logs/webserver-4021.log 2>&1",
       url: "http://localhost:4021",
       reuseExistingServer: false,
       env: {
