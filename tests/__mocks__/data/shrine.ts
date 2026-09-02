@@ -2,6 +2,8 @@ import type { Shrine } from "@/app/lib/definitions";
 
 export const fetchShrines = async (): Promise<Shrine[]> => [];
 
+export const fetchShrinesByLocation = async (): Promise<Shrine[]> => [];
+
 export const fetchShrine = async (_id: string): Promise<Shrine | null> => ({
   id: "1",
   type: "shrine",

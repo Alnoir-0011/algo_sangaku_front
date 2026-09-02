@@ -1,4 +1,4 @@
-import Map from "@/app/ui/shrine/Map";
+import ShrinesTabs from "@/app/ui/shrine/ShrinesTabs";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export default function Page() {
   const mapApiKey = process.env.GOOGLE_MAP_API_KEY!;
   return (
     <>
-      <Map mapApiKey={mapApiKey} />
+      <ShrinesTabs mapApiKey={mapApiKey} />
     </>
   );
 }
