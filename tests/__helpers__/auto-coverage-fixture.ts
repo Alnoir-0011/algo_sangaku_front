@@ -13,6 +13,12 @@ export async function runWithAutoCoverage(
   await use();
   if (isChromium) {
     const jsCoverage = await page.coverage.stopJSCoverage();
-    await addCoverageReport(jsCoverage, testInfo);
+    // request のみで完結するテスト（page.goto を呼ばない）は about:blank のまま
+    // JS coverage の対象がなく、空データを渡すと monocart 側で
+    // 「must be Array(V8) or Object(Istanbul)」という警告が出る。
+    // ページ遷移が実際に起きたときだけレポートする。
+    if (page.url() !== "about:blank") {
+      await addCoverageReport(jsCoverage, testInfo);
+    }
   }
 }
