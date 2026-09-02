@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  msw: true
+  sharp: true
+overrides:
+  '@types/google.maps': 3.66.0

@@ -20,9 +20,6 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
 
-  const glyphImg = new Image(18);
-  glyphImg.src = "/torii-icon.svg";
-
   const handleMarkerClick = useCallback(() => setIsOpen(true), []);
   const handleClose = useCallback(() => setIsOpen(false), []);
 
@@ -42,7 +39,7 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
         }}
         onClick={handleMarkerClick}
       >
-        <Pin glyph={glyphImg} background="white" borderColor="red" />
+        <Pin glyphSrc="/torii-icon.svg" background="white" borderColor="red" />
       </AdvancedMarker>
       {isOpen && (
         <InfoWindow

@@ -17,7 +17,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "types": [
-      "@emotion/react/types/css-prop"
+      "@emotion/react/types/css-prop",
+      "google.maps"
     ],
     "incremental": true,
     "plugins": [
