@@ -92,8 +92,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - name: Install pnpm
-        run: npm install -g pnpm@10.0.0
+      - uses: pnpm/action-setup@v6
       - name: Install Vercel CLI
         run: npm install -g vercel@58.0.0
       # VERCEL_TOKEN は npm install 等のインストールステップからは見えないよう、

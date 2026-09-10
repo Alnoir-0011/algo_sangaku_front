@@ -1,3 +1,7 @@
+# 単一パッケージ構成だが、pnpm 11.x はこのフィールドが未指定/空だと
+# "packages field missing or empty" エラーになるため明示する
+packages:
+  - "."
 allowBuilds:
   esbuild: true
   msw: true
