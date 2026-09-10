@@ -13,9 +13,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
@@ -47,9 +47,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Run vitest
         run: pnpm run test:unit
 
@@ -61,9 +61,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: copy env.template
         run: cp env.template .env
       - name: Create AuthSecret
@@ -94,9 +94,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
@@ -105,7 +105,9 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-${{ matrix.project }}-
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps ${{ matrix.project }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: pnpm exec playwright install --with-deps "$PROJECT"
       - name: Download .next
         uses: actions/download-artifact@v8
         with:
@@ -120,11 +122,12 @@ jobs:
       - name: Run Playwright tests
         env:
           APP_ENV: test
+          PROJECT: ${{ matrix.project }}
         run: |
-          if [ "${{ matrix.project }}" = "chromium" ]; then
+          if [ "$PROJECT" = "chromium" ]; then
             pnpm exec playwright test --project=chromium --project=guard-enforce
           else
-            pnpm exec playwright test --project=${{ matrix.project }}
+            pnpm exec playwright test --project="$PROJECT"
           fi
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
@@ -172,8 +175,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Run ESLint
         run: pnpm run lint
