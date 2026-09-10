@@ -1,3 +1,12 @@
+# 単一パッケージ構成だが明示する。旧バージョンのpnpm（9系で再現確認済み）は
+# このフィールドが未指定/空だと "packages field missing or empty" で失敗する。
+# package.json#packageManager を pnpm@11.25.0 に固定した後も、Vercelのビルド
+# ログ上でこのフィールド欠如によるインストール失敗が実際に発生していたため、
+# 明示することで解決した（Vercel側のpnpmバージョン解決の詳細な内部挙動までは
+# 特定できていないが、このフィールド追加後は実ビルドで pnpm v11.25.0 が
+# 使われ成功することを確認済み）
+packages:
+  - "."
 allowBuilds:
   esbuild: true
   msw: true
