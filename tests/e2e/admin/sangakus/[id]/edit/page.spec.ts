@@ -110,6 +110,118 @@ test.describe("/admin/sangakus/[id]/edit", () => {
   });
 });
 
+test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
+  test.use({
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/admin/sangakus/2`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "2",
+                type: "sangaku",
+                attributes: {
+                  title: "並べ替え管理算額テスト",
+                  difficulty: "easy",
+                  created_at: "2026-01-01T00:00:00.000+09:00",
+                  user_name: "test_user",
+                  shrine_name: "test_shrine",
+                  description: "テスト説明文",
+                  source: null,
+                  kind: "reorder",
+                  code_blocks: [
+                    { id: 1, content: "puts 1", correct_position: 1 },
+                    { id: 2, content: "puts 2", correct_position: 2 },
+                  ],
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+        http.patch(`${apiUrl}/api/v1/admin/sangakus/2`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "2",
+                type: "sangaku",
+                attributes: {
+                  title: "並べ替え管理算額テスト",
+                  difficulty: "easy",
+                  created_at: "2026-01-01T00:00:00.000+09:00",
+                  user_name: "test_user",
+                  shrine_name: "test_shrine",
+                  description: "テスト説明文",
+                  source: null,
+                  kind: "reorder",
+                  code_blocks: [
+                    { id: 1, content: "puts 100", correct_position: 1 },
+                    { id: 2, content: "puts 2", correct_position: 2 },
+                  ],
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should allow me to see CodeBlockEditor instead of the source field when kind is reorder", async ({
+    page,
+  }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/sangakus/2/edit");
+    await expect(page.getByLabel("block-content-0")).toHaveValue("puts 1", {
+      timeout: 10_000,
+    });
+    await expect(page.getByLabel("想定回答")).not.toBeVisible();
+  });
+
+  test("should allow me to update a reorder sangaku with edited code blocks", async ({
+    page,
+  }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/sangakus/2/edit");
+    await expect(page.getByLabel("block-content-0")).toHaveValue("puts 1", {
+      timeout: 10_000,
+    });
+
+    // Act: ブロック内容を編集して更新する（isReorderKind の分岐・
+    // toAdminCodeBlockInputs 経由での updateSangaku 呼び出しを通す）
+    await page.getByLabel("block-content-0").fill("puts 100");
+    await page.getByRole("button", { name: "更新" }).click();
+
+    // Assert
+    const flash = page.getByTestId("flash-message");
+    await expect(flash).toBeVisible({ timeout: 10_000 });
+    await expect(flash).toContainText("算額を更新しました");
+  });
+
+  test("should not allow me to click the update button when there are fewer than two correct blocks", async ({
+    page,
+  }) => {
+    await setAdminSession(page);
+    await page.goto("/admin/sangakus/2/edit");
+    await expect(page.getByLabel("block-content-0")).toHaveValue("puts 1", {
+      timeout: 10_000,
+    });
+
+    // Act: 1ブロックだけ残して正解ブロックを2個未満にする
+    // （canSubmitReorderBlocks が false になる分岐）
+    await page.getByRole("button", { name: "削除" }).first().click();
+    await expect(
+      page.getByLabel("minCodeBlocksWarning"),
+    ).toBeVisible();
+
+    // Assert
+    await expect(page.getByRole("button", { name: "更新" })).toBeDisabled();
+  });
+});
+
 test.describe("/admin/sangakus/[id]/edit (not found)", () => {
   test.use({
     mswHandlers: [

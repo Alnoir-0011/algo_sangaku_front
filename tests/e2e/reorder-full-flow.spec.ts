@@ -1,5 +1,6 @@
 import { setSession } from "../__helpers__/signin";
 import { waitForMonacoEditor } from "../__helpers__/hydration";
+import type { Page, Locator } from "@playwright/test";
 
 import {
   test,
@@ -14,6 +15,40 @@ import {
 // 各画面単体の詳細な機能検証は tests/e2e/sangakus/create/page.spec.ts でカバー済みのため、
 // ここでは画面間の実際の遷移（リンク・ナビゲーション）が繋がっていることに主眼を置く。
 const apiUrl = process.env.API_URL;
+
+// tests/components/sangaku/reorder/ReorderPuzzle.spec.tsx の dragLocatorTo と同じ理由
+// （WebKit で Locator.dragTo(target) がドロップ時に target ロケーターを再評価し、
+// ドラッグ中のレイアウトアニメーションで座標がずれる）で、座標を事前に固定して
+// page.mouse で手動操作する。ReorderPuzzle.tsx の handleDragOver/handleDragEnd
+// （コンテナ間移動・同一コンテナ内の並べ替え）は E2E のボタン操作だけでは一度も
+// 通らないため、D&D 経路の回帰・カバレッジ確保にこのヘルパーを使う。
+async function dragLocatorTo(page: Page, source: Locator, target: Locator) {
+  // 直前のドラッグによる @dnd-kit のレイアウトアニメーション（並べ替え時の
+  // トランジション）が収まってから座標を取得しないと、アニメーション中の
+  // 位置を掴んでしまい期待した要素にドロップできない。要素が実際に
+  // 操作可能な状態になるまで待ってから boundingBox を取得する。
+  await source.waitFor({ state: "visible" });
+  await target.waitFor({ state: "visible" });
+  const sourceBox = await source.boundingBox();
+  const targetBox = await target.boundingBox();
+  if (!sourceBox || !targetBox) {
+    throw new Error("drag element bounding box not found");
+  }
+  await page.mouse.move(
+    sourceBox.x + sourceBox.width / 2,
+    sourceBox.y + sourceBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    targetBox.x + targetBox.width / 2,
+    targetBox.y + targetBox.height / 2,
+    { steps: 20 },
+  );
+  await page.mouse.up();
+  // ドロップ後の state 更新・再レンダリングが完了するまで待つ。次のドラッグの
+  // boundingBox 取得がこのレンダリング中の座標を掴まないようにするため。
+  await page.waitForTimeout(200);
+}
 
 test.describe("reorder sangaku full creation flow", () => {
   test.use({
@@ -508,6 +543,365 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(page).toHaveURL("/saved_sangakus/3/answer");
     const resultHeading = page.getByRole("heading", {
       name: "reorder_answer_titleの結果",
+    });
+    await expect(resultHeading).toBeVisible();
+    await expect(page.getByText("明察")).toBeVisible();
+  });
+
+  test("should allow me to reorder blocks with the move-up and move-down buttons before submitting an answer", async ({
+    page,
+    msw,
+  }) => {
+    // Arrange
+    msw.use(
+      http.get(`${apiUrl}/api/v1/user/saved_sangakus/6`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "6",
+              type: "sangaku",
+              attributes: {
+                title: "reorder_move_buttons_title",
+                description: "reorder_move_buttons_description",
+                difficulty: "normal",
+                inputs: [],
+                author_name: "another_user",
+                kind: "reorder",
+                code_blocks: [
+                  { id: 1, content: "block1" },
+                  { id: 2, content: "block2" },
+                  { id: 3, content: "block3" },
+                ],
+              },
+              relationships: {
+                user: { data: { id: "2", type: "user" } },
+                shrine: { data: { id: "1", type: "shrine" } },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.post(`${apiUrl}/api/v1/user/saved_sangakus/6/answer`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "6",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "6", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.get(`${apiUrl}/api/v1/user/saved_sangakus/6/answer`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "6",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "6", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.get(`${apiUrl}/api/v1/user/answers/6`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "6",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "6", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+    );
+    await setSession(page);
+
+    // Act: 保存済みreorder算額の解答画面へアクセスする
+    await page.goto("/saved_sangakus/6/answer/create");
+    const title = page.getByRole("heading", {
+      name: "reorder_move_buttons_title",
+    });
+    await expect(title).toBeVisible();
+    const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+    const answerBlocksArea = page.getByTestId("answer-blocks-area");
+
+    // Act: あえて誤った順序（block1, block3, block2）で解答エリアへ移動する
+    await unusedBlocksArea
+      .getByText("block1")
+      .getByRole("button", { name: "解答エリアへ移動" })
+      .click();
+    await unusedBlocksArea
+      .getByText("block3")
+      .getByRole("button", { name: "解答エリアへ移動" })
+      .click();
+    await unusedBlocksArea
+      .getByText("block2")
+      .getByRole("button", { name: "解答エリアへ移動" })
+      .click();
+
+    // Act: 「上へ」で末尾の block2 を中央（block3 の前）へ移動し、
+    // 正しい順序（block1, block2, block3）に修正する
+    await answerBlocksArea
+      .getByText("block2")
+      .getByRole("button", { name: "上へ" })
+      .click();
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block1",
+      "block2",
+      "block3",
+    ]);
+
+    // Act: 「下へ」で先頭の block1 を中央（block2 の後ろ）へ移動し、
+    // わざと誤った順序に戻してから、もう一度「上へ」で正しい順序に戻す
+    await answerBlocksArea
+      .getByText("block1")
+      .getByRole("button", { name: "下へ" })
+      .click();
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block2",
+      "block1",
+      "block3",
+    ]);
+    await answerBlocksArea
+      .getByText("block1")
+      .getByRole("button", { name: "上へ" })
+      .click();
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block1",
+      "block2",
+      "block3",
+    ]);
+
+    // Act: 解答を終了する
+    const submitButton = page.getByRole("button", { name: "解答を終了する" });
+    page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    await submitButton.click();
+
+    // Assert: 結果ページへリダイレクトされ、正解（明察）が表示される
+    await expect(page).toHaveURL("/saved_sangakus/6/answer");
+    const resultHeading = page.getByRole("heading", {
+      name: "reorder_move_buttons_titleの結果",
+    });
+    await expect(resultHeading).toBeVisible();
+    await expect(page.getByText("明察")).toBeVisible();
+  });
+
+  test("should allow me to answer a saved reorder sangaku by dragging blocks between areas and within the answer area", async ({
+    page,
+    msw,
+  }) => {
+    // ReorderPuzzle.tsx の handleDragOver（コンテナ間移動）・handleDragEnd
+    // （同一コンテナ内の並べ替え）は、上記のボタン操作のみのテストでは一度も
+    // 通らない。実際のユーザー操作であるドラッグ&ドロップの経路を検証する。
+    // Arrange
+    msw.use(
+      http.get(`${apiUrl}/api/v1/user/saved_sangakus/7`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "7",
+              type: "sangaku",
+              attributes: {
+                title: "reorder_drag_and_drop_title",
+                description: "reorder_drag_and_drop_description",
+                difficulty: "normal",
+                inputs: [],
+                author_name: "another_user",
+                kind: "reorder",
+                code_blocks: [
+                  { id: 1, content: "block1" },
+                  { id: 2, content: "block2" },
+                  { id: 3, content: "block3" },
+                ],
+              },
+              relationships: {
+                user: { data: { id: "2", type: "user" } },
+                shrine: { data: { id: "1", type: "shrine" } },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.post(`${apiUrl}/api/v1/user/saved_sangakus/7/answer`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "7",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "7", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.get(`${apiUrl}/api/v1/user/saved_sangakus/7/answer`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "7",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "7", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+      http.get(`${apiUrl}/api/v1/user/answers/7`, () => {
+        return HttpResponse.json(
+          {
+            data: {
+              id: "7",
+              type: "answer",
+              attributes: {
+                source: null,
+                status: "correct",
+                kind: "reorder",
+              },
+              relationships: {
+                user_sangaku_save: { data: { id: "7", type: "user_sangaku_save" } },
+                answer_results: { data: [] },
+              },
+            },
+          },
+          { status: 200 },
+        );
+      }),
+    );
+    await setSession(page);
+
+    // Act: 保存済みreorder算額の解答画面へアクセスする
+    await page.goto("/saved_sangakus/7/answer/create");
+    const title = page.getByRole("heading", {
+      name: "reorder_drag_and_drop_title",
+    });
+    await expect(title).toBeVisible();
+    const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+    const answerBlocksArea = page.getByTestId("answer-blocks-area");
+
+    // Act: block3 をドラッグして解答エリア（空の余白）へ移動する
+    // （unused → answer のコンテナ間移動。ReorderPuzzle.tsx の
+    // insertBlockIdBefore はドロップ先のブロックの「前」に挿入する仕様のため、
+    // 空のコンテナへのドロップでは単に追加され block3 のみになる）
+    await dragLocatorTo(
+      page,
+      unusedBlocksArea.getByText("block3").getByTestId("drag-handle"),
+      answerBlocksArea,
+    );
+    await expect(answerBlocksArea.getByText("block3")).toBeVisible();
+    await expect(unusedBlocksArea.getByText("block3")).toHaveCount(0);
+
+    // Act: block2 を、解答エリアの block3 の上にドラッグする。
+    // block3 の「前」に挿入されるため、解答エリアは block2, block3 の順になる
+    await dragLocatorTo(
+      page,
+      unusedBlocksArea.getByText("block2").getByTestId("drag-handle"),
+      answerBlocksArea.getByText("block3").getByTestId("drag-handle"),
+    );
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block2",
+      "block3",
+    ]);
+
+    // Act: block1 を、解答エリアの block2 の上にドラッグする。
+    // block2 の「前」に挿入されるため、解答エリアは正しい順序
+    // （block1, block2, block3）になる
+    await dragLocatorTo(
+      page,
+      unusedBlocksArea.getByText("block1").getByTestId("drag-handle"),
+      answerBlocksArea.getByText("block2").getByTestId("drag-handle"),
+    );
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block1",
+      "block2",
+      "block3",
+    ]);
+
+    // Act: 解答エリア内で block1 を block3 の位置へドラッグし、
+    // わざと誤った順序に崩す（同一コンテナ内の並べ替え = handleDragEnd の
+    // arrayMove 経路）
+    await dragLocatorTo(
+      page,
+      answerBlocksArea.getByText("block1").getByTestId("drag-handle"),
+      answerBlocksArea.getByText("block3").getByTestId("drag-handle"),
+    );
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block2",
+      "block3",
+      "block1",
+    ]);
+
+    // Act: 解答エリア内で block1 を block2 の位置へドラッグし戻し、
+    // 正しい順序（block1, block2, block3）に修正する
+    await dragLocatorTo(
+      page,
+      answerBlocksArea.getByText("block1").getByTestId("drag-handle"),
+      answerBlocksArea.getByText("block2").getByTestId("drag-handle"),
+    );
+    await expect(answerBlocksArea.getByTestId("block-item")).toHaveText([
+      "block1",
+      "block2",
+      "block3",
+    ]);
+
+    // Act: 解答を終了する
+    const submitButton = page.getByRole("button", { name: "解答を終了する" });
+    page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    await submitButton.click();
+
+    // Assert: 結果ページへリダイレクトされ、正解（明察）が表示される
+    await expect(page).toHaveURL("/saved_sangakus/7/answer");
+    const resultHeading = page.getByRole("heading", {
+      name: "reorder_drag_and_drop_titleの結果",
     });
     await expect(resultHeading).toBeVisible();
     await expect(page.getByText("明察")).toBeVisible();
