@@ -3,6 +3,7 @@ import { MyProfile, PublicProfile } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { apiUrl } from "@/app/lib/config";
+import { isValidId } from "@/app/lib/validate-id";
 
 export async function fetchMyProfile(): Promise<MyProfile | undefined> {
   const session = await auth();
@@ -27,12 +28,12 @@ export async function fetchMyProfile(): Promise<MyProfile | undefined> {
 export async function fetchPublicProfile(
   id: string,
 ): Promise<PublicProfile | undefined> {
-  if (!/^\d+$/.test(id)) {
+  if (!isValidId(id)) {
     return undefined;
   }
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/profiles/${id}`);
+    const res = await serverFetch(`${apiUrl}/api/v1/profiles/${encodeURIComponent(id)}`);
 
     if (res.status === 200) {
       const body = await res.json();

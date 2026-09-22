@@ -6,6 +6,7 @@ import { Shrine } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { apiUrl } from "@/app/lib/config";
+import { isValidId } from "@/app/lib/validate-id";
 
 function isValidLatLng(lat: string, lng: string): boolean {
   const latNum = Number.parseFloat(lat);
@@ -84,8 +85,13 @@ export async function fetchShrinesByLocation(lat: string, lng: string) {
 }
 
 export async function fetchShrine(id: string) {
+  // id はクライアントが完全に制御できる値のため、URL に補間する前に検証する
+  if (!isValidId(id)) {
+    return null;
+  }
+
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/shrines/${id}`);
+    const res = await serverFetch(`${apiUrl}/api/v1/shrines/${encodeURIComponent(id)}`);
 
     if (res.status === 200) {
       const data = await res.json();
