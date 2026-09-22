@@ -43,6 +43,7 @@ export default async function AdminSangakusPage({ searchParams }: Props) {
             <TableCell>タイトル</TableCell>
             <TableCell>作成者</TableCell>
             <TableCell>奉納神社</TableCell>
+            <TableCell>形式</TableCell>
             <TableCell>操作</TableCell>
           </TableRow>
         </TableHead>

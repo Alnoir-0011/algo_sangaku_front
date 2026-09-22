@@ -64,7 +64,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
           http.get(`${apiUrl}/api/v1/user/sangakus/999`, () => {
             return HttpResponse.json({}, { status: 404 });
           }),
-          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
             return HttpResponse.json(
               { used: 0, limit: 5, remaining: 5, reset_at: "2026-04-12T18:00:00Z" },
               { status: 200 },
@@ -109,7 +109,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     test("should allow me to save edited sangaku and be redirected with flash message", async ({ page, msw }) => {
       msw.use(
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
           return HttpResponse.json(
             {
               data: {
@@ -147,7 +147,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       msw,
     }) => {
       msw.use(
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
           return HttpResponse.json({}, { status: 200 });
         }),
       );
@@ -166,6 +166,30 @@ test.describe("/user/sangakus/[id]/edit", () => {
       // 問題文を空にするとボタンが無効になる
       await page.getByLabel("問題文").fill("");
       await expect(generateButton).toBeDisabled();
+    });
+
+    test("should allow me to click the generate button again after refilling description", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
+          return HttpResponse.json({}, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await waitForMonacoEditor(page);
+      await waitForInteractive(page.getByLabel("問題文"));
+
+      const generateButton = page.getByRole("button", {
+        name: "問題文からコードを生成",
+      });
+
+      // 問題文を空にするとボタンが無効になる
+      await page.getByLabel("問題文").fill("");
+      await expect(generateButton).toBeDisabled();
 
       // 再度入力するとボタンが有効になる
       await page.getByLabel("問題文").fill("問題文を入力");
@@ -177,7 +201,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json(
             {
               source: generatedSource,
@@ -209,7 +233,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json(
             {
               source: generatedSource,
@@ -218,7 +242,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
             { status: 200 },
           );
         }),
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
           return HttpResponse.json(
             {
               data: {
@@ -278,7 +302,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json(
             {
               source: generatedSource,
@@ -304,7 +328,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     test("should allow me to see an error message on 429 response", async ({ page, msw }) => {
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json({}, { status: 429 });
         }),
       );
@@ -328,7 +352,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     test("should allow me to change difficulty before saving", async ({ page, msw }) => {
       msw.use(
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
           return HttpResponse.json({
             data: {
               id: "1",
@@ -364,7 +388,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     test("should allow me to see validation errors on failed update", async ({ page, msw }) => {
       msw.use(
-        http.patch(`${apiUrl}/api/v1/user/sangakus/1`, () => {
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
           return HttpResponse.json({
             message: "Bad Request",
             errors: [
@@ -446,7 +470,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
               { status: 200 },
             );
           }),
-          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
             return HttpResponse.json(
               { used: 5, limit: 5, remaining: 0, reset_at: "2026-04-12T18:00:00Z" },
               { status: 200 },
@@ -471,9 +495,303 @@ test.describe("/user/sangakus/[id]/edit", () => {
       // 初期値（"test_description"）が入っていてもボタンはdisabledのまま
       const generateButton = page.getByRole("button", { name: "問題文からコードを生成" });
       await expect(generateButton).toBeDisabled();
+    });
+
+    test("should allow me to see usage indicator showing 0 remaining", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
 
       const usageIndicator = page.getByText(/本日の残り生成回数: 0 \/ 5/);
       await expect(usageIndicator).toBeVisible();
+    });
+  });
+
+  test.describe("kind branching", () => {
+    test.use({
+      mswHandlers: [
+        [
+          http.get(`${apiUrl}/up`, () => {
+            return HttpResponse.json({ message: "success" });
+          }),
+          http.get(`${apiUrl}/api/v1/user/sangakus/2`, () => {
+            return HttpResponse.json(
+              {
+                data: {
+                  id: "2",
+                  type: "sangaku",
+                  attributes: {
+                    title: "reorder_title",
+                    description: "reorder_description",
+                    difficulty: "easy",
+                    kind: "reorder",
+                    source: null,
+                    inputs: [],
+                    author_name: "test",
+                    shrine_name: null,
+                    code_blocks: [
+                      { id: 1, content: "puts 1", correct_position: 1 },
+                      { id: 2, content: "puts 2", correct_position: 2 },
+                    ],
+                  },
+                  relationships: {
+                    user: { data: { id: "1", type: "user" } },
+                    shrine: { data: null },
+                  },
+                },
+              },
+              { status: 200 },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
+            return HttpResponse.json(
+              { used: 0, limit: 5, remaining: 5, reset_at: "2026-04-12T18:00:00Z" },
+              { status: 200 },
+            );
+          }),
+          http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+            return HttpResponse.json(
+              { data: [] },
+              { status: 200, headers: { "total-pages": "0", "current-page": "1", "total-count": "0" } },
+            );
+          }),
+          // allow all non-mocked routes to pass through
+          http.all("*", () => {
+            return passthrough();
+          }),
+        ],
+        { scope: "test" },
+      ],
+    });
+
+    test("should allow me to see reorder sangaku edit form when kind is reorder", async ({ page }) => {
+      // Arrange: kind: "reorder" の算額データを返すサインイン済みユーザーとしてセッションを準備する
+      await setSession(page);
+
+      // Act: 並べ替え問題の編集ページへ遷移する
+      await page.goto("/user/sangakus/2/edit");
+
+      // Assert
+      await expect(page.getByLabel("タイトル")).toHaveValue("reorder_title");
+      await expect(page.getByLabel("block-content-0")).toHaveValue("puts 1");
+    });
+
+    test("should allow me to save reorder sangaku with correctly shaped payload when editing", async ({ page, msw }) => {
+      // Arrange: GET/PATCH とも msw で扱う（page.route はサーバーコンポーネントの
+      // fetch を捕捉できないため、Next.js testmode 経由の msw に統一する）
+      let capturedBody: unknown;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/3`, () => {
+          return HttpResponse.json({
+            data: {
+              id: "3",
+              type: "sangaku",
+              attributes: {
+                title: "reorder_title",
+                description: "reorder_description",
+                difficulty: "easy",
+                kind: "reorder",
+                source: null,
+                inputs: [],
+                author_name: "test",
+                shrine_name: null,
+                code_blocks: [
+                  { id: 1, content: "puts 1", correct_position: 1 },
+                  { id: 2, content: "puts 2", correct_position: 2 },
+                ],
+              },
+              relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+            },
+          });
+        }),
+        http.patch(`${apiUrl}/api/v1/user/reorder_sangakus/3`, async ({ request }) => {
+          capturedBody = await request.json();
+          return HttpResponse.json(
+            {
+              data: {
+                id: "3",
+                type: "sangaku",
+                attributes: {
+                  title: "reorder_title",
+                  description: "reorder_description",
+                  difficulty: "easy",
+                  kind: "reorder",
+                  source: null,
+                  inputs: [],
+                  author_name: "test",
+                  shrine_name: null,
+                  code_blocks: [],
+                },
+                relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      // Act: サインイン済みユーザーとして編集ページへ遷移し、保存する
+      await setSession(page);
+      await page.goto("/user/sangakus/3/edit");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      // Assert
+      // 非同期の PATCH リクエスト到達を待つためのポーリング。実際の内容検証は直後の toEqual で行う
+      await expect.poll(() => capturedBody).not.toBeUndefined();
+      expect(capturedBody).toEqual({
+        sangaku: { title: "reorder_title", description: "reorder_description", difficulty: "easy" },
+        code_blocks: [
+          { content: "puts 1", correct_position: 1 },
+          { content: "puts 2", correct_position: 2 },
+        ],
+      });
+    });
+
+    test("should allow me to preserve a dummy block as correct_position null when editing without changes", async ({
+      page,
+      msw,
+    }) => {
+      // Arrange: correct_position が null のダミーブロックを含む並べ替え算額を用意する。
+      // EditReorderForm の code_blocks → CodeBlockDraft 変換（correct_position===null → isDummy:true）と、
+      // ReorderSangakuForm 側の CodeBlockDraft → 送信ペイロード変換（isDummy:true → correct_position:null）が
+      // 一往復して元の null を保っているかを検証する
+      let capturedBody: unknown;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/5`, () => {
+          return HttpResponse.json({
+            data: {
+              id: "5",
+              type: "sangaku",
+              attributes: {
+                title: "reorder_title",
+                description: "reorder_description",
+                difficulty: "easy",
+                kind: "reorder",
+                source: null,
+                inputs: [],
+                author_name: "test",
+                shrine_name: null,
+                code_blocks: [
+                  { id: 1, content: "puts 1", correct_position: 1 },
+                  { id: 2, content: "puts 2", correct_position: 2 },
+                  { id: 3, content: "dummy", correct_position: null },
+                ],
+              },
+              relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+            },
+          });
+        }),
+        http.patch(`${apiUrl}/api/v1/user/reorder_sangakus/5`, async ({ request }) => {
+          capturedBody = await request.json();
+          return HttpResponse.json(
+            {
+              data: {
+                id: "5",
+                type: "sangaku",
+                attributes: {
+                  title: "reorder_title",
+                  description: "reorder_description",
+                  difficulty: "easy",
+                  kind: "reorder",
+                  source: null,
+                  inputs: [],
+                  author_name: "test",
+                  shrine_name: null,
+                  code_blocks: [],
+                },
+                relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      // Act: 何も編集せずそのまま保存する
+      await setSession(page);
+      await page.goto("/user/sangakus/5/edit");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      // Assert
+      // 非同期の PATCH リクエスト到達を待つためのポーリング。実際の内容検証は直後の toEqual で行う
+      await expect.poll(() => capturedBody).not.toBeUndefined();
+      expect(capturedBody).toEqual({
+        sangaku: { title: "reorder_title", description: "reorder_description", difficulty: "easy" },
+        code_blocks: [
+          { content: "puts 1", correct_position: 1 },
+          { content: "puts 2", correct_position: 2 },
+          { content: "dummy", correct_position: null },
+        ],
+      });
+    });
+
+    test("should allow me to be redirected with a flash message when reorder sangaku is updated successfully", async ({ page, msw }) => {
+      // Arrange: GET/PATCH とも msw で扱う（page.route はサーバーコンポーネントの
+      // fetch を捕捉できないため、Next.js testmode 経由の msw に統一する）
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/4`, () => {
+          return HttpResponse.json({
+            data: {
+              id: "4",
+              type: "sangaku",
+              attributes: {
+                title: "reorder_title",
+                description: "reorder_description",
+                difficulty: "easy",
+                kind: "reorder",
+                source: null,
+                inputs: [],
+                author_name: "test",
+                shrine_name: null,
+                code_blocks: [
+                  { id: 1, content: "puts 1", correct_position: 1 },
+                  { id: 2, content: "puts 2", correct_position: 2 },
+                ],
+              },
+              relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+            },
+          });
+        }),
+        http.patch(`${apiUrl}/api/v1/user/reorder_sangakus/4`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "4",
+                type: "sangaku",
+                attributes: {
+                  title: "reorder_title",
+                  description: "reorder_description",
+                  difficulty: "easy",
+                  kind: "reorder",
+                  source: null,
+                  inputs: [],
+                  author_name: "test",
+                  shrine_name: null,
+                  code_blocks: [],
+                },
+                relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      // Act: サインイン済みユーザーとして編集ページへ遷移し、保存する
+      await setSession(page);
+      await page.goto("/user/sangakus/4/edit");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      // Assert
+      await expect(page).toHaveURL("/user/sangakus");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を更新しました");
     });
   });
 });

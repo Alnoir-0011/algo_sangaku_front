@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "@/app/lib/actions/auth";
 import { serverFetch } from "@/app/lib/server-fetch";
+import { isValidId } from "@/app/lib/validate-id";
+import { isValidCodeBlocks } from "@/app/lib/validate-reorder-code-blocks";
+import type { ReorderCodeBlockInput } from "@/app/lib/definitions";
 
 const apiUrl = process.env.API_URL!;
 
@@ -24,8 +27,12 @@ export async function updateUserRole(
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${encodeURIComponent(id)}`, {
       method: "PATCH",
       token: session.accessToken,
       body: JSON.stringify({ user: { role } }),
@@ -65,6 +72,10 @@ export async function updateUser(
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
   const role = formData.get("role");
   if (role !== "general" && role !== "admin") {
     await setFlash({ type: "error", message: "不正なロール値です" });
@@ -78,7 +89,7 @@ export async function updateUser(
     },
   };
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${encodeURIComponent(id)}`, {
       method: "PATCH",
       token: session.accessToken,
       body: JSON.stringify(body),
@@ -116,8 +127,12 @@ export async function deleteSangaku(id: string): Promise<boolean> {
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${encodeURIComponent(id)}`, {
       method: "DELETE",
       token: session.accessToken,
     });
@@ -147,16 +162,38 @@ export async function deleteSangaku(id: string): Promise<boolean> {
   }
 }
 
+// updateSangaku が formData から取り出す sangaku 属性。いずれも FormData から
+// そのまま取得した値であり、値の変換・バリデーションは back 側に委ねる
+type SangakuFormFields = Record<
+  "title" | "difficulty" | "description" | "source",
+  FormDataEntryValue | null
+>;
+
 export async function updateSangaku(
   id: string,
   formData: FormData,
+  codeBlocks?: ReorderCodeBlockInput[],
 ): Promise<boolean> {
   const session = await requireAdmin();
   if (!session) {
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
-  const body = {
+  // id はクライアントが完全に制御できる値のため、URL に補間する前に検証する。
+  // codeBlocks も "use server" 経由の直接呼び出しでは型注釈が実行時には効かないため、
+  // ユーザー向けの createReorderSangaku/updateReorderSangaku（actions/sangaku.ts）と
+  // 同じ isValidCodeBlocks で back に転送する前に形を検証する
+  if (
+    !isValidId(id) ||
+    (codeBlocks !== undefined && !isValidCodeBlocks(codeBlocks))
+  ) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
+  const body: {
+    sangaku: SangakuFormFields;
+    code_blocks?: ReorderCodeBlockInput[];
+  } = {
     sangaku: {
       title: formData.get("title"),
       difficulty: formData.get("difficulty"),
@@ -164,8 +201,11 @@ export async function updateSangaku(
       source: formData.get("source"),
     },
   };
+  if (codeBlocks !== undefined) {
+    body.code_blocks = codeBlocks;
+  }
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${encodeURIComponent(id)}`, {
       method: "PATCH",
       token: session.accessToken,
       body: JSON.stringify(body),
@@ -268,13 +308,17 @@ export async function updateShrine(
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
   const body = {
     shrine: {
       name: formData.get("name"),
     },
   };
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${encodeURIComponent(id)}`, {
       method: "PATCH",
       token: session.accessToken,
       body: JSON.stringify(body),
@@ -312,8 +356,12 @@ export async function deleteShrine(id: string): Promise<boolean> {
     await setFlash({ type: "error", message: "この操作は許可されていません" });
     return false;
   }
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return false;
+  }
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${encodeURIComponent(id)}`, {
       method: "DELETE",
       token: session.accessToken,
     });

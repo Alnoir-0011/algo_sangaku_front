@@ -2,6 +2,7 @@ import { Box, Button, TableCell, TableRow } from "@mui/material";
 import Link from "next/link";
 import type { AdminSangaku } from "@/app/lib/definitions";
 import { deleteSangaku } from "@/app/lib/actions/admin";
+import KindBadge from "@/app/ui/KindBadge";
 import AdminDeleteButton from "./AdminDeleteButton";
 
 interface Props {
@@ -17,6 +18,9 @@ export default function AdminSangakuRow({ sangaku }: Props) {
       <TableCell>{attributes.title}</TableCell>
       <TableCell>{attributes.user_name}</TableCell>
       <TableCell>{attributes.shrine_name ?? "未奉納"}</TableCell>
+      <TableCell>
+        <KindBadge kind={attributes.kind} />
+      </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button

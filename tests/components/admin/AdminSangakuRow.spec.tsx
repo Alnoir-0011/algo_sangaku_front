@@ -23,6 +23,22 @@ const sangakuWithoutShrine = {
   },
 };
 
+const codeSangaku = {
+  ...sangaku,
+  attributes: {
+    ...sangaku.attributes,
+    kind: "code" as const,
+  },
+};
+
+const reorderSangaku = {
+  ...sangaku,
+  attributes: {
+    ...sangaku.attributes,
+    kind: "reorder" as const,
+  },
+};
+
 test.describe("AdminSangakuRow", () => {
   test("should allow me to see sangaku title", async ({ mount }) => {
     const component = await mount(
@@ -88,5 +104,27 @@ test.describe("AdminSangakuRow", () => {
       </table>,
     );
     await expect(component.getByRole("button", { name: "削除" })).toBeVisible();
+  });
+
+  test("should allow me to see kind label as code when kind is code", async ({ mount }) => {
+    const component = await mount(
+      <table>
+        <tbody>
+          <AdminSangakuRow sangaku={codeSangaku} />
+        </tbody>
+      </table>,
+    );
+    await expect(component.getByText("コード記述")).toBeVisible();
+  });
+
+  test("should allow me to see kind label as reorder when kind is reorder", async ({ mount }) => {
+    const component = await mount(
+      <table>
+        <tbody>
+          <AdminSangakuRow sangaku={reorderSangaku} />
+        </tbody>
+      </table>,
+    );
+    await expect(component.getByText("並べ替え")).toBeVisible();
   });
 });

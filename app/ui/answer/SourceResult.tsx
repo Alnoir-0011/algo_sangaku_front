@@ -20,6 +20,12 @@ export default function SourceResult(props: Props) {
   const id = props.answer.id;
 
   useEffect(() => {
+    // 最初から正誤が確定している（status !== "pending"）場合は、既に確定した
+    // 結果を表示するだけでよく、ポーリングする必要がない。ポーリングすると
+    // 一瞬スピナーが表示されたうえ、無駄なリクエストが1回飛んでしまう。
+    if (answer.attributes.status !== "pending") {
+      return;
+    }
     setIsLoading(true);
     const interval = setInterval(async () => {
       const data = await fetchUserAnswer(id);
@@ -31,7 +37,7 @@ export default function SourceResult(props: Props) {
     }, 250);
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, answer.attributes.status]);
 
   const isCorrect = () => answer.attributes.status === "correct";
 
