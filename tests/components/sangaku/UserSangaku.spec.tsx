@@ -48,6 +48,40 @@ test.describe("UserSangaku", () => {
     await expect(page.getByText("普通")).toBeVisible();
   });
 
+  test("should allow me to see コード記述 badge when sangaku kind is code", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const sangakuWithCodeKind: Sangaku = {
+      ...sangaku,
+      attributes: { ...sangaku.attributes, kind: "code" },
+    };
+
+    // Act
+    await mount(<UserSangaku sangaku={sangakuWithCodeKind} />);
+
+    // Assert
+    await expect(page.getByText("コード記述")).toBeVisible();
+  });
+
+  test("should allow me to see 並べ替え badge when sangaku kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const sangakuWithReorderKind: Sangaku = {
+      ...sangaku,
+      attributes: { ...sangaku.attributes, kind: "reorder" },
+    };
+
+    // Act
+    await mount(<UserSangaku sangaku={sangakuWithReorderKind} />);
+
+    // Assert
+    await expect(page.getByText("並べ替え")).toBeVisible();
+  });
+
   test("should allow me to see edit link in menu", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const menuButton = component.getByRole("button", { name: "算額のメニューを開く" });

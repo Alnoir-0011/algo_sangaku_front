@@ -3,6 +3,7 @@ import Grid from "@mui/material/Grid2";
 import Ema from "@/app/ui/Ema";
 import { Box, Typography } from "@mui/material";
 import { difficultyTranslation } from "@/app/ui/utility";
+import KindBadge from "@/app/ui/KindBadge";
 import { SangakuSaveButton } from "./SangakuSaveButton";
 
 interface Props {
@@ -41,9 +42,11 @@ export default function Sangaku({ sangaku, saved }: Props) {
             sx={{
               display: "flex",
               justifyContent: "end",
+              gap: 1,
               marginTop: "auto",
             }}
           >
+            <KindBadge kind={sangaku.attributes.kind} />
             <Typography
               component="p"
               sx={{

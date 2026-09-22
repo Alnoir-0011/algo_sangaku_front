@@ -213,6 +213,68 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
     });
 
+    test("should allow me to filter my sangaku list by kind when the kind query param is present", async ({
+      page,
+      msw,
+    }) => {
+      // Arrange
+      let capturedKind: string | null = "not_called";
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          capturedKind = new URL(request.url).searchParams.get("kind");
+          return new HttpResponse(JSON.stringify(beforeDedicateSangakus), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "current-page": "1",
+              "page-items": "20",
+              "total-pages": "1",
+              "total-count": "1",
+            },
+          });
+        }),
+      );
+
+      // Act
+      await setSession(page);
+      await page.goto("/user/sangakus?kind=reorder");
+
+      // Assert
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+      expect(capturedKind).toBe("reorder");
+    });
+
+    test("should allow me to filter dedicated sangaku list by kind when the kind query param is present", async ({
+      page,
+      msw,
+    }) => {
+      // Arrange
+      let capturedKind: string | null = "not_called";
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          capturedKind = new URL(request.url).searchParams.get("kind");
+          return new HttpResponse(JSON.stringify(alreadyDedicateSangakus), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "current-page": "1",
+              "page-items": "20",
+              "total-pages": "1",
+              "total-count": "1",
+            },
+          });
+        }),
+      );
+
+      // Act
+      await setSession(page);
+      await page.goto("/user/sangakus?tab=already_dedicate&kind=reorder");
+
+      // Assert
+      await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
+      expect(capturedKind).toBe("reorder");
+    });
+
     test("should allow me to see the edit link with correct href in sangaku menu", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");

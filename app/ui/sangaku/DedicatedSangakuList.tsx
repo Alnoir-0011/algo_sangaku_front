@@ -14,11 +14,12 @@ import { SangakuListSkeleton } from "../skeletons";
 interface Props {
   page: string;
   query: string;
+  kind?: string;
 }
 
 const initialState = { sangakus: [], totalPage: 0 };
 
-export default function SangakuList({ page, query }: Props) {
+export default function SangakuList({ page, query, kind }: Props) {
   const [sangakusData, setSangakusData] = useState<{
     sangakus: Sangaku[];
     totalPage: number;
@@ -30,11 +31,11 @@ export default function SangakuList({ page, query }: Props) {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const data = await fetchUserSangakus(page, query, "any");
+      const data = await fetchUserSangakus(page, query, "any", kind);
       setSangakusData(data);
       setIsLoading(false);
     })();
-  }, [page, query]);
+  }, [page, query, kind]);
 
   const handleClick = (sangaku: Sangaku) => {
     setModalData(sangaku);

@@ -15,13 +15,19 @@ export const metadata: Metadata = {
 };
 
 interface Props {
-  searchParams: Promise<{ page: string; tab: string; query: string }>;
+  searchParams: Promise<{
+    page: string;
+    tab: string;
+    query: string;
+    kind?: string;
+  }>;
 }
 
 export default async function Page(props: Props) {
   const page = (await props.searchParams).page || "1";
   const tab = (await props.searchParams).tab || "before_dedicate";
   const query = (await props.searchParams).query || "";
+  const kind = (await props.searchParams).kind;
 
   return (
     <Box>
@@ -41,19 +47,31 @@ export default async function Page(props: Props) {
       {tab === "already_dedicate" ? (
         <>
           <Container maxWidth="md">
-            <Search placeholder="タイトルで検索" />
+            <Search placeholder="タイトルで検索" kind />
           </Container>
-          <Suspense key={page + query} fallback={<SangakuListSkeleton />}>
-            <DedicatedSangakuList page={page} query={query} />
+          <Suspense
+            key={page + query + (kind ?? "")}
+            fallback={<SangakuListSkeleton />}
+          >
+            <DedicatedSangakuList page={page} query={query} kind={kind} />
           </Suspense>
         </>
       ) : (
         <>
           <Container maxWidth="md">
-            <Search placeholder="タイトルで検索" />
+            <Search placeholder="タイトルで検索" kind />
           </Container>
-          <Suspense key={page + query} fallback={<SangakuListSkeleton />}>
-            <UserSangakuList page={page} query={query} />
+          {/*
+            kind はクエリパラメータ未指定時 undefined を取り得るため、
+            page/query と同様に key へ含めて絞り込み変更時に
+            Suspense を再マウントさせつつ、undefined が文字列化されて
+            "undefined" という値が key に混入しないよう ?? "" でフォールバックする
+          */}
+          <Suspense
+            key={page + query + (kind ?? "")}
+            fallback={<SangakuListSkeleton />}
+          >
+            <UserSangakuList page={page} query={query} kind={kind} />
           </Suspense>
         </>
       )}

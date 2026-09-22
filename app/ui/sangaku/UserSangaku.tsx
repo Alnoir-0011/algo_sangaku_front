@@ -5,6 +5,7 @@ import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import MenuButton from "@/app/ui/sangaku/MenuButton";
 import { difficultyTranslation } from "../utility";
+import KindBadge from "@/app/ui/KindBadge";
 
 interface Props {
   sangaku: Sangaku;
@@ -57,9 +58,11 @@ export default function UserSangaku({ sangaku, dedicated }: Props) {
             sx={{
               display: "flex",
               justifyContent: "end",
+              gap: 1,
               marginTop: "auto",
             }}
           >
+            <KindBadge kind={sangaku.attributes.kind} />
             <Typography
               component="p"
               sx={{

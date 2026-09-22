@@ -1,3 +1,5 @@
+import type { Kind } from "@/app/lib/definitions";
+
 export const difficultyTranslation = (str: string) => {
   switch (str) {
     case "easy":
@@ -8,5 +10,16 @@ export const difficultyTranslation = (str: string) => {
       return "難しい";
     default:
       return "とても難しい";
+  }
+};
+
+export const kindTranslation = (kind?: Kind) => {
+  switch (kind) {
+    case "reorder":
+      return "並べ替え";
+    case "code":
+      return "コード記述";
+    default:
+      return "不明";
   }
 };

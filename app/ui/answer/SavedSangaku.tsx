@@ -3,6 +3,7 @@ import Ema from "@/app/ui/Ema";
 import Grid from "@mui/material/Grid2";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 import { difficultyTranslation } from "../utility";
+import KindBadge from "@/app/ui/KindBadge";
 import Link from "next/link";
 import { profilePath } from "@/routes";
 
@@ -42,6 +43,7 @@ export default function SavedSangaku({ sangaku, answered }: Props) {
             sx={{
               display: "flex",
               justifyContent: "space-between",
+              gap: 1,
               marginTop: "auto",
             }}
           >
@@ -78,6 +80,7 @@ export default function SavedSangaku({ sangaku, answered }: Props) {
                 sangaku.attributes.author_name
               )}
             </Typography>
+            <KindBadge kind={sangaku.attributes.kind} />
             <Typography
               component="p"
               sx={{

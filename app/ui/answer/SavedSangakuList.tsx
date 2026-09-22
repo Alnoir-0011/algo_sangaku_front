@@ -9,6 +9,7 @@ interface Props {
   query: string;
   difficulty: string;
   type: "before_answer" | "answered";
+  kind?: string;
 }
 
 export default async function SavedSangakuList({
@@ -16,12 +17,14 @@ export default async function SavedSangakuList({
   query,
   difficulty,
   type,
+  kind,
 }: Props) {
   const { sangakus, totalPage, message } = await fetchSavedSangakus(
     page,
     query,
     difficulty,
     type,
+    kind,
   );
 
   return (
