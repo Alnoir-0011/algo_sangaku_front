@@ -13,13 +13,11 @@ export const difficultyTranslation = (str: string) => {
   }
 };
 
-export const kindTranslation = (kind?: Kind) => {
+export const kindTranslation = (kind: Kind) => {
   switch (kind) {
     case "reorder":
       return "並べ替え";
     case "code":
       return "コード記述";
-    default:
-      return "不明";
   }
 };

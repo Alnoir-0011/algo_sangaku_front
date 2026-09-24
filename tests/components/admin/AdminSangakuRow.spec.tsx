@@ -12,6 +12,7 @@ const sangaku = {
     shrine_name: "test_shrine",
     description: "テスト説明文",
     source: "print('hello')",
+    kind: "code" as const,
   },
 };
 

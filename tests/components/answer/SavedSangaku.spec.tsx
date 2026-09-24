@@ -12,6 +12,7 @@ const sangaku: Sangaku = {
     difficulty: "normal",
     author_name: "test_author",
     inputs: [{ id: 1, content: "input" }],
+    kind: "code",
   },
   relationships: {
     user: {

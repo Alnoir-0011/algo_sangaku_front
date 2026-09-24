@@ -17,6 +17,7 @@ const sangaku: Sangaku = {
         content: "input",
       },
     ],
+    kind: "code",
   },
   relationships: {
     user: {

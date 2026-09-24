@@ -5,7 +5,11 @@ import type { Answer } from "@/app/lib/definitions";
 const correctAnswer = {
   id: "1",
   type: "answer" as const,
-  attributes: { source: "puts 'hi'", status: "correct" as const },
+  attributes: {
+    source: "puts 'hi'",
+    status: "correct" as const,
+    kind: "code" as const,
+  },
   relationships: {
     user_sangaku_save: { data: { id: "1", type: "user_sangaku_save" as const } },
     answer_results: { data: [] },

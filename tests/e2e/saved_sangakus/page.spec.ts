@@ -46,6 +46,7 @@ test.describe("/saved_sangakus", () => {
                           },
                         ],
                         author_name: "another_user",
+                        kind: "code",
                       },
                       relationships: {
                         user: {
@@ -91,6 +92,7 @@ test.describe("/saved_sangakus", () => {
                           },
                         ],
                         author_name: "another_user",
+                        kind: "code",
                       },
                       relationships: {
                         user: {
@@ -134,6 +136,62 @@ test.describe("/saved_sangakus", () => {
       await expect(page).toHaveURL("/saved_sangakus");
       const sangakuTitle = page.getByRole("heading", { name: "test_title" });
       await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
+      await expect(
+        page.locator("main").getByText("コード記述", { exact: true }),
+      ).toBeVisible();
+    });
+
+    test("should allow me to see 並べ替え kind badge when a saved sangaku has kind reorder", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/saved_sangakus`, () => {
+          return HttpResponse.json(
+            {
+              data: [
+                {
+                  id: "6",
+                  type: "sangaku",
+                  attributes: {
+                    title: "reorder_title",
+                    description: "test_desc",
+                    difficulty: "normal",
+                    inputs: [],
+                    author_name: "another_user",
+                    kind: "reorder",
+                    code_blocks: [
+                      { id: 1, content: "block1" },
+                      { id: 2, content: "block2" },
+                    ],
+                  },
+                  relationships: {
+                    user: { data: { id: "1", type: "user" } },
+                    shrine: { data: null },
+                  },
+                },
+              ],
+            },
+            {
+              status: 200,
+              headers: {
+                "current-page": "1",
+                "page-items": "20",
+                "total-pages": "1",
+                "total-count": "1",
+              },
+            },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/saved_sangakus");
+      const main = page.locator("main");
+      await expect(
+        main.getByRole("heading", { name: "reorder_title" }),
+      ).toBeVisible({ timeout: 10_000 });
+      await expect(main.getByText("並べ替え", { exact: true })).toBeVisible();
     });
 
     test("should allow me to see answered sangakus list", async ({ page }) => {

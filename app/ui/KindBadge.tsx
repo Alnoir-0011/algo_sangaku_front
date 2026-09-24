@@ -3,7 +3,7 @@ import type { Kind } from "@/app/lib/definitions";
 import { kindTranslation } from "@/app/ui/utility";
 
 interface Props {
-  kind?: Kind;
+  kind: Kind;
 }
 
 export default function KindBadge({ kind }: Props) {

@@ -46,11 +46,10 @@ export type Sangaku = {
     difficulty: Difficulty;
     inputs: Input[];
     author_name: string;
-    // issue #92 / back#278: 出題形式。一覧・詳細どちらのレスポンスにも含まれる
-    // （back の PublicSangakuSerializerAttributes で共通定義）。code_blocks は
-    // 詳細レスポンスのみに含まれ、一覧では返らない。既存の消費箇所は無改修で
-    // 通る想定の追加項目のため optional のままにしている
-    kind?: Kind;
+    // issue #92 / back#278: 出題形式。back の PublicSangakuSerializerAttributes
+    // で一覧・詳細どちらの共通属性としても定義されており、必ず返る。
+    kind: Kind;
+    // code_blocks は詳細レスポンスのみに含まれ、一覧では返らないため optional のまま
     code_blocks?: CodeBlock[];
   };
   relationships: {
@@ -99,11 +98,8 @@ export type Answer = {
     status: "correct" | "incorrect" | "pending";
     // issue #92 / back#278: 出題形式。並べ替え形式（reorder）では親の
     // Answer#source が nil になるため、source は string | null で表現する。
-    // kind は optional: tests/components/answer/SourceResult.spec.tsx の
-    // correctAnswer fixture（変更禁止）が kind を持たないため、必須化すると
-    // その fixture の型チェックが壊れる。必須化するにはテスト側のfixture
-    // 更新が必要（このリファクタでは対象外）。
-    kind?: Kind;
+    // back は必ず kind を返すため必須にする（fixture 側を実態に合わせて更新済み）
+    kind: Kind;
   };
   relationships: {
     user_sangaku_save: {
@@ -187,8 +183,8 @@ export type AdminSangaku = {
     // Answer 型の source と同様 string | null で表現する。
     source: string | null;
     // issue #92 / back#278: 出題形式。並べ替え形式は code_blocks を伴う。
-    // Sangaku 型の同フィールドと同様、既存の消費箇所は無改修で通る想定の追加項目
-    kind?: Kind;
+    // Sangaku 型の同フィールドと同様、back は一覧・詳細どちらでも必ず返す。
+    kind: Kind;
     code_blocks?: CodeBlock[];
   };
 };

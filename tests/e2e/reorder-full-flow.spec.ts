@@ -917,6 +917,9 @@ test.describe("reorder sangaku full creation flow", () => {
     // （受入条件の中核）ことを検証する。back（モック）の判定ロジック自体は
     // 対象外で、フロントが「利用しないエリアにダミーが残っていても送信できる」
     // ことを確認する。
+    // 送信された block_ids にダミーブロックの id が含まれないことを確かめるため、
+    // POST リクエストのペイロードを capturedBody に記録する
+    let capturedBody: unknown;
     msw.use(
       http.get(`${apiUrl}/api/v1/user/saved_sangakus/5`, () => {
         return HttpResponse.json(
@@ -946,7 +949,8 @@ test.describe("reorder sangaku full creation flow", () => {
           { status: 200 },
         );
       }),
-      http.post(`${apiUrl}/api/v1/user/saved_sangakus/5/answer`, () => {
+      http.post(`${apiUrl}/api/v1/user/saved_sangakus/5/answer`, async ({ request }) => {
+        capturedBody = await request.json();
         return HttpResponse.json(
           {
             data: {
@@ -1047,6 +1051,10 @@ test.describe("reorder sangaku full creation flow", () => {
     });
     await expect(resultHeading).toBeVisible();
     await expect(page.getByText("明察")).toBeVisible();
+
+    // Assert: 送信された block_ids にダミーブロック（id: 3）が含まれていない
+    const body = capturedBody as { answer?: { block_ids?: number[] } };
+    expect(body.answer?.block_ids).toEqual([1, 2]);
   });
 
   test("should allow me to see the incorrect result when answering a saved reorder sangaku in the wrong order", async ({
