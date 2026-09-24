@@ -22,10 +22,16 @@ export async function waitForNetworkIdle(page: Page) {
  * .view-lines が visible になった時点で Monaco の初期化とレンダリングが完了している。
  * @param page - Playwright の Page オブジェクト
  * @param nth  - ページ内に複数の Monaco Editor がある場合のインデックス（デフォルト: 0）
+ * @param testId - Monaco Editor を包む要素の data-testid（デフォルト: "monaco-editor-source"。
+ *                 CodeBlockEditor.tsx の分割前コード入力は "monaco-editor-block-input"）
  */
-export async function waitForMonacoEditor(page: Page, nth = 0) {
+export async function waitForMonacoEditor(
+  page: Page,
+  nth = 0,
+  testId = "monaco-editor-source",
+) {
   await page
-    .getByTestId("monaco-editor-source")
+    .getByTestId(testId)
     .nth(nth)
     .locator(".view-lines")
     .waitFor({ state: "visible", timeout: 30_000 });

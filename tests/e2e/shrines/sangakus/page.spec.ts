@@ -150,6 +150,33 @@ test.describe("/shrines/[id]/sangakus", () => {
       });
       await expect(message).toBeVisible();
     });
+
+    test("should allow me to filter shrine sangaku list by kind when the kind query param is present", async ({
+      page,
+      msw,
+    }) => {
+      // Arrange
+      let capturedKind: string | null = "not_called";
+      msw.use(
+        http.get(`${apiUrl}/api/v1/shrines/1/sangakus`, ({ request }) => {
+          capturedKind = new URL(request.url).searchParams.get("kind");
+          return HttpResponse.json(
+            { data: [] },
+            { status: 200, headers: { "total-pages": "0" } },
+          );
+        }),
+      );
+
+      // Act
+      await page.goto("/shrines/1/sangakus?kind=reorder");
+
+      // Assert
+      const heading = page.getByRole("heading", {
+        name: "test_shrineの算額一覧",
+      });
+      await expect(heading).toBeVisible();
+      expect(capturedKind).toBe("reorder");
+    });
   });
 
   test.describe("after signin", () => {

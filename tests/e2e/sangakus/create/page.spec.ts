@@ -43,7 +43,7 @@ test.describe("/sangakus/create", () => {
               message: "success",
             });
           }),
-          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
             return HttpResponse.json(
               { used: 0, limit: 5, remaining: 5, reset_at: "2026-04-12T18:00:00Z" },
               { status: 200 },
@@ -60,7 +60,7 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to see filled form content in the confirmation modal", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await page.getByLabel("タイトル").fill("test_title");
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
@@ -97,13 +97,13 @@ test.describe("/sangakus/create", () => {
         },
       };
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 200 });
         }),
       );
 
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await page.getByLabel("タイトル").fill("test_title");
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
@@ -120,7 +120,7 @@ test.describe("/sangakus/create", () => {
       page,
     }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -159,7 +159,7 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json(
             {
               source: generatedSource,
@@ -168,13 +168,13 @@ test.describe("/sangakus/create", () => {
             { status: 200 },
           );
         }),
-        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 200 });
         }),
       );
 
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -223,14 +223,14 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 400 });
         }),
       );
 
       // NOTE: Test start
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       // NOTE: フォーム操作
       await page.getByLabel("タイトル").fill("");
       await page.getByLabel("問題文").fill("");
@@ -249,7 +249,7 @@ test.describe("/sangakus/create", () => {
         .locator(".monaco-editor");
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
-      await expect(page).toHaveURL("/sangakus/create");
+      await expect(page).toHaveURL("/sangakus/create?kind=code");
       const titleErrorMessage = page.getByLabel("titleError");
       await expect(titleErrorMessage).toBeVisible();
       await expect(titleErrorMessage).toHaveText("を入力してください");
@@ -277,13 +277,13 @@ test.describe("/sangakus/create", () => {
       };
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus`, () => {
           return HttpResponse.json(backendResponse, { status: 400 });
         }),
       );
 
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await page.getByLabel("タイトル").fill("test_title");
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
@@ -291,7 +291,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
 
-      await expect(page).toHaveURL("/sangakus/create");
+      await expect(page).toHaveURL("/sangakus/create?kind=code");
       const flash = page.getByTestId("flash-message");
       await expect(flash).toBeVisible({ timeout: 10_000 });
       await expect(flash).toContainText("入力に誤りがあります");
@@ -301,7 +301,7 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to see usage indicator with remaining count", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
 
       const usageIndicator = page.getByText(/本日の残り生成回数: 5 \/ 5/);
       await expect(usageIndicator).toBeVisible();
@@ -311,7 +311,7 @@ test.describe("/sangakus/create", () => {
       const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
 
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json(
             {
               source: generatedSource,
@@ -323,7 +323,7 @@ test.describe("/sangakus/create", () => {
       );
 
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -337,13 +337,13 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to see an error message on 429 response", async ({ page, msw }) => {
       msw.use(
-        http.post(`${apiUrl}/api/v1/user/sangakus/generate_source`, () => {
+        http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
           return HttpResponse.json({}, { status: 429 });
         }),
       );
 
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForMonacoEditor(page);
       await waitForInteractive(page.getByLabel("問題文"));
 
@@ -366,14 +366,14 @@ test.describe("/sangakus/create", () => {
     }) => {
       msw.use(
         http.get(
-          `${apiUrl}/api/v1/user/sangakus/generate_source_usage`,
+          `${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`,
           () => {
             return HttpResponse.json({}, { status: 500 });
           },
         ),
       );
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await expect(
         page.getByText("本日の残り生成回数: - / -"),
       ).toBeVisible({ timeout: 10_000 });
@@ -381,7 +381,7 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to preview markdown content with rendered content and empty placeholder", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForInteractive(page.getByLabel("問題文"));
 
       // 空の状態でプレビューに切り替えてプレースホルダーを確認
@@ -418,7 +418,7 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to go back from the confirmation modal to the edit screen", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForMonacoEditor(page);
       await page.getByRole("button", { name: "確認画面へ" }).click();
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
@@ -429,7 +429,7 @@ test.describe("/sangakus/create", () => {
 
     test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
       await waitForInteractive(page.getByLabel("問題文"));
 
       const longDescription = "あ".repeat(2001);
@@ -447,6 +447,197 @@ test.describe("/sangakus/create", () => {
     });
   });
 
+  test.describe("kind selection", () => {
+    test.use({
+      mswHandlers: [
+        [
+          http.get(`${apiUrl}/up`, () => {
+            return HttpResponse.json({
+              message: "success",
+            });
+          }),
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
+            return HttpResponse.json(
+              { used: 0, limit: 5, remaining: 5, reset_at: "2026-04-12T18:00:00Z" },
+              { status: 200 },
+            );
+          }),
+          // allow all non-mocked routes to pass through
+          http.all("*", () => {
+            return passthrough();
+          }),
+        ],
+        { scope: "test" }, // or 'worker'
+      ],
+    });
+
+    test("should allow me to see kind selection links when kind is not specified", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create");
+      await expect(page.getByRole("link", { name: "コード記述形式で作成" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "並べ替え形式で作成" })).toBeVisible();
+    });
+
+    test("should allow me to see reorder sangaku form when kind is reorder", async ({ page }) => {
+      await setSession(page);
+      await page.goto("/sangakus/create?kind=reorder");
+      await expect(page.getByLabel("タイトル")).toBeVisible();
+      await expect(page.getByRole("button", { name: "行分割して生成" })).toBeVisible();
+    });
+
+    test("should allow me to save a reorder sangaku with correctly shaped payload", async ({ page, msw }) => {
+      let capturedBody: unknown;
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/reorder_sangakus`, async ({ request }) => {
+          capturedBody = await request.json();
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "sangaku",
+                attributes: {
+                  title: "test_title",
+                  description: "test_description",
+                  difficulty: "easy",
+                  kind: "reorder",
+                  source: null,
+                  inputs: [],
+                  author_name: "test",
+                  shrine_name: null,
+                  code_blocks: [],
+                },
+                relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create?kind=reorder");
+      await page.getByLabel("タイトル").fill("test_title");
+      await page.getByLabel("問題文").fill("test_description");
+      // 難易度は初期値 "normal" のままでよい
+
+      // CodeBlockEditor: テキストを入力して「行分割して生成」で2ブロック生成
+      await waitForMonacoEditor(page, 0, "monaco-editor-block-input");
+      await page
+        .getByTestId("monaco-editor-block-input")
+        .locator(".monaco-editor")
+        .click();
+      await page.keyboard.type("puts 1");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("puts 2");
+      await page.getByRole("button", { name: "行分割して生成" }).click();
+
+      // ダミーブロックを1つ追加し、内容を入力する
+      // （空ブロックのまま送信するとback側が汎用エラーで弾くため、
+      // CodeBlockEditor.tsx は確認画面へ進むボタンを無効化する。
+      // ダミーブロックも例外ではなく内容の入力が必須）
+      await page.getByRole("button", { name: "ダミーブロックを追加" }).click();
+      await page.getByLabel("block-content-2").fill("puts 999");
+
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      await expect.poll(() => capturedBody).toBeTruthy();
+      expect(capturedBody).toEqual({
+        sangaku: { title: "test_title", description: "test_description", difficulty: "normal" },
+        code_blocks: [
+          { content: "puts 1", correct_position: 1 },
+          { content: "puts 2", correct_position: 2 },
+          { content: "puts 999", correct_position: null },
+        ],
+      });
+    });
+
+    test("should allow me to save a reorder sangaku and be redirected with a flash message", async ({ page, msw }) => {
+      const backendResponse = {
+        data: {
+          id: "1",
+          type: "sangaku",
+          attributes: {
+            title: "test_title",
+            description: "test_description",
+            difficulty: "normal",
+            kind: "reorder",
+            source: null,
+            inputs: [],
+            author_name: "test",
+            shrine_name: null,
+            code_blocks: [],
+          },
+          relationships: { user: { data: { id: "1", type: "user" } }, shrine: { data: null } },
+        },
+      };
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/reorder_sangakus`, () => {
+          return HttpResponse.json(backendResponse, { status: 200 });
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create?kind=reorder");
+      await page.getByLabel("タイトル").fill("test_title");
+      await page.getByLabel("問題文").fill("test_description");
+      await waitForMonacoEditor(page, 0, "monaco-editor-block-input");
+      await page
+        .getByTestId("monaco-editor-block-input")
+        .locator(".monaco-editor")
+        .click();
+      await page.keyboard.type("puts 1");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("puts 2");
+      await page.getByRole("button", { name: "行分割して生成" }).click();
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      await expect(page).toHaveURL("/");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額を作成しました");
+    });
+
+    test("should allow me to see field errors when reorder sangaku submission fails", async ({ page, msw }) => {
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/reorder_sangakus`, () => {
+          return HttpResponse.json(
+            {
+              errors: [
+                ["title", ["を入力してください"]],
+                ["description", ["を入力してください"]],
+                ["difficulty", ["を入力してください"]],
+              ],
+            },
+            { status: 400 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create?kind=reorder");
+      await waitForMonacoEditor(page, 0, "monaco-editor-block-input");
+      await page
+        .getByTestId("monaco-editor-block-input")
+        .locator(".monaco-editor")
+        .click();
+      await page.keyboard.type("puts 1");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("puts 2");
+      await page.getByRole("button", { name: "行分割して生成" }).click();
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      await expect(page.getByLabel("titleError")).toHaveText("を入力してください");
+      await expect(page.getByLabel("descriptionError")).toHaveText("を入力してください");
+      await expect(page.getByLabel("difficultyError")).toHaveText("を入力してください");
+    });
+  });
+
   test.describe("when daily limit is reached", () => {
     test.use({
       mswHandlers: [
@@ -454,7 +645,7 @@ test.describe("/sangakus/create", () => {
           http.get(`${apiUrl}/up`, () => {
             return HttpResponse.json({ message: "success" });
           }),
-          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
             return HttpResponse.json(
               { used: 5, limit: 5, remaining: 0, reset_at: "2026-04-12T18:00:00Z" },
               { status: 200 },
@@ -468,7 +659,7 @@ test.describe("/sangakus/create", () => {
 
     test("should not allow me to click the generate button when remaining is 0", async ({ page }) => {
       await setSession(page);
-      await page.goto("/sangakus/create");
+      await page.goto("/sangakus/create?kind=code");
 
       await page.getByLabel("問題文").fill("問題文を入力");
       const generateButton = page.getByRole("button", { name: "問題文からコードを生成" });

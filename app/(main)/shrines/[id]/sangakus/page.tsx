@@ -10,7 +10,12 @@ import { Metadata } from "next";
 
 interface Props {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page: string; query: string; difficulty: string }>;
+  searchParams: Promise<{
+    page: string;
+    query: string;
+    difficulty: string;
+    kind?: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -31,6 +36,7 @@ export default async function Page(props: Props) {
   const page = (await props.searchParams).page || "1";
   const query = (await props.searchParams).query || "";
   const difficulty = (await props.searchParams).difficulty || "";
+  const kind = (await props.searchParams).kind;
 
   const shrine = await fetchShrine(id);
 
@@ -44,10 +50,16 @@ export default async function Page(props: Props) {
         {shrine.attributes.name}の算額一覧
       </Typography>
       <Container maxWidth="md">
-        <Search placeholder="タイトルで探す" difficulty />
+        <Search placeholder="タイトルで探す" difficulty kind />
       </Container>
+      {/*
+        kind はクエリパラメータ未指定時 undefined を取り得るため、
+        page/query/difficulty と同様に key へ含めて絞り込み変更時に
+        Suspense を再マウントさせつつ、undefined が文字列化されて
+        "undefined" という値が key に混入しないよう ?? "" でフォールバックする
+      */}
       <Suspense
-        key={page + query + difficulty}
+        key={page + query + difficulty + (kind ?? "")}
         fallback={<SangakuWithButtonListSkeleton width={102} />}
       >
         <SangakuList
@@ -55,6 +67,7 @@ export default async function Page(props: Props) {
           page={page}
           query={query}
           difficulty={difficulty}
+          kind={kind}
         />
       </Suspense>
     </Box>

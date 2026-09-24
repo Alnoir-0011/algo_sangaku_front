@@ -360,5 +360,76 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       const output = page.getByLabel("出力");
       await expect(output).toHaveValue("paiza mock output\n", { timeout: 10_000 });
     });
+
+    test.describe("when sangaku kind is reorder", () => {
+      test.use({
+        mswHandlers: [
+          [
+            http.get(`${apiUrl}/api/v1/user/saved_sangakus/2`, () => {
+              return HttpResponse.json(
+                {
+                  data: {
+                    id: "2",
+                    type: "sangaku",
+                    attributes: {
+                      title: "reorder_title",
+                      description: "reorder_desc",
+                      difficulty: "normal",
+                      inputs: [],
+                      author_name: "another_user",
+                      kind: "reorder",
+                      code_blocks: [
+                        { id: 1, content: "block1" },
+                        { id: 2, content: "block2" },
+                      ],
+                    },
+                    relationships: {
+                      user: {
+                        data: {
+                          id: "1",
+                          type: "user",
+                        },
+                      },
+                      shrine: {
+                        data: {
+                          id: "1",
+                          type: "shrine",
+                        },
+                      },
+                    },
+                  },
+                },
+                {
+                  status: 200,
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+            }),
+            // allow all non-mocked routes to pass through
+            http.all("*", () => {
+              return passthrough();
+            }),
+          ],
+          { scope: "test" },
+        ],
+      });
+
+      test("should allow me to see ReorderPuzzle when sangaku kind is reorder", async ({
+        page,
+      }) => {
+        await setSession(page);
+        await page.goto("/saved_sangakus/2/answer/create");
+        const title = page.getByRole("heading", { name: "reorder_title" });
+        await expect(title).toBeVisible();
+        const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+        await expect(unusedBlocksArea).toBeVisible();
+        const moveToAnswerButton = page
+          .getByRole("button", { name: "解答エリアへ移動" })
+          .first();
+        await expect(moveToAnswerButton).toBeVisible();
+      });
+    });
   });
 });

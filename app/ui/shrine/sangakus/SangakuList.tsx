@@ -9,6 +9,7 @@ interface Props {
   page: string;
   query: string;
   difficulty: string;
+  kind?: string;
 }
 
 export default async function SangakuList({
@@ -16,12 +17,14 @@ export default async function SangakuList({
   page,
   query,
   difficulty,
+  kind,
 }: Props) {
   const { sangakus, totalPage, message } = await fetchShrineSangakus(
     shrine_id,
     page,
     query,
     difficulty,
+    kind,
   );
   const savedIds = await fetchSavedSangakuIds(sangakus.map((s) => s.id));
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, KeyboardEvent } from "react";
 import Box from "@mui/material/Box";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -15,6 +15,10 @@ interface Props {
   label?: string;
 }
 
+// Tab キーで挿入するインデント幅。タブ文字はレンダリング環境によって幅が
+// 変わりうるため、見た目が一定になる半角スペースを使う。
+const INDENT = "  ";
+
 export default function MarkdownEditor({
   value,
   onChange,
@@ -28,6 +32,20 @@ export default function MarkdownEditor({
     height,
     overflowY: "auto",
   } as const;
+
+  // ブラウザ標準では Tab キーは次のフォーカス可能要素への移動に使われ、
+  // textarea 内にインデントを入力できない。ここでデフォルト動作を止めて
+  // カーソル位置に半角スペースを挿入する。
+  // document.execCommand("insertText") を使うことで、ブラウザ本来のテキスト
+  // 挿入・カーソル移動・undo履歴の仕組みにそのまま乗せる。value を直接
+  // 組み立てて setSelectionRange でカーソル位置を復元する自前実装は、
+  // controlled component の再レンダリングとカーソル位置更新のタイミングが
+  // 競合し、意図しない値になる問題があったため採用していない。
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Tab" || e.shiftKey) return;
+    e.preventDefault();
+    document.execCommand("insertText", false, INDENT);
+  }
 
   return (
     <Box>
@@ -71,6 +89,7 @@ export default function MarkdownEditor({
           variant="outlined"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="マークダウン記法で記述できます"
           sx={{
             "& .MuiInputBase-root": {

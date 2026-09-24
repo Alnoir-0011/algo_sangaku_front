@@ -2,18 +2,27 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import type {
-  Sangaku,
-  SangakuResult,
-  GenerateSourceUsage,
-} from "../definitions";
+import type { Sangaku, SangakuResult, GenerateSourceUsage } from "../definitions";
+import { isKind } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
+import { isValidId } from "@/app/lib/validate-id";
+
+// kind は Search.tsx の Select が選択肢を絞っているため通常は不正な値が来ないが、
+// この関数群は "use server" 経由の直接呼び出しにも晒される。UI をバイパスした
+// 呼び出しで back に任意の文字列を転送しないよう、isKind でホワイトリスト検証する
+// （不正な値は絞り込みなしとして無視する）
+function appendKindParam(params: URLSearchParams, kind?: string): void {
+  if (kind && isKind(kind)) {
+    params.set("kind", kind);
+  }
+}
 
 export async function fetchUserSangakus(
   page: string,
   query: string,
   shrine_id: "" | "any" | number,
+  kind?: string,
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
   const session = await auth();
 
@@ -24,6 +33,8 @@ export async function fetchUserSangakus(
   if (query) {
     params.set("title", query);
   }
+
+  appendKindParam(params, kind);
 
   try {
     const res = await serverFetch(
@@ -66,12 +77,19 @@ export async function fetchUserSangakus(
 }
 
 export async function fetchUserSangaku(id: string) {
+  // id はクライアントが完全に制御できる値のため、URL に補間する前に検証する
+  // （不正な値をそのまま補間するとパストラバーサルにつながりうる）
+  if (!isValidId(id)) {
+    return null;
+  }
+
   const session = await auth();
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}`, {
-      token: session?.accessToken,
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(id)}`,
+      { token: session?.accessToken },
+    );
 
     switch (res.status) {
       case 200:
@@ -97,12 +115,24 @@ export async function fetchShrineSangakus(
   page: string,
   query: string,
   difficulty: string,
+  kind?: string,
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
+  // shrine_id はクライアントが完全に制御できる値のため、URL に補間する前に検証する
+  if (!isValidId(shrine_id)) {
+    return {
+      sangakus: [] as Sangaku[],
+      totalPage: 0,
+      message: "リクエストに失敗しました",
+    };
+  }
+
   try {
     const params = new URLSearchParams({ page, title: query, difficulty });
 
+    appendKindParam(params, kind);
+
     const res = await serverFetch(
-      `${apiUrl}/api/v1/shrines/${shrine_id}/sangakus?${params}`,
+      `${apiUrl}/api/v1/shrines/${encodeURIComponent(shrine_id)}/sangakus?${params}`,
     );
 
     if (res.status === 200) {
@@ -173,6 +203,7 @@ export async function fetchSavedSangakus(
   query: string,
   difficulty: string,
   type?: "before_answer" | "answered",
+  kind?: string,
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
   const session = await auth();
 
@@ -182,6 +213,8 @@ export async function fetchSavedSangakus(
     if (type) {
       params.set("type", type);
     }
+
+    appendKindParam(params, kind);
 
     const res = await serverFetch(`${apiUrl}/api/v1/user/saved_sangakus?${params}`, {
       token: session?.accessToken,
@@ -225,6 +258,11 @@ export async function fetchSavedSangaku(
   id: string,
   type?: "before_answer" | "answered",
 ) {
+  // id はクライアントが完全に制御できる値のため、URL に補間する前に検証する
+  if (!isValidId(id)) {
+    return null;
+  }
+
   const session = await auth();
 
   try {
@@ -234,7 +272,7 @@ export async function fetchSavedSangaku(
     }
 
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/saved_sangakus/${id}?${params}`,
+      `${apiUrl}/api/v1/user/saved_sangakus/${encodeURIComponent(id)}?${params}`,
       { token: session?.accessToken },
     );
 
@@ -263,8 +301,11 @@ export async function fetchGenerateSourceUsage(): Promise<
   const session = await auth();
 
   try {
+    // AI コード生成の利用状況取得もコード問題専用の機能のため、作成・更新・生成と同様に
+    // code_sangakus エンドポイントを使う（エンドポイントの使い分けの理由は
+    // app/lib/actions/sangaku.ts の createSangaku 内のコメント参照）
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/sangakus/generate_source_usage`,
+      `${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`,
       { token: session?.accessToken },
     );
 
@@ -288,12 +329,18 @@ export async function fetchGenerateSourceUsage(): Promise<
 }
 
 export async function fetchUserSangakuResult(id: string) {
+  // id はクライアントが完全に制御できる値のため、URL に補間する前に検証する
+  if (!isValidId(id)) {
+    return null;
+  }
+
   const session = await auth();
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/${id}/result`, {
-      token: session?.accessToken,
-    });
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(id)}/result`,
+      { token: session?.accessToken },
+    );
 
     switch (res.status) {
       case 200:

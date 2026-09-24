@@ -5,11 +5,16 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/actions/flash";
-import { Difficulty, GenerateSourceUsage } from "../definitions";
+import {
+  Difficulty,
+  GenerateSourceUsage,
+  ReorderCodeBlockInput,
+} from "../definitions";
 import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
 import { isValidId } from "@/app/lib/validate-id";
+import { isValidCodeBlocks } from "@/app/lib/validate-reorder-code-blocks";
 
 const apiUrl = process.env.API_URL!;
 
@@ -29,6 +34,9 @@ export type State = {
     description?: string[];
     source?: string[];
     fixed_inputs?: string[];
+    // 並べ替え形式（issue #92 / back#278）の作成・更新エラー用
+    difficulty?: string[];
+    code_blocks?: string[];
   };
   values?: {
     title?: string;
@@ -59,7 +67,10 @@ export const createSangaku = async (
   };
 
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus`, {
+    // 作成・更新はコード問題専用の code_sangakus エンドポイントを使う。
+    // 削除のみ sangaku 種別に依らない汎用の sangakus エンドポイントを使うため、
+    // delete だけエンドポイント名が異なる（updateSangaku 内も参照）。
+    const res = await serverFetch(`${apiUrl}/api/v1/user/code_sangakus`, {
       method: "POST",
       token: session?.accessToken,
       body: JSON.stringify(params),
@@ -84,13 +95,11 @@ export const createSangaku = async (
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
           errors: parseApiErrors(data.errors),
-          // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
-          // message: "リクエストに失敗しました",
           values: { title, description },
         } as State;
     }
@@ -100,7 +109,109 @@ export const createSangaku = async (
     }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
-      // message: "予期せぬエラーが発生しました",
+      values: { title, description },
+    } as State;
+  }
+};
+
+// back の Sangaku#title / Sangakuable#description（concerns/sangakuable.rb）の
+// length validator と同値
+const MAX_TITLE_LENGTH = 255;
+const MAX_DESCRIPTION_LENGTH = 65_535;
+const DIFFICULTIES: Difficulty[] = [
+  "easy",
+  "normal",
+  "difficult",
+  "very_difficult",
+];
+
+function isValidReorderPayload(
+  title: unknown,
+  difficulty: unknown,
+  description: unknown,
+  codeBlocks: unknown,
+): codeBlocks is ReorderCodeBlockInput[] {
+  // title の空文字チェック（presence）は back のフィールドエラー
+  // （「タイトルを入力してください」等）に委ね、ここでは弾かない。
+  // 空文字を front で弾いてしまうと serverFetch 自体が呼ばれなくなり、
+  // back が返すフィールド単位のエラーメッセージを表示できなくなる。
+  return (
+    typeof title === "string" &&
+    title.length <= MAX_TITLE_LENGTH &&
+    typeof description === "string" &&
+    description.length <= MAX_DESCRIPTION_LENGTH &&
+    DIFFICULTIES.includes(difficulty as Difficulty) &&
+    isValidCodeBlocks(codeBlocks)
+  );
+}
+
+export const createReorderSangaku = async (
+  _prevState: State,
+  formData: FormData,
+  difficulty: Difficulty,
+  description: string,
+  codeBlocks: ReorderCodeBlockInput[],
+) => {
+  const session = await auth();
+  const title = formData.get("title");
+
+  // title はファイル入力等から FormDataEntryValue として File が渡る可能性があり、
+  // difficulty/codeBlocks は "use server" 経由で直接呼び出された場合クライアントの
+  // 型注釈を経由しない任意の値になりうる。back に転送する前に実行時の形を検証する
+  if (!isValidReorderPayload(title, difficulty, description, codeBlocks)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return {} as State;
+  }
+
+  const params = {
+    sangaku: {
+      title,
+      description,
+      difficulty,
+    },
+    code_blocks: codeBlocks,
+  };
+
+  try {
+    const res = await serverFetch(`${apiUrl}/api/v1/user/reorder_sangakus`, {
+      method: "POST",
+      token: session?.accessToken,
+      body: JSON.stringify(params),
+    });
+
+    switch (res.status) {
+      case 200: {
+        await setFlash({ type: "success", message: "算額を作成しました" });
+        revalidatePath("/user/sangakus");
+        redirect("/");
+      }
+      case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度サインインしてください",
+        });
+        await customSignOut();
+        return {} as State;
+      case 400:
+        const data = await res.json();
+        await setFlash({ type: "error", message: "入力に誤りがあります" });
+        return {
+          errors: parseApiErrors(data.errors),
+          values: { title, description },
+        } as State;
+      default:
+        await setFlash({ type: "error", message: "リクエストに失敗しました" });
+        return {
+          values: { title, description },
+        } as State;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return {
       values: { title, description },
     } as State;
   }
@@ -135,8 +246,10 @@ export const updateSangaku = async (
   };
 
   try {
+    // 更新も作成と同様にコード問題専用の code_sangakus エンドポイントを使う
+    // （エンドポイントの使い分けの理由は createSangaku 内のコメント参照）
     const res = await serverFetch(
-      `${apiUrl}/api/v1/user/sangakus/${encodeURIComponent(id)}`,
+      `${apiUrl}/api/v1/user/code_sangakus/${encodeURIComponent(id)}`,
       {
         method: "PATCH",
         token: session?.accessToken,
@@ -163,13 +276,11 @@ export const updateSangaku = async (
         await setFlash({ type: "error", message: "入力に誤りがあります" });
         return {
           errors: parseApiErrors(data.errors),
-          // message: "入力に誤りがあります",
           values: { title, description },
         } as State;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
-          // message: "リクエストに失敗しました",
           values: { title, description },
         } as State;
     }
@@ -179,8 +290,90 @@ export const updateSangaku = async (
     }
     await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
     return {
-      // message: "予期せぬエラーが発生しました",
       values: { title, description },
+    } as State;
+  }
+};
+
+export const updateReorderSangaku = async (
+  id: string,
+  _prevState: State,
+  formData: FormData,
+  difficulty: Difficulty,
+  description: string,
+  codeBlocks: ReorderCodeBlockInput[],
+) => {
+  const session = await auth();
+
+  if (!isValidId(id)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return {} as State;
+  }
+
+  const title = formData.get("title");
+
+  // createReorderSangaku と同じ理由（"use server" 経由での直接呼び出しに対する
+  // 実行時検証）で、back に転送する前に title/difficulty/codeBlocks の形を検証する
+  if (!isValidReorderPayload(title, difficulty, description, codeBlocks)) {
+    await setFlash({ type: "error", message: "リクエストに失敗しました" });
+    return {} as State;
+  }
+
+  const formValues = { title, description };
+
+  const params = {
+    sangaku: {
+      title,
+      description,
+      difficulty,
+    },
+    code_blocks: codeBlocks,
+  };
+
+  try {
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/reorder_sangakus/${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        token: session?.accessToken,
+        body: JSON.stringify(params),
+      },
+    );
+
+    switch (res.status) {
+      case 200: {
+        await setFlash({ type: "success", message: "算額を更新しました" });
+        revalidatePath("/user/sangakus");
+        redirect("/user/sangakus");
+      }
+      case 401:
+        await setFlash({
+          type: "error",
+          message:
+            "セッションの有効期限が切れています。\n再度サインインしてください",
+        });
+        await customSignOut();
+        return {} as State;
+      case 400:
+        const data = await res.json();
+        await setFlash({ type: "error", message: "入力に誤りがあります" });
+        return {
+          errors: parseApiErrors(data.errors),
+          values: formValues,
+        } as State;
+      default:
+        await setFlash({ type: "error", message: "リクエストに失敗しました" });
+        return {
+          values: formValues,
+        } as State;
+    }
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    await setFlash({ type: "error", message: "予期せぬエラーが発生しました" });
+    return {
+      values: formValues,
     } as State;
   }
 };
@@ -371,11 +564,17 @@ export const generateSource = async (
 }> => {
   const session = await auth();
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/user/sangakus/generate_source`, {
-      method: "POST",
-      token: session?.accessToken,
-      body: JSON.stringify({ description }),
-    });
+    // AI によるコード生成もコード問題専用の機能のため、作成・更新と同様に
+    // code_sangakus エンドポイントを使う（エンドポイントの使い分けの理由は
+    // createSangaku 内のコメント参照）
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/user/code_sangakus/generate_source`,
+      {
+        method: "POST",
+        token: session?.accessToken,
+        body: JSON.stringify({ description }),
+      },
+    );
 
     switch (res.status) {
       case 200: {

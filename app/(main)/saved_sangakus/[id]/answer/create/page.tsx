@@ -1,6 +1,8 @@
 import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/answer/CreateForm";
+import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
+import { toPuzzleBlocks } from "@/app/ui/sangaku/reorder/toPuzzleBlocks";
 import { Metadata } from "next";
 import { cache } from "react";
 
@@ -31,6 +33,17 @@ export default async function Page(props: Props) {
 
   if (!sangaku) {
     notFound();
+  }
+
+  if (sangaku.attributes.kind === "reorder") {
+    return (
+      <ReorderPuzzle
+        sangakuId={sangaku.id}
+        blocks={toPuzzleBlocks(sangaku.attributes.code_blocks ?? [])}
+        title={sangaku.attributes.title}
+        description={sangaku.attributes.description}
+      />
+    );
   }
 
   return <Form sangaku={sangaku} />;

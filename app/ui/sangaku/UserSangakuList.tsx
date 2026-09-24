@@ -10,18 +10,21 @@ interface Props {
   page: string;
   query: string;
   dedicated?: boolean;
+  kind?: string;
 }
 
 export default async function UserSangakuList({
   page,
   query,
   dedicated,
+  kind,
 }: Props) {
   const type = dedicated ? "any" : "";
   const { sangakus, totalPage, message } = await fetchUserSangakus(
     page,
     query,
     type,
+    kind,
   );
 
   return (

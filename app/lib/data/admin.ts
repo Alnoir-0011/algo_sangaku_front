@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
+import { isValidId } from "@/app/lib/validate-id";
 import type { AdminUser, AdminSangaku, AdminShrine, AdminStats } from "@/app/lib/definitions";
 
 async function requireAdmin() {
@@ -70,8 +71,9 @@ export async function fetchAdminUsers(
 export async function fetchAdminUser(id: string): Promise<AdminUser | undefined | null> {
   const session = await requireAdmin();
   if (!session) return undefined;
+  if (!isValidId(id)) return null;
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/users/${encodeURIComponent(id)}`, {
       token: session.accessToken,
     });
     switch (res.status) {
@@ -128,8 +130,9 @@ export async function fetchAdminSangakus(
 export async function fetchAdminSangaku(id: string): Promise<AdminSangaku | undefined | null> {
   const session = await requireAdmin();
   if (!session) return undefined;
+  if (!isValidId(id)) return null;
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/sangakus/${encodeURIComponent(id)}`, {
       token: session.accessToken,
     });
     switch (res.status) {
@@ -186,8 +189,9 @@ export async function fetchAdminShrines(
 export async function fetchAdminShrine(id: string): Promise<AdminShrine | undefined | null> {
   const session = await requireAdmin();
   if (!session) return undefined;
+  if (!isValidId(id)) return null;
   try {
-    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${id}`, {
+    const res = await serverFetch(`${apiUrl}/api/v1/admin/shrines/${encodeURIComponent(id)}`, {
       token: session.accessToken,
     });
     switch (res.status) {

@@ -30,7 +30,7 @@ export default function Form({ sangaku }: Props) {
 
   async function postAnswerAction() {
     if (window.confirm("解答を終了しますか？")) {
-      const newState = await createAnswer(sangaku.id, source);
+      const newState = await createAnswer(sangaku.id, { source });
       return newState;
     }
   }

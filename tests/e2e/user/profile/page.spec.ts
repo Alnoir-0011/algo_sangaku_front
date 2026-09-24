@@ -69,7 +69,7 @@ test.describe("/user/profile", () => {
               },
             });
           }),
-          http.get(`${apiUrl}/api/v1/user/sangakus/generate_source_usage`, () => {
+          http.get(`${apiUrl}/api/v1/user/code_sangakus/generate_source_usage`, () => {
             return HttpResponse.json({
               used: 0,
               limit: 5,

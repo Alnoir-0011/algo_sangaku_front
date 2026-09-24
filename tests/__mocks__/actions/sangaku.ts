@@ -1,6 +1,8 @@
 export const deleteSangaku = async (_id: string): Promise<void> => {};
 export const createSangaku = async () => ({});
 export const updateSangaku = async () => ({});
+export const createReorderSangaku = async () => ({});
+export const updateReorderSangaku = async () => ({});
 export const generateSource = async () => ({});
 export const runSource = async (
   _source: string,
