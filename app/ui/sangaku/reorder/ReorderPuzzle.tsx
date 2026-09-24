@@ -158,8 +158,17 @@ interface BlockListItemProps {
 // unused-blocks-area / answer-blocks-area 共通のブロック1行分の見た目。
 // 「ブロック内容を表示し、右側に可変長のアクションボタン群を配置する」という
 // レイアウトの重複を吸収する。
-// ドラッグ操作は独立したハンドル（data-testid="drag-handle"）にのみ
-// listeners/attributes を適用し、アクションボタン（IconButton）はドラッグ不可のままにする。
+// ドラッグ開始ハンドラ（listeners）は Paper 全体に適用し、アイコン部分に
+// 限らずどこを掴んでも移動できるようにする。一方 ARIA の role="button" /
+// tabIndex 等（attributes）は掴み用アイコンにのみ残す。Paper 自体に
+// attributes まで適用すると、role="button" を持つ要素の中に実際の
+// IconButton がネストする形になり、アクセシビリティツリー上「ブロック全体を
+// 表す button」と「個々のアクションボタン」が同じ名前でマッチしてしまい、
+// E2E の getByRole("button", { name: ... }) が意図しない方（ブロック全体）
+// を掴んでしまう不具合があったため分離している。
+// アクション領域（Stack）では pointerdown/keydown の伝播を止め、右側の
+// ボタンを掴んでも意図しないドラッグが始まらないようにする（ボタン自体の
+// click は伝播を止めても発火する）。
 function BlockListItem({ id, content, actions }: BlockListItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
@@ -170,24 +179,31 @@ function BlockListItem({ id, content, actions }: BlockListItemProps) {
       data-testid="block-item"
       style={{ transform: CSS.Transform.toString(transform), transition }}
       variant="outlined"
+      {...listeners}
       sx={{
         p: 1.5,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 1,
+        cursor: "grab",
       }}
     >
       <Box
         data-testid="drag-handle"
         {...attributes}
-        {...listeners}
-        sx={{ display: "flex", alignItems: "center", cursor: "grab" }}
+        sx={{ display: "flex", alignItems: "center" }}
       >
         <DragIndicatorIcon fontSize="small" />
       </Box>
       {content}
-      <Stack direction="row" spacing={0.5}>
+      <Stack
+        direction="row"
+        spacing={0.5}
+        onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        sx={{ cursor: "auto" }}
+      >
         {actions}
       </Stack>
     </Paper>

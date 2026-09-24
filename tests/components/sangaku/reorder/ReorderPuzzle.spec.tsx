@@ -445,6 +445,59 @@ test.describe("ReorderPuzzle", () => {
     await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  test("should allow me to move a block to the answer area when dragging it from anywhere in the block other than the drag handle icon", async ({
+    mount,
+    page,
+  }) => {
+    // ドラッグ開始点がハンドルアイコンに限定されず、ブロック内容のテキスト
+    // 部分を掴んでも移動できることを検証する（アイコン部分でしか D&D が
+    // 機能しない不具合の回帰テスト）。
+    // Arrange
+    const component = await mount(<ReorderPuzzle
+        sangakuId="1"
+        blocks={blocks}
+        title={title}
+        description={description}
+      />);
+    const unusedArea = component.getByTestId("unused-blocks-area");
+    const answerArea = component.getByTestId("answer-blocks-area");
+    const blockContent = unusedArea.getByText("puts 2");
+
+    // Act: アイコン（drag-handle）ではなく、ブロック内容のテキスト自体を掴む
+    await dragLocatorTo(page, blockContent, answerArea);
+
+    // Assert
+    await expect(answerArea.getByText("puts 2")).toBeVisible();
+    await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
+  });
+
+  test("should not allow me to start dragging a block when pressing down on an action button", async ({
+    mount,
+    page,
+  }) => {
+    // 右側のアクションボタン（「解答エリアへ移動」等）を掴んでもドラッグが
+    // 開始されず、ボタン本来のクリック操作のみが実行されることを検証する。
+    // Arrange
+    const component = await mount(<ReorderPuzzle
+        sangakuId="1"
+        blocks={blocks}
+        title={title}
+        description={description}
+      />);
+    const unusedArea = component.getByTestId("unused-blocks-area");
+    const answerArea = component.getByTestId("answer-blocks-area");
+    const moveButton = unusedArea
+      .getByText("puts 2")
+      .getByRole("button", { name: "解答エリアへ移動" });
+
+    // Act: ボタンの上から解答エリアへドラッグを試みる
+    await dragLocatorTo(page, moveButton, answerArea);
+
+    // Assert: ドラッグでは移動せず、未使用エリアに残ったままになる
+    await expect(unusedArea.getByText("puts 2")).toBeVisible();
+    await expect(answerArea.getByText("puts 2")).toHaveCount(0);
+  });
+
   test("should allow me to insert a block at the position it is dropped on when dragging it from the unused area into the middle of the answer area", async ({
     mount,
     page,
