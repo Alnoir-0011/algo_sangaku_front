@@ -81,6 +81,7 @@ export default function GuestReorderPuzzle({
         title={title}
         description={description}
         onSubmit={handleSubmit}
+        locked={result !== null && !("error" in result)}
       />
       {result && renderResult(result)}
     </Stack>

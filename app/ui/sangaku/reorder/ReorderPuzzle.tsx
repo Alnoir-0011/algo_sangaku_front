@@ -49,6 +49,8 @@ interface Props {
   title: string;
   description: string;
   onSubmit?: (blockIds: number[]) => void | Promise<void>;
+  // true の間は全ての操作（ボタン・D&D・解答終了）を無効化する。
+  locked?: boolean;
 }
 
 // 解答エリアへ移動するボタンの文言。Tooltip の title と IconButton の
@@ -154,6 +156,7 @@ interface BlockListItemProps {
   // エリアごとにボタンの数・種類が異なるため、固定の props にせず
   // ReactNode として自由な数・種類を渡せるようにする。
   actions: ReactNode;
+  locked?: boolean;
 }
 
 // unused-blocks-area / answer-blocks-area 共通のブロック1行分の見た目。
@@ -170,9 +173,14 @@ interface BlockListItemProps {
 // アクション領域（Stack）では pointerdown/keydown の伝播を止め、右側の
 // ボタンを掴んでも意図しないドラッグが始まらないようにする（ボタン自体の
 // click は伝播を止めても発火する）。
-function BlockListItem({ id, content, actions }: BlockListItemProps) {
+function BlockListItem({
+  id,
+  content,
+  actions,
+  locked = false,
+}: BlockListItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+    useSortable({ id, disabled: locked });
 
   return (
     <Paper
@@ -180,14 +188,15 @@ function BlockListItem({ id, content, actions }: BlockListItemProps) {
       data-testid="block-item"
       style={{ transform: CSS.Transform.toString(transform), transition }}
       variant="outlined"
-      {...listeners}
+      {...(locked ? {} : listeners)}
       sx={{
         p: 1.5,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 1,
-        cursor: "grab",
+        cursor: locked ? "default" : "grab",
+        opacity: locked ? 0.7 : 1,
       }}
     >
       <Box
@@ -246,6 +255,7 @@ interface UnusedBlockAreaProps {
   blockIds: number[];
   blockById: Map<number, PuzzleBlock>;
   onMoveToAnswer: (id: number) => void;
+  locked: boolean;
 }
 
 // 「利用しないエリア」の描画のみを担当する。ReorderPuzzle 本体から
@@ -254,6 +264,7 @@ function UnusedBlockArea({
   blockIds,
   blockById,
   onMoveToAnswer,
+  locked,
 }: UnusedBlockAreaProps) {
   const { setNodeRef } = useDroppable({ id: UNUSED_AREA_ID });
 
@@ -283,11 +294,13 @@ function UnusedBlockArea({
                 key={id}
                 id={id}
                 content={blockById.get(id)?.content ?? ""}
+                locked={locked}
                 actions={
                   <ActionIconButton
                     label={MOVE_TO_ANSWER_LABEL}
                     icon={<ArrowForwardIcon fontSize="small" />}
                     onClick={() => onMoveToAnswer(id)}
+                    disabled={locked}
                   />
                 }
               />
@@ -305,6 +318,7 @@ interface AnswerBlockAreaProps {
   onMoveUp: (id: number) => void;
   onMoveDown: (id: number) => void;
   onReturnToUnused: (id: number) => void;
+  locked: boolean;
 }
 
 // 「解答エリア」の描画のみを担当する。先頭/末尾判定など解答エリア固有の
@@ -315,6 +329,7 @@ function AnswerBlockArea({
   onMoveUp,
   onMoveDown,
   onReturnToUnused,
+  locked,
 }: AnswerBlockAreaProps) {
   const { setNodeRef } = useDroppable({ id: ANSWER_AREA_ID });
 
@@ -349,24 +364,26 @@ function AnswerBlockArea({
                   key={id}
                   id={id}
                   content={blockById.get(id)?.content ?? ""}
+                  locked={locked}
                   actions={
                     <>
                       <ActionIconButton
                         label={MOVE_UP_LABEL}
                         icon={<ArrowUpwardIcon fontSize="small" />}
                         onClick={() => onMoveUp(id)}
-                        disabled={isFirstBlock}
+                        disabled={locked || isFirstBlock}
                       />
                       <ActionIconButton
                         label={MOVE_DOWN_LABEL}
                         icon={<ArrowDownwardIcon fontSize="small" />}
                         onClick={() => onMoveDown(id)}
-                        disabled={isLastBlock}
+                        disabled={locked || isLastBlock}
                       />
                       <ActionIconButton
                         label={RETURN_TO_UNUSED_LABEL}
                         icon={<ArrowBackIcon fontSize="small" />}
                         onClick={() => onReturnToUnused(id)}
+                        disabled={locked}
                       />
                     </>
                   }
@@ -400,6 +417,7 @@ export default function ReorderPuzzle({
   title,
   description,
   onSubmit,
+  locked = false,
 }: Props) {
   const blockById = useMemo(
     () => new Map(blocks.map((block) => [block.id, block])),
@@ -478,6 +496,7 @@ export default function ReorderPuzzle({
   // over がコンテナ自体の余白を指している場合（isContainerId が true）は
   // insertBlockIdBefore が targetId を見つけられず末尾へフォールバックする。
   function handleDragOver(event: DragOverEvent) {
+    if (locked) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -508,6 +527,7 @@ export default function ReorderPuzzle({
   // 結果を委ねることになるが、これは偶然の安全性に依存する脆い実装だったため、
   // 意図を明示する形に変更する。
   function handleDragEnd(event: DragEndEvent) {
+    if (locked) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -575,16 +595,18 @@ export default function ReorderPuzzle({
             onMoveUp={moveUp}
             onMoveDown={moveDown}
             onReturnToUnused={returnToUnusedArea}
+            locked={locked}
           />
           <UnusedBlockArea
             blockIds={unusedBlockIds}
             blockById={blockById}
             onMoveToAnswer={moveToAnswerArea}
+            locked={locked}
           />
           <Box display="flex" justifyContent="end">
             <Button
               variant="contained"
-              disabled={answerBlockIds.length === 0}
+              disabled={locked || answerBlockIds.length === 0}
               onClick={submitAnswer}
             >
               解答を終了する

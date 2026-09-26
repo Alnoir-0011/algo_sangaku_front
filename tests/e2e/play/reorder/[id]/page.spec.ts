@@ -299,4 +299,89 @@ test.describe("/play/reorder/[id]", () => {
       ).toBeVisible();
     });
   });
+
+  test.describe("when the puzzle has 10 blocks and the viewport is 1368x907", () => {
+    const tenBlocksResponse = {
+      data: {
+        ...publicReorderSangakuResponse.data,
+        attributes: {
+          ...publicReorderSangakuResponse.data.attributes,
+          code_blocks: [
+            "i = gets.to_i",
+            "if i % 15 == 0",
+            'puts "fizzbazz"',
+            "elsif i % 5 == 0",
+            'puts "bazz"',
+            "elsif i % 3 == 0",
+            'puts "fizz"',
+            "else",
+            "puts i",
+            "end",
+          ].map((content, index) => ({ id: index + 1, content })),
+        },
+      },
+    };
+
+    test.use({
+      viewport: { width: 1368, height: 907 },
+      mswHandlers: [
+        [
+          http.get(`${apiUrl}/up`, () => {
+            return HttpResponse.json({ message: "success" });
+          }),
+          http.get(`${apiUrl}/api/v1/public/reorder_sangakus/1`, () => {
+            return HttpResponse.json(tenBlocksResponse, { status: 200 });
+          }),
+          http.post(`${apiUrl}/api/v1/public/reorder_sangakus/1/answer`, () => {
+            return HttpResponse.json({ status: "correct" }, { status: 200 });
+          }),
+          // allow all non-mocked routes to pass through
+          http.all("*", () => {
+            return passthrough();
+          }),
+        ],
+        { scope: "test" },
+      ],
+    });
+
+    test("should not allow me to see extra blank space below the main content when I have answered with all blocks in the answer area", async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto("/play/reorder/1");
+      await expect(
+        page.getByRole("heading", { level: 1, name: "guest_reorder_title" }),
+      ).toBeVisible();
+      const moveToAnswerButton = page.getByRole("button", {
+        name: "解答エリアへ移動",
+      });
+      for (let i = 0; i < 10; i++) {
+        await moveToAnswerButton.first().click();
+      }
+      await expect(
+        page.getByTestId("answer-blocks-area").getByTestId("drag-handle"),
+      ).toHaveCount(10);
+
+      // Act
+      await page.getByRole("button", { name: "解答を終了する" }).click();
+      await expect(page.getByText("正解です！")).toBeVisible();
+
+      // Assert
+      // main の内容領域の底（padding-bottom を除く）と、子要素の bottom の最大値の差
+      const gap = await page.evaluate(() => {
+        const main = document.querySelector("main");
+        if (!main) throw new Error("main element not found");
+        const mainBottom =
+          main.getBoundingClientRect().bottom -
+          parseFloat(getComputedStyle(main).paddingBottom);
+        const childrenBottom = Math.max(
+          ...Array.from(main.children).map(
+            (child) => child.getBoundingClientRect().bottom,
+          ),
+        );
+        return mainBottom - childrenBottom;
+      });
+      expect(gap).toBeLessThanOrEqual(1);
+    });
+  });
 });

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { Locator, Page } from "@playwright/test";
 import { test, expect } from "@/tests/fixtures.ct";
 import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
@@ -768,6 +769,194 @@ test.describe("ReorderPuzzle", () => {
         () => window.__createAnswerCalls?.length ?? 0,
       );
       expect(createAnswerCallCount).toBe(0);
+    });
+  });
+
+  test.describe("when the locked prop is true", () => {
+    // 先にブロックを解答エリアへ移動してから update で locked を true にする
+    // （同じコンポーネントインスタンスのため state は保持される）。
+    async function mountThenLock(
+      mount: (
+        jsx: JSX.Element,
+      ) => Promise<Locator & { update: (jsx: JSX.Element) => Promise<void> }>,
+      contentsToAnswer: string[],
+    ) {
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+      );
+      const unusedArea = component.getByTestId("unused-blocks-area");
+      for (const content of contentsToAnswer) {
+        await unusedArea
+          .getByText(content)
+          .getByRole("button", { name: "解答エリアへ移動" })
+          .click();
+      }
+      await component.update(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          locked
+        />,
+      );
+      return component;
+    }
+
+    test("should not allow me to click the move-to-answer button when the puzzle is locked", async ({
+      mount,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, ["puts 1"]);
+      const unusedArea = component.getByTestId("unused-blocks-area");
+
+      // Act & Assert
+      const buttons = unusedArea.getByRole("button", {
+        name: "解答エリアへ移動",
+      });
+      await expect(buttons).toHaveCount(2);
+      await expect(buttons.nth(0)).toBeDisabled();
+      await expect(buttons.nth(1)).toBeDisabled();
+    });
+
+    test("should not allow me to click the move-up button when the puzzle is locked", async ({
+      mount,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, [
+        "puts 1",
+        "puts 2",
+        "puts 3",
+      ]);
+      const answerArea = component.getByTestId("answer-blocks-area");
+
+      // Act & Assert
+      // 中段ブロックの「上へ」は通常なら有効
+      await expect(
+        answerArea.getByText("puts 2").getByRole("button", { name: "上へ" }),
+      ).toBeDisabled();
+    });
+
+    test("should not allow me to click the move-down button when the puzzle is locked", async ({
+      mount,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, [
+        "puts 1",
+        "puts 2",
+        "puts 3",
+      ]);
+      const answerArea = component.getByTestId("answer-blocks-area");
+
+      // Act & Assert
+      // 中段ブロックの「下へ」は通常なら有効
+      await expect(
+        answerArea.getByText("puts 2").getByRole("button", { name: "下へ" }),
+      ).toBeDisabled();
+    });
+
+    test("should not allow me to click the return-to-unused button when the puzzle is locked", async ({
+      mount,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, ["puts 1", "puts 2"]);
+      const answerArea = component.getByTestId("answer-blocks-area");
+
+      // Act & Assert
+      const buttons = answerArea.getByRole("button", {
+        name: "利用しないエリアへ戻す",
+      });
+      await expect(buttons).toHaveCount(2);
+      await expect(buttons.nth(0)).toBeDisabled();
+      await expect(buttons.nth(1)).toBeDisabled();
+    });
+
+    test("should not allow me to click the end-answer button when the puzzle is locked even if the answer area has blocks", async ({
+      mount,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, ["puts 1"]);
+
+      // Act & Assert
+      await expect(
+        component.getByRole("button", { name: "解答を終了する" }),
+      ).toBeDisabled();
+    });
+
+    test("should not allow me to move a block to the answer area when dragging it from the unused area while the puzzle is locked", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, ["puts 1"]);
+      const unusedArea = component.getByTestId("unused-blocks-area");
+      const answerArea = component.getByTestId("answer-blocks-area");
+      const dragHandle = unusedArea
+        .getByText("puts 2")
+        .getByTestId("drag-handle");
+
+      // Act
+      await dragLocatorTo(page, dragHandle, answerArea);
+
+      // Assert
+      await expect(answerArea.getByTestId("block-item")).toHaveText([
+        "puts 1",
+      ]);
+      await expect(unusedArea.getByText("puts 2")).toBeVisible();
+    });
+
+    test("should not allow me to reorder blocks in the answer area when dragging the last block to the first position while the puzzle is locked", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, [
+        "puts 1",
+        "puts 2",
+        "puts 3",
+      ]);
+      const answerArea = component.getByTestId("answer-blocks-area");
+      const lastBlockDragHandle = answerArea
+        .getByText("puts 3")
+        .getByTestId("drag-handle");
+      const firstBlockDragHandle = answerArea
+        .getByText("puts 1")
+        .getByTestId("drag-handle");
+
+      // Act
+      await dragLocatorTo(page, lastBlockDragHandle, firstBlockDragHandle);
+
+      // Assert
+      await expect(answerArea.getByTestId("block-item")).toHaveText([
+        "puts 1",
+        "puts 2",
+        "puts 3",
+      ]);
+    });
+
+    test("should not allow me to move a block back to the unused area when dragging it from the answer area while the puzzle is locked", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mountThenLock(mount, ["puts 2"]);
+      const unusedArea = component.getByTestId("unused-blocks-area");
+      const answerArea = component.getByTestId("answer-blocks-area");
+      const dragHandle = answerArea
+        .getByText("puts 2")
+        .getByTestId("drag-handle");
+
+      // Act
+      await dragLocatorTo(page, dragHandle, unusedArea);
+
+      // Assert
+      await expect(answerArea.getByText("puts 2")).toBeVisible();
+      await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
     });
   });
 });

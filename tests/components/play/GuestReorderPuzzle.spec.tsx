@@ -207,7 +207,82 @@ test.describe("GuestReorderPuzzle", () => {
     });
   }
 
-  test("should allow me to resubmit with the changed order when the answer is incorrect and I reorder the answer area", async ({
+  for (const status of ["correct", "incorrect"] as const) {
+    test(`should not allow me to click any move button in the answer area when the answer is ${status}`, async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mount(
+        <GuestReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          isLoggedIn={false}
+        />,
+      );
+      await setGuestAnswerResponses(page, [{ status }]);
+      await moveBlocksToAnswerArea(component, ["puts 1", "puts 2", "puts 3"]);
+      const answerArea = component.getByTestId("answer-blocks-area");
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+      await expect(
+        component
+          .getByRole("status")
+          .getByText(status === "correct" ? "正解です！" : "不正解です", {
+            exact: true,
+          }),
+      ).toBeVisible();
+
+      // Assert
+      // 中段ブロックの「上へ」「下へ」は通常なら有効。ロック後は全ボタンが disabled。
+      for (const name of ["上へ", "下へ", "利用しないエリアへ戻す"]) {
+        const buttons = answerArea.getByRole("button", { name });
+        const count = await buttons.count();
+        expect(count).toBeGreaterThan(0);
+        for (let i = 0; i < count; i++) {
+          await expect(buttons.nth(i)).toBeDisabled();
+        }
+      }
+    });
+
+    test(`should not allow me to click the end-answer button when the answer is ${status}`, async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mount(
+        <GuestReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          isLoggedIn={false}
+        />,
+      );
+      await setGuestAnswerResponses(page, [{ status }]);
+      await moveBlocksToAnswerArea(component, ["puts 1", "puts 2"]);
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+      await expect(
+        component
+          .getByRole("status")
+          .getByText(status === "correct" ? "正解です！" : "不正解です", {
+            exact: true,
+          }),
+      ).toBeVisible();
+
+      // Assert
+      await expect(
+        component.getByRole("button", { name: "解答を終了する" }),
+      ).toBeDisabled();
+    });
+  }
+
+  test("should allow me to resubmit with the changed order when the first submission returned an error", async ({
     mount,
     page,
   }) => {
@@ -222,18 +297,20 @@ test.describe("GuestReorderPuzzle", () => {
       />,
     );
     await setGuestAnswerResponses(page, [
-      { status: "incorrect" },
+      { error: "送信に失敗しました" },
       { status: "correct" },
     ]);
     await moveBlocksToAnswerArea(component, ["puts 1", "puts 2", "puts 3"]);
     const answerArea = component.getByTestId("answer-blocks-area");
     await component.getByRole("button", { name: "解答を終了する" }).click();
     await expect(
-      component.getByRole("status").getByText("不正解です", { exact: true }),
+      component
+        .getByRole("alert")
+        .getByText("送信に失敗しました", { exact: true }),
     ).toBeVisible();
 
     // Act
-    // 1回目の送信後も解答エリアの並びは保持されている前提で、puts 2 を「上へ」移動する
+    // error は判定できなかっただけなのでロックされず、puts 2 を「上へ」移動して再送信できる
     await answerArea
       .getByText("puts 2")
       .getByRole("button", { name: "上へ" })
