@@ -110,6 +110,55 @@ export async function fetchUserSangaku(id: string) {
   }
 }
 
+// 他の fetch 関数と異なり、404 のみ null を返し、それ以外の異常は throw する。
+// 5xx やネットワーク異常を null にすると、呼び出し側が「要サインイン」と誤認するため。
+export async function fetchPublicReorderSangaku(
+  id: string,
+): Promise<Sangaku | null> {
+  if (!isValidId(id)) {
+    return null;
+  }
+
+  const res = await serverFetch(
+    `${apiUrl}/api/v1/public/reorder_sangakus/${encodeURIComponent(id)}`,
+  );
+
+  switch (res.status) {
+    case 200:
+      return (await res.json()).data as Sangaku;
+    case 404:
+      return null;
+    default:
+      throw new Error(
+        `fetchPublicReorderSangaku failed with status ${res.status}`,
+      );
+  }
+}
+
+// 神社ページ上の導線用の補助機能なので、あらゆる失敗（非200・ネットワーク異常）を null に倒す。
+// 取得できなくても画面全体は成立させたいため、fetchPublicReorderSangaku とは意図的に挙動を分けている。
+export async function fetchRepresentativeReorderSangaku(
+  shrineId: string,
+): Promise<Sangaku | null> {
+  if (!isValidId(shrineId)) {
+    return null;
+  }
+
+  try {
+    const res = await serverFetch(
+      `${apiUrl}/api/v1/public/shrines/${encodeURIComponent(shrineId)}/representative_reorder_sangaku`,
+    );
+
+    if (res.status === 200) {
+      return (await res.json()).data as Sangaku;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchShrineSangakus(
   shrine_id: string,
   page: string,

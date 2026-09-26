@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Sangaku } from "@/app/lib/definitions";
 import Grid from "@mui/material/Grid2";
 import Ema from "@/app/ui/Ema";
@@ -9,9 +10,11 @@ import { SangakuSaveButton } from "./SangakuSaveButton";
 interface Props {
   sangaku: Sangaku;
   saved: boolean;
+  // カード下段のボタン。未指定なら従来どおり「算額を写す」ボタンを表示する
+  action?: ReactNode;
 }
 
-export default function Sangaku({ sangaku, saved }: Props) {
+export default function Sangaku({ sangaku, saved, action }: Props) {
   return (
     <Grid key={sangaku.id}>
       <Ema width={18}>
@@ -63,7 +66,7 @@ export default function Sangaku({ sangaku, saved }: Props) {
         </Box>
       </Ema>
       <Box sx={{ display: "flex", justifyContent: "end", mt: 1 }}>
-        <SangakuSaveButton id={sangaku.id} saved={saved} />
+        {action ?? <SangakuSaveButton id={sangaku.id} saved={saved} />}
       </Box>
     </Grid>
   );

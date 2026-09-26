@@ -14,6 +14,8 @@ import {
   fetchUserSangaku,
   fetchSavedSangaku,
   fetchUserSangakuResult,
+  fetchPublicReorderSangaku,
+  fetchRepresentativeReorderSangaku,
 } from "@/app/lib/data/sangaku";
 
 function mockSuccessResponse() {
@@ -284,5 +286,207 @@ describe("fetchSavedSangakus", () => {
     const params = new URLSearchParams(calledUrl.split("?")[1]);
     expect(params.get("type")).toBe("answered");
     expect(params.get("kind")).toBe("reorder");
+  });
+});
+
+describe("fetchPublicReorderSangaku", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  test("should return the data of the response when the status is 200", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const sangaku = { id: "1", type: "reorder_sangaku" };
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: sangaku }), { status: 200 }),
+    );
+
+    // Act
+    const result = await fetchPublicReorderSangaku("1");
+
+    // Assert
+    expect(result).toEqual(sangaku);
+  });
+
+  test("should return null when the status is 404", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 404 }));
+
+    // Act
+    const result = await fetchPublicReorderSangaku("1");
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  test("should not call fetch and return null when id contains path traversal characters", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+
+    // Act
+    const result = await fetchPublicReorderSangaku("../../admin/users");
+
+    // Assert
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+  });
+
+  test("should throw when the status is 500", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 500 }));
+
+    // Act & Assert
+    await expect(fetchPublicReorderSangaku("1")).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("should throw when fetch rejects", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockRejectedValueOnce(new Error("network error"));
+
+    // Act & Assert
+    await expect(fetchPublicReorderSangaku("1")).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("should call fetch with the public reorder sangaku URL when id is a valid id", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    // Act
+    await fetchPublicReorderSangaku("1");
+
+    // Assert
+    const calledUrl = fetchMock.mock.calls[0][0] as string;
+    expect(calledUrl.endsWith("/api/v1/public/reorder_sangakus/1")).toBe(true);
+  });
+
+  test("should not send an Authorization header when fetching", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    // Act
+    await fetchPublicReorderSangaku("1");
+
+    // Assert
+    const options = fetchMock.mock.calls[0][1] as
+      | { headers?: Record<string, string> }
+      | undefined;
+    expect(options?.headers ?? {}).not.toHaveProperty("Authorization");
+  });
+});
+
+describe("fetchRepresentativeReorderSangaku", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  test("should return the data of the response when the status is 200", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const sangaku = { id: "1", type: "reorder_sangaku" };
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: sangaku }), { status: 200 }),
+    );
+
+    // Act
+    const result = await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    expect(result).toEqual(sangaku);
+  });
+
+  test("should return null when the status is 404", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 404 }));
+
+    // Act
+    const result = await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  test("should not call fetch and return null when shrineId contains path traversal characters", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+
+    // Act
+    const result = await fetchRepresentativeReorderSangaku("../../admin/users");
+
+    // Assert
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+  });
+
+  test("should return null without throwing when the status is 500", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 500 }));
+
+    // Act
+    const result = await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  test("should return null without throwing when fetch rejects", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockRejectedValueOnce(new Error("network error"));
+
+    // Act
+    const result = await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  test("should call fetch with the representative reorder sangaku URL when shrineId is a valid id", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    // Act
+    await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    const calledUrl = fetchMock.mock.calls[0][0] as string;
+    expect(
+      calledUrl.endsWith(
+        "/api/v1/public/shrines/1/representative_reorder_sangaku",
+      ),
+    ).toBe(true);
+  });
+
+  test("should not send an Authorization header when fetching", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    // Act
+    await fetchRepresentativeReorderSangaku("1");
+
+    // Assert
+    const options = fetchMock.mock.calls[0][1] as
+      | { headers?: Record<string, string> }
+      | undefined;
+    expect(options?.headers ?? {}).not.toHaveProperty("Authorization");
   });
 });

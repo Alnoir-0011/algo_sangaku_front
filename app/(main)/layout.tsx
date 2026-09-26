@@ -21,6 +21,9 @@ export default function MainLayout({
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           minHeight: "100vh",
           justifyContent: "start",
+          // Grid container は既定で wrap のため、column 方向で main(flexGrow: 1) が
+          // 本来の高さより引き伸ばされフッターとの間に空白ができる。nowrap で防ぐ。
+          flexWrap: "nowrap",
         }}
       >
         <Toolbar />

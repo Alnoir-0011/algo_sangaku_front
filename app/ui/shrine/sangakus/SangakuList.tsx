@@ -1,5 +1,11 @@
-import { fetchShrineSangakus, fetchSavedSangakuIds } from "@/app/lib/data/sangaku";
-import { Box, Typography } from "@mui/material";
+import {
+  fetchShrineSangakus,
+  fetchSavedSangakuIds,
+  fetchRepresentativeReorderSangaku,
+} from "@/app/lib/data/sangaku";
+import { guestReorderPath } from "@/routes";
+import { Box, Button, Typography } from "@mui/material";
+import Link from "next/link";
 import Grid from "@mui/material/Grid2";
 import Pagination from "@/app/ui/Pagination";
 import Sangaku from "./Sangaku";
@@ -10,6 +16,9 @@ interface Props {
   query: string;
   difficulty: string;
   kind?: string;
+  // 未ログインのゲストが1ページ目を絞り込みなしで開いたときだけ true。
+  // 一覧の先頭に、ゲスト解放中の代表算額を並べる
+  showGuestSangaku?: boolean;
 }
 
 export default async function SangakuList({
@@ -18,14 +27,12 @@ export default async function SangakuList({
   query,
   difficulty,
   kind,
+  showGuestSangaku = false,
 }: Props) {
-  const { sangakus, totalPage, message } = await fetchShrineSangakus(
-    shrine_id,
-    page,
-    query,
-    difficulty,
-    kind,
-  );
+  const [{ sangakus, totalPage, message }, guestSangaku] = await Promise.all([
+    fetchShrineSangakus(shrine_id, page, query, difficulty, kind),
+    showGuestSangaku ? fetchRepresentativeReorderSangaku(shrine_id) : null,
+  ]);
   const savedIds = await fetchSavedSangakuIds(sangakus.map((s) => s.id));
 
   return (
@@ -48,6 +55,22 @@ export default async function SangakuList({
           alignItems="flex-start"
           sx={{ mt: 3, mb: 2, flexGrow: 1 }}
         >
+          {guestSangaku && (
+            <Sangaku
+              sangaku={guestSangaku}
+              saved={false}
+              key={`guest-${guestSangaku.id}`}
+              action={
+                <Button
+                  component={Link}
+                  href={guestReorderPath(guestSangaku.id)}
+                  variant="contained"
+                >
+                  お試しで解く
+                </Button>
+              }
+            />
+          )}
           {sangakus.map((sangaku) => (
             <Sangaku
               sangaku={sangaku}
