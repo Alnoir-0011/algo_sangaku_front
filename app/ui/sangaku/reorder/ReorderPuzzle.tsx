@@ -48,6 +48,7 @@ interface Props {
   blocks: PuzzleBlock[];
   title: string;
   description: string;
+  onSubmit?: (blockIds: number[]) => void | Promise<void>;
 }
 
 // 解答エリアへ移動するボタンの文言。Tooltip の title と IconButton の
@@ -398,6 +399,7 @@ export default function ReorderPuzzle({
   blocks,
   title,
   description,
+  onSubmit,
 }: Props) {
   const blockById = useMemo(
     () => new Map(blocks.map((block) => [block.id, block])),
@@ -532,6 +534,10 @@ export default function ReorderPuzzle({
   }
 
   async function submitAnswer() {
+    if (onSubmit) {
+      await onSubmit(answerBlockIds);
+      return;
+    }
     if (window.confirm("解答を終了しますか？")) {
       // createAnswer の戻り値（State型）は意図的に無視している。
       // CreateForm.tsx の postAnswerAction とは異なり、この画面では

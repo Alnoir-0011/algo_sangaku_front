@@ -657,4 +657,117 @@ test.describe("ReorderPuzzle", () => {
       ...middleContents.slice(0, -1),
     ]);
   });
+
+  test.describe("when the onSubmit prop is given", () => {
+    // Playwright CT では mount の props に渡した関数コールバックは
+    // テスト側（Node）のスコープで実行されるため、テスト内のローカル配列に記録できる。
+    // ゲスト解答フローは保存を経由しない送信処理へ差し替えるため、
+    // onSubmit が渡されたときは確認ダイアログも createAnswer も使わない。
+    async function moveBlocksToAnswerArea(
+      component: Locator,
+      contents: string[],
+    ) {
+      const unusedArea = component.getByTestId("unused-blocks-area");
+      for (const content of contents) {
+        await unusedArea
+          .getByText(content)
+          .getByRole("button", { name: "解答エリアへ移動" })
+          .click();
+      }
+    }
+
+    test("should allow me to call onSubmit once with block_ids in answer area order when clicking the end-answer button", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      // onSubmit 未対応の実装では window.confirm が出て待ち続けるため、
+      // ダイアログは accept して先へ進める。
+      page.on("dialog", (dialog) => dialog.accept());
+      const submittedBlockIds: number[][] = [];
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          onSubmit={(blockIds) => {
+            submittedBlockIds.push(blockIds);
+          }}
+        />,
+      );
+      await moveBlocksToAnswerArea(component, ["puts 2", "puts 3", "puts 1"]);
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+
+      // Assert
+      await expect.poll(() => submittedBlockIds.length).toBe(1);
+      expect(submittedBlockIds[0]).toEqual([2, 3, 1]);
+    });
+
+    test("should not allow me to see a confirm dialog when clicking the end-answer button", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const dialogMessages: string[] = [];
+      page.on("dialog", async (dialog) => {
+        dialogMessages.push(dialog.message());
+        await dialog.accept();
+      });
+      const submittedBlockIds: number[][] = [];
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          onSubmit={(blockIds) => {
+            submittedBlockIds.push(blockIds);
+          }}
+        />,
+      );
+      await moveBlocksToAnswerArea(component, ["puts 2"]);
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+
+      // Assert
+      // onSubmit の呼び出しを待ってから（送信処理が完了した後で）ダイアログ未発火を確認する。
+      await expect.poll(() => submittedBlockIds.length).toBe(1);
+      expect(dialogMessages).toEqual([]);
+    });
+
+    test("should not allow me to call createAnswer when clicking the end-answer button", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      page.on("dialog", (dialog) => dialog.accept());
+      const submittedBlockIds: number[][] = [];
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+          onSubmit={(blockIds) => {
+            submittedBlockIds.push(blockIds);
+          }}
+        />,
+      );
+      await moveBlocksToAnswerArea(component, ["puts 2"]);
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+
+      // Assert
+      await expect.poll(() => submittedBlockIds.length).toBe(1);
+      const createAnswerCallCount = await page.evaluate(
+        () => window.__createAnswerCalls?.length ?? 0,
+      );
+      expect(createAnswerCallCount).toBe(0);
+    });
+  });
 });

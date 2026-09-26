@@ -129,6 +129,13 @@ export default defineConfig({
             ),
           },
           {
+            find: "@/app/lib/actions/guest_answer",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/actions/guest_answer.ts",
+            ),
+          },
+          {
             find: "@/",
             replacement: path.join(__dirname, "./"),
           },
