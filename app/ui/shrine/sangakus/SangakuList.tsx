@@ -3,7 +3,7 @@ import {
   fetchSavedSangakuIds,
   fetchRepresentativeReorderSangaku,
 } from "@/app/lib/data/sangaku";
-import { guestReorderPath } from "@/routes";
+import { guestReorderPath, signinPath } from "@/routes";
 import { Box, Button, Typography } from "@mui/material";
 import Link from "next/link";
 import Grid from "@mui/material/Grid2";
@@ -19,6 +19,7 @@ interface Props {
   // 未ログインのゲストが1ページ目を絞り込みなしで開いたときだけ true。
   // 一覧の先頭に、ゲスト解放中の代表算額を並べる
   showGuestSangaku?: boolean;
+  isSignedIn?: boolean;
 }
 
 export default async function SangakuList({
@@ -28,6 +29,7 @@ export default async function SangakuList({
   difficulty,
   kind,
   showGuestSangaku = false,
+  isSignedIn = false,
 }: Props) {
   const [{ sangakus, totalPage, message }, guestSangaku] = await Promise.all([
     fetchShrineSangakus(shrine_id, page, query, difficulty, kind),
@@ -76,6 +78,17 @@ export default async function SangakuList({
               sangaku={sangaku}
               saved={savedIds.has(sangaku.id)}
               key={sangaku.id}
+              action={
+                isSignedIn ? undefined : (
+                  <Button
+                    component={Link}
+                    href={`${signinPath}?callbackUrl=${encodeURIComponent(`/shrines/${shrine_id}/sangakus`)}`}
+                    variant="contained"
+                  >
+                    サインインして算額を写す
+                  </Button>
+                )
+              }
             />
           ))}
         </Grid>

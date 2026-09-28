@@ -76,6 +76,7 @@ export default async function Page(props: Props) {
           difficulty={difficulty}
           kind={kind}
           showGuestSangaku={showGuestSangaku}
+          isSignedIn={!!session}
         />
       </Suspense>
     </Box>

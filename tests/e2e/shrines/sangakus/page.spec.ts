@@ -150,19 +150,48 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(sangakuTitle).toBeVisible();
     });
 
-    // TODO: 未ログイン時の「算額を写す」ボタンクリック後のリダイレクト動作が未実装のためコメントアウト
-    // test("should not allow me to create sangakuCopy", async ({ page }) => {
-    //   await page.goto("/shrines/1/sangakus");
-    //   const heading = page.getByRole("heading", {
-    //     name: "test_shrineの算額一覧",
-    //   });
-    //   await expect(heading).toBeVisible();
-    //   const button = page.getByRole("button", { name: "算額を写す" });
-    //   await button.click();
-    //   const flash = page.getByTestId('flash-message');
-    //   await expect(flash).toBeVisible({ timeout: 10_000 });
-    //   await expect(flash).toContainText("サインインしてください");
-    // });
+    test("should allow me to see the sign-in to copy sangaku control instead of the copy button when I am a guest", async ({
+      page,
+    }) => {
+      // Arrange & Act
+      await page.goto("/shrines/1/sangakus");
+
+      // Assert
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+      const signinControl = page
+        .getByRole("link", { name: "サインインして算額を写す", exact: true })
+        .or(
+          page.getByRole("button", {
+            name: "サインインして算額を写す",
+            exact: true,
+          }),
+        );
+      await expect(signinControl).toHaveCount(1);
+      await expect(signinControl).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "算額を写す", exact: true }),
+      ).toHaveCount(0);
+    });
+
+    test("should allow me to go to the signin page with a callbackUrl back to the list when clicking the sign-in to copy sangaku link", async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto("/shrines/1/sangakus");
+      const link = page.getByRole("link", { name: "サインインして算額を写す" });
+
+      // Assert
+      await expect(link).toHaveAttribute(
+        "href",
+        "/signin?callbackUrl=%2Fshrines%2F1%2Fsangakus",
+      );
+
+      // Act
+      await link.click();
+
+      // Assert
+      await expect(page).toHaveURL(/\/signin\?callbackUrl=%2Fshrines%2F1%2Fsangakus/);
+    });
 
     test("should allow me to see not found page for a non-existent shrine", async ({ page }) => {
       await page.goto("/shrines/999/sangakus");
@@ -239,11 +268,13 @@ test.describe("/shrines/[id]/sangakus", () => {
       await page.goto("/shrines/1/sangakus");
 
       // Assert
-      // 通常の一覧の1件だけが「算額を写す」を持ち、先頭カードは持たない
+      // 通常の一覧の1件だけが「サインインして算額を写す」を持ち、先頭カードは持たない
       await expect(page.getByRole("heading", { level: 5 }).first()).toHaveText(
         "representative_title",
       );
-      await expect(page.getByRole("button", { name: "算額を写す" })).toHaveCount(1);
+      await expect(
+        page.getByRole("link", { name: "サインインして算額を写す" }),
+      ).toHaveCount(1);
     });
 
     test("should allow me to go to the guest answer page when clicking the guest answer button", async ({
@@ -346,6 +377,22 @@ test.describe("/shrines/[id]/sangakus", () => {
         "test_title",
       );
       await expect(page.getByRole("link", { name: "お試しで解く" })).toHaveCount(0);
+    });
+
+    test("should not allow me to see the sign-in to copy sangaku link when I am signed in", async ({
+      page,
+    }) => {
+      // Arrange
+      await setSession(page);
+
+      // Act
+      await page.goto("/shrines/1/sangakus");
+
+      // Assert
+      await expect(page.getByRole("button", { name: "算額を写す" })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "サインインして算額を写す" }),
+      ).toHaveCount(0);
     });
 
     test("should allow me to copy a sangaku from the shrine page", async ({ page }) => {

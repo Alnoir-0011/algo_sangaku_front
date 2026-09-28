@@ -160,4 +160,317 @@ test.describe("ConfirmModal", () => {
     await expect(dummyBlock.getByText("ダミー", { exact: true })).toBeVisible();
     await expect(dummyBlock).toContainText("dummy_block_content");
   });
+
+  test("should allow me to see the description positioned to the left of the code blocks when kind is reorder and viewport is sm or wider", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 800 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const codeBlock = page.getByTestId("confirm-modal-code-block-1");
+    await expect(codeBlock).toBeVisible();
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description).toBeVisible();
+
+    const descriptionBox = await description.boundingBox();
+    const codeBlockBox = await codeBlock.boundingBox();
+    expect(descriptionBox).not.toBeNull();
+    expect(codeBlockBox).not.toBeNull();
+
+    // RED: 現状は正しく分岐しているため恒常的にパスする想定だが、
+    // 実装が縦積み（description の x座標が code block 以上）に変わった場合に
+    // このテストのみで検知できるよう分割した回帰防止テスト
+    // 説明文が左、コードブロックが右
+    expect(descriptionBox!.x).toBeLessThan(codeBlockBox!.x);
+  });
+
+  test("should allow me to see the description and code blocks start at the same vertical position when kind is reorder and viewport is sm or wider", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 800 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const codeBlock = page.getByTestId("confirm-modal-code-block-1");
+    await expect(codeBlock).toBeVisible();
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description).toBeVisible();
+
+    const descriptionBox = await description.boundingBox();
+    const codeBlockBox = await codeBlock.boundingBox();
+    expect(descriptionBox).not.toBeNull();
+    expect(codeBlockBox).not.toBeNull();
+
+    // RED: 現状は正しく分岐しているため恒常的にパスする想定だが、
+    // 実装が縦積みレイアウトに変わり y座標が大きくずれた場合に
+    // このテストのみで検知できるよう分割した回帰防止テスト
+    // 縦にほぼ同じ位置から始まる（縦積みでないこと）
+    expect(Math.abs(descriptionBox!.y - codeBlockBox!.y)).toBeLessThan(10);
+  });
+
+  test("should allow me to see the description and code blocks side by side at the sm breakpoint (600px) when kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 600, height: 800 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const codeBlock = page.getByTestId("confirm-modal-code-block-1");
+    await expect(codeBlock).toBeVisible();
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description).toBeVisible();
+
+    const descriptionBox = await description.boundingBox();
+    const codeBlockBox = await codeBlock.boundingBox();
+    expect(descriptionBox).not.toBeNull();
+    expect(codeBlockBox).not.toBeNull();
+
+    // RED: sm ブレークポイント境界値（600px）で MUI の sm 以上判定が
+    // 想定通り働いていない場合（例: 実装が md 基準の場合）に検知する境界値テスト
+    expect(descriptionBox!.x).toBeLessThan(codeBlockBox!.x);
+  });
+
+  test("should allow me to see the description rendered as Markdown inside a primary.main container when kind is code", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const markdownCodeSangaku: Sangaku = {
+      ...codeSangaku,
+      attributes: {
+        ...codeSangaku.attributes,
+        description: "**bold_desc**",
+      },
+    };
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={markdownCodeSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description.locator("strong")).toHaveText("bold_desc");
+    await expect(description).toHaveCSS(
+      "background-color",
+      "rgb(244, 206, 147)",
+    );
+  });
+
+  test("should allow me to see the description rendered as Markdown inside a primary.main container when kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const markdownReorderSangaku: Sangaku = {
+      ...reorderSangaku,
+      attributes: {
+        ...reorderSangaku.attributes,
+        description: "**bold_desc**",
+      },
+    };
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={markdownReorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description.locator("strong")).toHaveText("bold_desc");
+    await expect(description).toHaveCSS(
+      "background-color",
+      "rgb(244, 206, 147)",
+    );
+  });
+
+  // --- ダイアログの高さ固定・ボタン固定・カラム個別スクロール ---
+  // 問題文カラムが確実に溢れるよう、十分に長い問題文を持つ算額
+  const longDescription = Array.from({ length: 40 }, (_, i) => `line_${i}`).join(
+    "\n\n",
+  );
+  const longCodeSangaku: Sangaku = {
+    ...codeSangaku,
+    attributes: { ...codeSangaku.attributes, description: longDescription },
+  };
+  const longReorderSangaku: Sangaku = {
+    ...reorderSangaku,
+    attributes: { ...reorderSangaku.attributes, description: longDescription },
+  };
+
+  for (const kind of ["code", "reorder"] as const) {
+    const sangaku = kind === "code" ? codeSangaku : reorderSangaku;
+
+    test(`should allow me to see the dialog height fixed to 85% of the viewport height when kind is ${kind}`, async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      await page.setViewportSize({ width: 1000, height: 800 });
+
+      // Act
+      await mount(
+        <ConfirmModal data={sangaku} shrine={shrine} handleClose={() => {}} />,
+      );
+
+      // Assert
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      const box = await dialog.boundingBox();
+      expect(box).not.toBeNull();
+      expect(Math.abs(box!.height - 800 * 0.85)).toBeLessThanOrEqual(1);
+    });
+
+    test(`should allow me to see the buttons stay within the dialog bottom when content overflows in a low viewport and kind is ${kind}`, async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      await page.setViewportSize({ width: 1000, height: 250 });
+
+      // Act
+      await mount(
+        <ConfirmModal data={sangaku} shrine={shrine} handleClose={() => {}} />,
+      );
+
+      // Assert
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      const backButton = page.getByRole("button", { name: "戻る" });
+      const submitButton = page.getByRole("button", {
+        name: "この算額を奉納する",
+      });
+      await expect(backButton).toBeVisible();
+      await expect(submitButton).toBeVisible();
+
+      const dialogBox = await dialog.boundingBox();
+      const backBox = await backButton.boundingBox();
+      const submitBox = await submitButton.boundingBox();
+      expect(dialogBox).not.toBeNull();
+      expect(backBox).not.toBeNull();
+      expect(submitBox).not.toBeNull();
+      const dialogBottom = dialogBox!.y + dialogBox!.height;
+      expect(backBox!.y + backBox!.height).toBeLessThanOrEqual(dialogBottom);
+      expect(submitBox!.y + submitBox!.height).toBeLessThanOrEqual(
+        dialogBottom,
+      );
+      // ボタンが画面（viewport 高 250px）の外へはみ出さない
+      expect(backBox!.y + backBox!.height).toBeLessThanOrEqual(250);
+      expect(submitBox!.y + submitBox!.height).toBeLessThanOrEqual(250);
+    });
+  }
+
+  test("should allow me to scroll the description column individually when content overflows in a low viewport and kind is code", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 250 });
+
+    // Act
+    await mount(
+      <ConfirmModal data={longCodeSangaku} shrine={shrine} handleClose={() => {}} />,
+    );
+
+    // Assert
+    const column = page.getByTestId("confirm-modal-description-column");
+    await expect(column).toBeAttached();
+    await expect(column).toHaveCSS("overflow-y", "auto");
+    const scrollable = await column.evaluate(
+      (el) => el.scrollHeight > el.clientHeight,
+    );
+    expect(scrollable).toBe(true);
+  });
+
+  test("should allow me to scroll the description column individually when content overflows in a low viewport and kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 250 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={longReorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const column = page.getByTestId("confirm-modal-description-column");
+    await expect(column).toBeAttached();
+    await expect(column).toHaveCSS("overflow-y", "auto");
+    const scrollable = await column.evaluate(
+      (el) => el.scrollHeight > el.clientHeight,
+    );
+    expect(scrollable).toBe(true);
+  });
+
+  test("should allow me to scroll the code blocks column individually when content overflows in a low viewport and kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 250 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toBeAttached();
+    const column = page.getByTestId("confirm-modal-code-blocks");
+    await expect(column).toBeAttached();
+    await expect(column).toHaveCSS("overflow-y", "auto");
+    const scrollable = await column.evaluate(
+      (el) => el.scrollHeight > el.clientHeight,
+    );
+    expect(scrollable).toBe(true);
+  });
 });
