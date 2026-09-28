@@ -255,6 +255,7 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                         {[1, 2, 3].map((key) => (
                           <Skeleton
                             key={key}
+                            data-testid="confirm-modal-code-block-skeleton"
                             variant="rectangular"
                             height={48}
                           />

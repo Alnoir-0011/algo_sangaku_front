@@ -252,7 +252,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(guestButton).toHaveAttribute("href", "/play/reorder/5");
     });
 
-    test("should not allow me to see the copy button on the representative sangaku card when I am a guest", async ({
+    test("should not allow me to see the sign-in to copy sangaku control on the representative sangaku card when I am a guest", async ({
       page,
       msw,
     }) => {
@@ -417,7 +417,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
-    test("should show an already-saved sangaku as disabled with a 保存済み label on initial load", async ({
+    test("should allow me to see an already-saved sangaku as disabled with a 保存済み label on initial load", async ({
       page,
       msw,
     }) => {
@@ -464,7 +464,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
-    test("should not show a generic error message alongside the session-expired message when saving fails with 401", async ({
+    test("should not allow me to see a generic error message alongside the session-expired message when saving fails with 401", async ({
       page,
       msw,
     }) => {
