@@ -7,12 +7,19 @@ import { CssBaseline } from "@mui/material";
 import theme from "@/theme";
 import { SessionProvider } from "next-auth/react";
 import type { Session } from "next-auth";
+import { fetchUserSangakuDelay } from "@/tests/__mocks__/data/sangaku";
 
 type HooksConfig = {
   session?: Session | null;
+  // テストからローディング状態を確実に再現するための遅延時間（ms）。
+  // テストファイルとコンポーネントはブラウザ側で別々にバンドルされるため、
+  // fetchUserSangakuDelay を直接 import して書き換えてもコンポーネント側には
+  // 反映されない。hooksConfig 経由でブラウザ側の beforeMount から設定する。
+  fetchUserSangakuDelayMs?: number;
 };
 
 beforeMount<HooksConfig>(({ App, hooksConfig }) => {
+  fetchUserSangakuDelay.ms = hooksConfig?.fetchUserSangakuDelayMs ?? 0;
   return Promise.resolve(
     <SessionProvider session={hooksConfig?.session ?? undefined}>
       <AppRouterCacheProvider>

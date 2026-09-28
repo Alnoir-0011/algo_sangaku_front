@@ -9,6 +9,7 @@ import {
   Button,
   Stack,
   Paper,
+  Skeleton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Editor } from "@monaco-editor/react";
@@ -180,6 +181,8 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                     size={{ xs: 12, sm: 6 }}
                     data-testid="confirm-modal-description-column"
                     sx={{
+                      display: "flex",
+                      flexDirection: "column",
                       height: { xs: "auto", sm: "100%" },
                       minHeight: 0,
                       overflowY: { xs: "visible", sm: "auto" },
@@ -190,6 +193,7 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                       sx={{
                         p: 1,
                         backgroundColor: "primary.main",
+                        flexGrow: 1,
                       }}
                     >
                       <MarkdownPreview
@@ -244,9 +248,18 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                         </Button>
                       </Box>
                     ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        読み込み中...
-                      </Typography>
+                      <Stack
+                        spacing={1}
+                        data-testid="confirm-modal-code-blocks-loading"
+                      >
+                        {[1, 2, 3].map((key) => (
+                          <Skeleton
+                            key={key}
+                            variant="rectangular"
+                            height={48}
+                          />
+                        ))}
+                      </Stack>
                     )}
                   </Grid>
                 </Grid>

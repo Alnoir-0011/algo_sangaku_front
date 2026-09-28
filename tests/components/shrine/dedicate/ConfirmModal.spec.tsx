@@ -188,10 +188,8 @@ test.describe("ConfirmModal", () => {
     expect(descriptionBox).not.toBeNull();
     expect(codeBlockBox).not.toBeNull();
 
-    // RED: 現状は正しく分岐しているため恒常的にパスする想定だが、
     // 実装が縦積み（description の x座標が code block 以上）に変わった場合に
-    // このテストのみで検知できるよう分割した回帰防止テスト
-    // 説明文が左、コードブロックが右
+    // このテストのみで検知できるよう分割した回帰防止テスト（説明文が左、コードブロックが右）
     expect(descriptionBox!.x).toBeLessThan(codeBlockBox!.x);
   });
 
@@ -222,10 +220,8 @@ test.describe("ConfirmModal", () => {
     expect(descriptionBox).not.toBeNull();
     expect(codeBlockBox).not.toBeNull();
 
-    // RED: 現状は正しく分岐しているため恒常的にパスする想定だが、
     // 実装が縦積みレイアウトに変わり y座標が大きくずれた場合に
-    // このテストのみで検知できるよう分割した回帰防止テスト
-    // 縦にほぼ同じ位置から始まる（縦積みでないこと）
+    // このテストのみで検知できるよう分割した回帰防止テスト（縦にほぼ同じ位置から始まる＝縦積みでないこと）
     expect(Math.abs(descriptionBox!.y - codeBlockBox!.y)).toBeLessThan(10);
   });
 
@@ -256,7 +252,7 @@ test.describe("ConfirmModal", () => {
     expect(descriptionBox).not.toBeNull();
     expect(codeBlockBox).not.toBeNull();
 
-    // RED: sm ブレークポイント境界値（600px）で MUI の sm 以上判定が
+    // sm ブレークポイント境界値（600px）で MUI の sm 以上判定が
     // 想定通り働いていない場合（例: 実装が md 基準の場合）に検知する境界値テスト
     expect(descriptionBox!.x).toBeLessThan(codeBlockBox!.x);
   });
@@ -472,5 +468,68 @@ test.describe("ConfirmModal", () => {
       (el) => el.scrollHeight > el.clientHeight,
     );
     expect(scrollable).toBe(true);
+  });
+
+  test("should allow me to see the description container fill the column height when kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await page.setViewportSize({ width: 1000, height: 800 });
+
+    // Act
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+    );
+
+    // Assert
+    const description = page.getByTestId("confirm-modal-description");
+    await expect(description).toBeVisible();
+    const column = page.getByTestId("confirm-modal-description-column");
+    await expect(column).toBeVisible();
+
+    const descriptionBox = await description.boundingBox();
+    const columnBox = await column.boundingBox();
+    expect(descriptionBox).not.toBeNull();
+    expect(columnBox).not.toBeNull();
+
+    // reorder の description コンテナも code kind と同様 flexGrow を持ち、
+    // 短い description でもカラムいっぱいまで背景色ボックスが伸びることを確認する
+    expect(descriptionBox!.height).toBeGreaterThanOrEqual(
+      columnBox!.height * 0.9,
+    );
+  });
+
+  test("should allow me to see three skeleton rows instead of loading text while code blocks are loading when kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Act
+    // fetchUserSangaku はテストファイルとは別モジュールインスタンスとして
+    // ブラウザ側でバンドルされるため、hooksConfig 経由で
+    // playwright/index.tsx の beforeMount から遅延を設定する
+    // （fetchUserSangakuDelay を直接 import して書き換えても反映されない）。
+    await mount(
+      <ConfirmModal
+        data={reorderSangaku}
+        shrine={shrine}
+        handleClose={() => {}}
+      />,
+      { hooksConfig: { fetchUserSangakuDelayMs: 2000 } },
+    );
+
+    // Assert
+    const loadingContainer = page.getByTestId(
+      "confirm-modal-code-blocks-loading",
+    );
+    await expect(loadingContainer).toBeVisible();
+    await expect(loadingContainer.locator(".MuiSkeleton-root")).toHaveCount(
+      3,
+    );
+    await expect(page.getByText("読み込み中")).toHaveCount(0);
   });
 });
