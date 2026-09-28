@@ -9,6 +9,7 @@ import {
   Button,
   Stack,
   Paper,
+  Skeleton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Editor } from "@monaco-editor/react";
@@ -17,6 +18,7 @@ import { fetchUserSangaku } from "@/app/lib/data/sangaku";
 import { difficultyTranslation } from "@/app/ui/utility";
 import { ShareButton } from "./ShareButton";
 import Ema from "@/app/ui/Ema";
+import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
 interface Props {
   data: Sangaku | null;
@@ -100,11 +102,23 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
   return (
     <Modal open={!!data} onClose={handleClose}>
       <Box
-        sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}
+        sx={{
+          ...style,
+          width: { xs: 380, sm: 600, md: 800 },
+          ...(isDedicated
+            ? {}
+            : { height: "85vh", display: "flex", flexDirection: "column" }),
+        }}
         role="dialog"
       >
         {isDedicated || (
           <form
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              minHeight: 0,
+            }}
             onSubmit={async (e) => {
               e.preventDefault();
               if (
@@ -115,7 +129,12 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
             }}
           >
             <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 1,
+                flexShrink: 0,
+              }}
             >
               <Typography variant="h4">{data?.attributes.title}</Typography>
               <Box
@@ -139,115 +158,209 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                 </Typography>
               </Box>
             </Box>
-            {data?.attributes.kind === "reorder" ? (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  {data?.attributes.description}
-                </Typography>
-                {reorderData ? (
-                  <Stack spacing={1}>
-                    {reorderData.attributes.code_blocks?.map((block, index) => (
-                      <Paper
-                        key={block.id}
-                        variant="outlined"
-                        data-testid={`confirm-modal-code-block-${index + 1}`}
-                        sx={{ display: "flex", alignItems: "center", p: 1 }}
-                      >
-                        <Box
-                          sx={{
-                            width: 40,
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            mr: 1,
-                          }}
-                        >
-                          {block.correct_position ?? DUMMY_LABEL}
-                        </Box>
-                        <Typography>{block.content}</Typography>
-                      </Paper>
-                    ))}
-                  </Stack>
-                ) : reorderFetchFailed ? (
-                  <Box>
-                    <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-                      コードブロックの取得に失敗しました
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      type="button"
-                      onClick={() => setRetryKey((key) => key + 1)}
-                    >
-                      再試行
-                    </Button>
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    読み込み中...
-                  </Typography>
-                )}
-              </Box>
-            ) : (
-              <Grid container spacing={1} sx={{ mb: 2, width: "100%" }}>
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                mb: 2,
+                overflowY: { xs: "auto", sm: "visible" },
+              }}
+            >
+              {data?.attributes.kind === "reorder" ? (
                 <Grid
-                  size={{ xs: 12, sm: 6 }}
-                  sx={{ display: "flex", flexDirection: "column" }}
+                  container
+                  spacing={1}
+                  sx={{
+                    mb: 2,
+                    width: "100%",
+                    height: { xs: "auto", sm: "100%" },
+                    minHeight: 0,
+                  }}
                 >
-                  <Typography variant="body1" sx={{ flexGrow: 1 }}>
-                    {data?.attributes.description}
-                  </Typography>
-                  <Box>
-                    解答チェック用入力
+                  <Grid
+                    size={{ xs: 12, sm: 6 }}
+                    data-testid="confirm-modal-description-column"
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      height: { xs: "auto", sm: "100%" },
+                      minHeight: 0,
+                      overflowY: { xs: "visible", sm: "auto" },
+                    }}
+                  >
                     <Box
+                      data-testid="confirm-modal-description"
                       sx={{
-                        border: "1px solid black",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        width: "100%",
+                        p: 1,
+                        backgroundColor: "primary.main",
+                        flexGrow: 1,
                       }}
                     >
-                      {data?.attributes.inputs.map((value, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            display: "flex",
-                            borderBottom: "1px solid gray",
-                          }}
+                      <MarkdownPreview
+                        content={data?.attributes.description ?? ""}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid
+                    size={{ xs: 12, sm: 6 }}
+                    data-testid="confirm-modal-code-blocks"
+                    sx={{
+                      height: { xs: "auto", sm: "100%" },
+                      minHeight: 0,
+                      overflowY: { xs: "visible", sm: "auto" },
+                    }}
+                  >
+                    {reorderData ? (
+                      <Stack spacing={1}>
+                        {reorderData.attributes.code_blocks?.map((block, index) => (
+                          <Paper
+                            key={block.id}
+                            variant="outlined"
+                            data-testid={`confirm-modal-code-block-${index + 1}`}
+                            sx={{ display: "flex", alignItems: "center", p: 1 }}
+                          >
+                            <Box
+                              sx={{
+                                width: 40,
+                                textAlign: "center",
+                                fontWeight: "bold",
+                                mr: 1,
+                              }}
+                            >
+                              {block.correct_position ?? DUMMY_LABEL}
+                            </Box>
+                            <Typography>{block.content}</Typography>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    ) : reorderFetchFailed ? (
+                      <Box>
+                        <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                          コードブロックの取得に失敗しました
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          type="button"
+                          onClick={() => setRetryKey((key) => key + 1)}
                         >
+                          再試行
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Stack
+                        spacing={1}
+                        data-testid="confirm-modal-code-blocks-loading"
+                      >
+                        {[1, 2, 3].map((key) => (
+                          <Skeleton
+                            key={key}
+                            data-testid="confirm-modal-code-block-skeleton"
+                            variant="rectangular"
+                            height={48}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                  </Grid>
+                </Grid>
+              ) : (
+                <Grid
+                  container
+                  spacing={1}
+                  sx={{
+                    mb: 2,
+                    width: "100%",
+                    height: { xs: "auto", sm: "100%" },
+                    minHeight: 0,
+                  }}
+                >
+                  <Grid
+                    size={{ xs: 12, sm: 6 }}
+                    data-testid="confirm-modal-description-column"
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      height: { xs: "auto", sm: "100%" },
+                      minHeight: 0,
+                      overflowY: { xs: "visible", sm: "auto" },
+                    }}
+                  >
+                    <Box
+                      data-testid="confirm-modal-description"
+                      sx={{
+                        p: 1,
+                        mb: 1,
+                        backgroundColor: "primary.main",
+                        flexGrow: 1,
+                      }}
+                    >
+                      <MarkdownPreview
+                        content={data?.attributes.description ?? ""}
+                      />
+                    </Box>
+                    <Box>
+                      解答チェック用入力
+                      <Box
+                        sx={{
+                          border: "1px solid black",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          width: "100%",
+                        }}
+                      >
+                        {data?.attributes.inputs.map((value, index) => (
                           <Box
+                            key={index}
                             sx={{
-                              borderRight: "1px solid gray",
-                              width: 30,
                               display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: "bold",
+                              borderBottom: "1px solid gray",
                             }}
                           >
-                            {index + 1}
+                            <Box
+                              sx={{
+                                borderRight: "1px solid gray",
+                                width: 30,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {index + 1}
+                            </Box>
+                            <Box sx={{ flexGrow: 1, p: 1 }}>
+                              <Typography aria-label={`result-${index + 1}`}>
+                                {value.content}
+                              </Typography>
+                            </Box>
                           </Box>
-                          <Box sx={{ flexGrow: 1, p: 1 }}>
-                            <Typography aria-label={`result-${index + 1}`}>
-                              {value.content}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ))}
+                        ))}
+                      </Box>
                     </Box>
-                  </Box>
+                  </Grid>
+                  <Grid
+                    size={{ xs: 12, sm: 6 }}
+                    sx={{ height: { xs: 500, sm: "100%" }, minHeight: 0 }}
+                  >
+                    <Editor
+                      defaultLanguage="ruby"
+                      height="100%"
+                      theme="vs-dark"
+                      options={{ readOnly: true, readOnlyMessage }}
+                      value={data?.attributes.source}
+                    />
+                  </Grid>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Editor
-                    defaultLanguage="ruby"
-                    height="500px"
-                    theme="vs-dark"
-                    options={{ readOnly: true, readOnlyMessage }}
-                    value={data?.attributes.source}
-                  />
-                </Grid>
-              </Grid>
-            )}
-            <Box sx={{ display: "flex", justifyContent: "space-around" }}>
+              )}
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-around",
+                flexShrink: 0,
+              }}
+            >
               <Button variant="contained" onClick={handleClose}>
                 戻る
               </Button>
