@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { serverFetch } from "@/app/lib/server-fetch";
-import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/config";
+import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
 
 function mockSuccessResponse() {
   return new Response(null, { status: 200 });

@@ -1,4 +1,4 @@
-import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/config";
+import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
 
 /* v8 ignore start */
 export async function getCurrentPosition(): Promise<{

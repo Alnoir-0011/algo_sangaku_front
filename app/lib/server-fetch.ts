@@ -1,5 +1,5 @@
 import { buildHeaders } from "@/app/lib/client_headers";
-import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/config";
+import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
 
 /**
  * Server Actions / data 層共通の fetch ラッパー。
