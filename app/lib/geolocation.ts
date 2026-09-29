@@ -1,3 +1,5 @@
+import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
+
 /* v8 ignore start */
 export async function getCurrentPosition(): Promise<{
   lat: number;
@@ -15,6 +17,7 @@ export async function getCurrentPosition(): Promise<{
       () => {
         resolve(null);
       },
+      { timeout: DEFAULT_NETWORK_TIMEOUT_MS },
     );
   });
 }
