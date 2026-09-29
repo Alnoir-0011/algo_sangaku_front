@@ -573,6 +573,10 @@ export const generateSource = async (
         method: "POST",
         token: session?.accessToken,
         body: JSON.stringify({ description }),
+        // OpenAI呼び出しを含むため、他のエンドポイント(デフォルト10秒)より長めに待つ。
+        // 短いと、バックエンドが生成回数のカウントを消費した後にクライアント側だけ
+        // 先に失敗表示になり、ユーザーが利用回数を無駄にする不整合が起きるため。
+        timeoutMs: 30_000,
       },
     );
 
