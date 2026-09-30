@@ -239,7 +239,7 @@ test.describe("/admin/sangakus/[id]/edit (not found)", () => {
     await setAdminSession(page);
     await page.goto("/admin/sangakus/1/edit");
     await expect(
-      page.getByRole("heading", { name: "This page could not be found." }),
+      page.getByRole("heading", { name: "404" }),
     ).toBeVisible({ timeout: 10_000 });
   });
 });

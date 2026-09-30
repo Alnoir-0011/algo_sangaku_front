@@ -121,7 +121,7 @@ test.describe("/profiles/[id]", () => {
     }) => {
       await page.goto("/profiles/999");
       await expect(
-        page.getByRole("heading", { name: "This page could not be found." }),
+        page.getByRole("heading", { name: "404" }),
       ).toBeVisible();
     });
   });

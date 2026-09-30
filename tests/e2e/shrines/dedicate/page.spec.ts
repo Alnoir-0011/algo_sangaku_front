@@ -174,7 +174,7 @@ test.describe("/shrines/[id]/dedicate", () => {
 
       await page.goto("/shrines/999/dedicate");
       const message = page.getByRole("heading", {
-        name: "This page could not be found.",
+        name: "404",
       });
       await expect(message).toBeVisible();
     });

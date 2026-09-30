@@ -295,7 +295,7 @@ test.describe("/play/reorder/[id]", () => {
       // 回帰ガード: ログイン済みユーザーが 404 時にサインインへリダイレクトされる誤実装を防ぐ
       await expect(page).toHaveURL("/play/reorder/2");
       await expect(
-        page.getByRole("heading", { name: "This page could not be found." }),
+        page.getByRole("heading", { name: "404" }),
       ).toBeVisible();
     });
   });
