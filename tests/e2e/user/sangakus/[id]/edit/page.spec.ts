@@ -285,7 +285,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
       await page.goto("/user/sangakus/999/edit");
       const message = page.getByRole("heading", {
-        name: "This page could not be found.",
+        name: "404",
       });
       await expect(message).toBeVisible();
     });
