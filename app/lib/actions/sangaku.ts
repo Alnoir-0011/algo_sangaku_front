@@ -278,6 +278,17 @@ export const updateSangaku = async (
           errors: parseApiErrors(data.errors),
           values: { title, description },
         } as State;
+      // 奉納済み（back issue #365: forbid_dedicated_update）。保存中に別タブ等で
+      // 奉納された場合に起こりうるため、編集画面に留まらず一覧へ戻す
+      case 403: {
+        const forbiddenData = await res.json();
+        await setFlash({
+          type: "error",
+          message:
+            forbiddenData.errors?.[0] ?? "この算額は奉納済みのため更新できません",
+        });
+        redirect("/user/sangakus");
+      }
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
@@ -361,6 +372,17 @@ export const updateReorderSangaku = async (
           errors: parseApiErrors(data.errors),
           values: formValues,
         } as State;
+      // 奉納済み（back issue #365: forbid_dedicated_update）。保存中に別タブ等で
+      // 奉納された場合に起こりうるため、編集画面に留まらず一覧へ戻す
+      case 403: {
+        const forbiddenData = await res.json();
+        await setFlash({
+          type: "error",
+          message:
+            forbiddenData.errors?.[0] ?? "この算額は奉納済みのため更新できません",
+        });
+        redirect("/user/sangakus");
+      }
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
         return {
@@ -411,6 +433,15 @@ export const deleteSangaku = async (id: string) => {
         });
         await customSignOut();
         break;
+      // 奉納済み（back issue #365: forbid_dedicated_destroy）
+      case 403: {
+        const data = await res.json();
+        await setFlash({
+          type: "error",
+          message: data.errors?.[0] ?? "この算額は奉納済みのため削除できません",
+        });
+        break;
+      }
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
     }
