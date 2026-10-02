@@ -142,6 +142,37 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toContainText("算額を更新しました");
     });
 
+    // back issue #365: 編集画面を開いた後、保存前に別タブ等で奉納された場合、
+    // 保存時に back から 403 が返る。編集画面に留まらず一覧へ戻し、理由を伝える
+    test("should redirect me to the list with a reason when saving returns 403 because the sangaku became dedicated", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
+          return HttpResponse.json(
+            {
+              message: "Forbidden",
+              errors: ["この算額は奉納済みのため更新できません"],
+            },
+            { status: 403 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/1/edit");
+      await waitForMonacoEditor(page);
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
+      await page.getByRole("button", { name: "保存する" }).click();
+
+      await expect(page).toHaveURL("/user/sangakus");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("この算額は奉納済みのため更新できません");
+    });
+
     test("should not allow me to click the generate button when description is empty", async ({
       page,
       msw,
@@ -425,6 +456,90 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.getByRole("button", { name: "作成画面に戻る" }).click();
       await expect(page.getByTestId("check-page-modal")).not.toBeVisible({ timeout: 3_000 });
       await expect(page.getByLabel("タイトル")).toHaveValue("before_edit");
+    });
+
+    // issue #129: 奉納済み（relationships.shrine.data が null でない）算額は
+    // 編集フォームを表示せず、編集不可メッセージ＋一覧への戻り導線を表示する
+    test("should not allow me to edit a dedicated sangaku and should see a notice with a link back to the list instead of the form", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/6`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "6",
+                type: "sangaku",
+                attributes: {
+                  title: "dedicated_title",
+                  description: "test_description",
+                  source: 'puts "test"',
+                  difficulty: "normal",
+                  inputs: [{ id: 1, content: "example" }],
+                },
+                relationships: {
+                  user: { data: { id: "1", type: "user" } },
+                  shrine: { data: { id: "1", type: "shrine" } },
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/6/edit");
+
+      await expect(
+        page.getByText("この算額は奉納済みのため更新できません"),
+      ).toBeVisible();
+      await expect(page.getByLabel("タイトル")).not.toBeVisible();
+
+      await page.getByRole("link", { name: "一覧へ戻る" }).click();
+      await expect(page).toHaveURL("/user/sangakus");
+    });
+
+    // back のレスポンスでは未奉納でも relationships.shrine.data: null が必ず返る
+    // （キー自体が省略されることはない）。型定義どおりのこの形で通常の編集フォームが
+    // 表示されることを確認する（issue #129 コードレビュー指摘）
+    test("should allow me to see the edit form when shrine.data is explicitly null", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/8`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "8",
+                type: "sangaku",
+                attributes: {
+                  title: "not_dedicated_title",
+                  description: "test_description",
+                  source: 'puts "test"',
+                  difficulty: "normal",
+                  inputs: [{ id: 1, content: "example" }],
+                },
+                relationships: {
+                  user: { data: { id: "1", type: "user" } },
+                  shrine: { data: null },
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/8/edit");
+
+      await expect(page.getByLabel("タイトル")).toHaveValue("not_dedicated_title");
+      await expect(
+        page.getByText("この算額は奉納済みのため更新できません"),
+      ).not.toBeVisible();
     });
 
     test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
@@ -726,6 +841,53 @@ test.describe("/user/sangakus/[id]/edit", () => {
           { content: "dummy", correct_position: null },
         ],
       });
+    });
+
+    // issue #129: kind が reorder でも、奉納済みなら EditReorderForm の代わりに
+    // 共通の編集不可メッセージが表示されることを確認する
+    test("should not allow me to edit a dedicated reorder sangaku and should see a notice instead of the form", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/7`, () => {
+          return HttpResponse.json(
+            {
+              data: {
+                id: "7",
+                type: "sangaku",
+                attributes: {
+                  title: "dedicated_reorder_title",
+                  description: "reorder_description",
+                  difficulty: "easy",
+                  kind: "reorder",
+                  source: null,
+                  inputs: [],
+                  author_name: "test",
+                  shrine_name: "test_shrine",
+                  code_blocks: [
+                    { id: 1, content: "puts 1", correct_position: 1 },
+                    { id: 2, content: "puts 2", correct_position: 2 },
+                  ],
+                },
+                relationships: {
+                  user: { data: { id: "1", type: "user" } },
+                  shrine: { data: { id: "1", type: "shrine" } },
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/user/sangakus/7/edit");
+
+      await expect(
+        page.getByText("この算額は奉納済みのため更新できません"),
+      ).toBeVisible();
+      await expect(page.getByLabel("タイトル")).not.toBeVisible();
     });
 
     test("should allow me to be redirected with a flash message when reorder sangaku is updated successfully", async ({ page, msw }) => {

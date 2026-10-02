@@ -1,7 +1,9 @@
 import { fetchUserSangaku, fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";
+import { isDedicatedSangaku } from "@/app/lib/is-dedicated-sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/sangaku/EditForm";
 import EditReorderForm from "@/app/ui/sangaku/reorder/EditReorderForm";
+import DedicatedSangakuEditNotice from "@/app/ui/sangaku/DedicatedSangakuEditNotice";
 import type { Sangaku } from "@/app/lib/definitions";
 import { Box } from "@mui/material";
 import { Metadata } from "next";
@@ -34,7 +36,20 @@ export default async function Page(props: Props) {
   return (
     <Box>
       <h2 style={{ marginTop: 0 }}>算額を編集する</h2>
-      <EditFormByKind sangaku={sangaku} initialUsage={initialUsage} />
+      {/*
+        issue #129: 奉納済みの算額は、作者向け編集フォームの代わりに編集不可
+        メッセージを表示する（kind を問わない）。
+        注意: これは表示を切り替えるだけの UX 対応であり、アクセス制御ではない。
+        更新・削除そのものを拒否する認可は back 側（issue #365 の
+        forbid_dedicated_update / forbid_dedicated_destroy、本稿執筆時点で未
+        マージ）の責務であり、本対応だけでは Server Action を直接呼び出す経路
+        を防げない。
+      */}
+      {isDedicatedSangaku(sangaku) ? (
+        <DedicatedSangakuEditNotice />
+      ) : (
+        <EditFormByKind sangaku={sangaku} initialUsage={initialUsage} />
+      )}
     </Box>
   );
 }
