@@ -174,7 +174,7 @@ export async function buildRateLimitKey(
  * AUTH_SECRET を鍵にした HMAC にすることで、鍵を知らない相手には
  * 逆引きできないようにしている。
  */
-async function hashIdentifier(value: string): Promise<string> {
+export async function hashIdentifier(value: string): Promise<string> {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
     throw new Error("AUTH_SECRET is required to derive the rate limit key");

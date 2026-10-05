@@ -15,6 +15,7 @@ import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
 import { isValidId } from "@/app/lib/validate-id";
 import { isValidCodeBlocks } from "@/app/lib/validate-reorder-code-blocks";
+import { checkRunSourceRateLimit } from "@/app/lib/rate-limit/run-source";
 
 const apiUrl = process.env.API_URL!;
 
@@ -477,6 +478,18 @@ export const runSource = async (source: string, fixedInputs: string[]) => {
     fixedInputs.some((input) => input.length > MAX_SOURCE_LENGTH)
   ) {
     throw new Error("入力が長すぎます");
+  }
+
+  // fixedInputs の件数に関わらず、この呼び出し自体を 1 カウントとする
+  // （内部の Promise.all は並行実行のための分割であり、利用回数ではない）
+  const email = session.user?.email;
+  if (email) {
+    const allowed = await checkRunSourceRateLimit(email);
+    if (!allowed) {
+      throw new Error(
+        "実行回数の上限に達しました。しばらくしてから再度お試しください",
+      );
+    }
   }
 
   const inputs = fixedInputs.length ? fixedInputs : [""];
