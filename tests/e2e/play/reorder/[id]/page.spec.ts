@@ -149,6 +149,95 @@ test.describe("/play/reorder/[id]", () => {
       await expect(page).toHaveURL(/\/signin/);
     });
 
+    test("should allow me to see the signin link with a callbackUrl to the shrine's sangakus page after answering as a guest", async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto("/play/reorder/1");
+      await expect(
+        page.getByRole("heading", { level: 1, name: "guest_reorder_title" }),
+      ).toBeVisible();
+      await moveAllBlocksToAnswerArea(page);
+      await page.getByRole("button", { name: "解答を終了する" }).click();
+      const signinLink = page.getByRole("link", {
+        name: "サインインして他の算額も解く",
+      });
+      await expect(signinLink).toBeVisible();
+
+      // Act
+      const href = await signinLink.getAttribute("href");
+
+      // Assert
+      expect(href).toBe("/signin?callbackUrl=%2Fshrines%2F1%2Fsangakus");
+    });
+
+    test.describe("when the sangaku is not linked to any shrine", () => {
+      const unlinkedShrineReorderSangakuResponse = {
+        data: {
+          ...publicReorderSangakuResponse.data,
+          id: "3",
+          relationships: {
+            ...publicReorderSangakuResponse.data.relationships,
+            shrine: { data: null },
+          },
+        },
+      };
+
+      test.use({
+        mswHandlers: [
+          [
+            http.get(`${apiUrl}/up`, () => {
+              return HttpResponse.json({ message: "success" });
+            }),
+            http.get(`${apiUrl}/api/v1/public/reorder_sangakus/3`, () => {
+              return HttpResponse.json(unlinkedShrineReorderSangakuResponse, {
+                status: 200,
+              });
+            }),
+            http.post(
+              `${apiUrl}/api/v1/public/reorder_sangakus/3/answer`,
+              () => {
+                return HttpResponse.json(
+                  { status: "correct" },
+                  { status: 200 },
+                );
+              },
+            ),
+            // allow all non-mocked routes to pass through
+            http.all("*", () => {
+              return passthrough();
+            }),
+          ],
+          { scope: "test" },
+        ],
+      });
+
+      test("should allow me to see the signin link without a callbackUrl after answering as a guest when the sangaku is not linked to any shrine", async ({
+        page,
+      }) => {
+        // Arrange
+        // 回帰ガード: shrine.data が null の算額では page.tsx の
+        // `sangaku.relationships.shrine.data?.id ?? null` が null を渡し、
+        // callbackUrl 無しの "/signin" になることを検証する
+        await page.goto("/play/reorder/3");
+        await expect(
+          page.getByRole("heading", { level: 1, name: "guest_reorder_title" }),
+        ).toBeVisible();
+        await moveAllBlocksToAnswerArea(page);
+        await page.getByRole("button", { name: "解答を終了する" }).click();
+        const signinLink = page.getByRole("link", {
+          name: "サインインして他の算額も解く",
+        });
+        await expect(signinLink).toBeVisible();
+
+        // Act
+        const href = await signinLink.getAttribute("href");
+
+        // Assert
+        expect(href).toBe("/signin");
+      });
+    });
+
     test.describe("metadata", () => {
       test("should allow me to see the title containing the sangaku title when visiting without signing in", async ({
         page,

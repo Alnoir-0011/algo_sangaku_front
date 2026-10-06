@@ -167,6 +167,44 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(shareButton).toBeVisible();
     });
 
+    test("should allow me to see a correctly formatted share link after dedicating sangaku to shrine", async ({
+      page,
+    }) => {
+      // Arrange: 算額を奉納してシェアボタンを表示させる
+      await setSession(page);
+
+      await page.goto("/shrines/1/dedicate");
+      const sangaku = page.getByRole("heading", { name: "before_dedicate" });
+      await sangaku.click();
+      const modal = page.getByRole("dialog");
+      const heading = modal.getByRole("heading", { name: "before_dedicate" });
+      await expect(heading).toBeVisible();
+      const button = modal.getByRole("button", { name: "この算額を奉納する" });
+      await button.click();
+      await expect(page).toHaveURL("/shrines/1/dedicate");
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      const shareButton = page.getByRole("link", { name: "でシェア" });
+      await expect(shareButton).toBeVisible();
+
+      // Act: シェアボタンの href から X Intent の url クエリパラメータを取り出す
+      const href = await shareButton.getAttribute("href");
+      if (href === null) {
+        throw new Error("shareButton href is null");
+      }
+      const intentUrl = new URL(href);
+      const sharedUrlParam = intentUrl.searchParams.get("url");
+      if (sharedUrlParam === null) {
+        throw new Error("url query parameter is missing");
+      }
+      const sharedUrl = new URL(sharedUrlParam);
+
+      // Assert: パスが "/shrines"（先頭にスラッシュ）であり、緯度経度が一致すること
+      expect(sharedUrl.pathname).toBe("/shrines");
+      expect(sharedUrl.searchParams.get("lat")).toBe("35.70204829610801");
+      expect(sharedUrl.searchParams.get("lng")).toBe("139.76789333814216");
+    });
+
     test("should allow me to see not found page for a non-existent shrine", async ({
       page,
     }) => {

@@ -41,6 +41,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -68,6 +69,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -100,6 +102,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -126,6 +129,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -147,6 +151,63 @@ test.describe("GuestReorderPuzzle", () => {
     await expect(cta).toHaveAttribute("href", "/signin");
   });
 
+  test("should allow me to see the sign-in CTA linking to /signin?callbackUrl= with the shrine's sangaku list when shrineId is provided and the answer is correct", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const component = await mount(
+      <GuestReorderPuzzle
+        sangakuId="1"
+        shrineId="1"
+        blocks={blocks}
+        title={title}
+        description={description}
+        isLoggedIn={false}
+      />,
+    );
+    await setGuestAnswerResponses(page, [{ status: "correct" }]);
+    await moveBlocksToAnswerArea(component, ["puts 1"]);
+
+    // Act
+    await component.getByRole("button", { name: "解答を終了する" }).click();
+
+    // Assert
+    const cta = component.getByRole("link", { name: CTA_NAME });
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute(
+      "href",
+      "/signin?callbackUrl=%2Fshrines%2F1%2Fsangakus",
+    );
+  });
+
+  test("should allow me to see the sign-in CTA linking to /signin when shrineId is explicitly null and the answer is correct", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const component = await mount(
+      <GuestReorderPuzzle
+        sangakuId="1"
+        shrineId={null}
+        blocks={blocks}
+        title={title}
+        description={description}
+        isLoggedIn={false}
+      />,
+    );
+    await setGuestAnswerResponses(page, [{ status: "correct" }]);
+    await moveBlocksToAnswerArea(component, ["puts 1"]);
+
+    // Act
+    await component.getByRole("button", { name: "解答を終了する" }).click();
+
+    // Assert
+    const cta = component.getByRole("link", { name: CTA_NAME });
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", "/signin");
+  });
+
   test("should not allow me to see the sign-in CTA when the answer is correct and I am logged in", async ({
     mount,
     page,
@@ -155,6 +216,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -185,6 +247,7 @@ test.describe("GuestReorderPuzzle", () => {
       const component = await mount(
         <GuestReorderPuzzle
           sangakuId="1"
+          shrineId={null}
           blocks={blocks}
           title={title}
           description={description}
@@ -216,6 +279,7 @@ test.describe("GuestReorderPuzzle", () => {
       const component = await mount(
         <GuestReorderPuzzle
           sangakuId="1"
+          shrineId={null}
           blocks={blocks}
           title={title}
           description={description}
@@ -256,6 +320,7 @@ test.describe("GuestReorderPuzzle", () => {
       const component = await mount(
         <GuestReorderPuzzle
           sangakuId="1"
+          shrineId={null}
           blocks={blocks}
           title={title}
           description={description}
@@ -290,6 +355,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}
@@ -334,6 +400,7 @@ test.describe("GuestReorderPuzzle", () => {
     const component = await mount(
       <GuestReorderPuzzle
         sangakuId="1"
+        shrineId={null}
         blocks={blocks}
         title={title}
         description={description}

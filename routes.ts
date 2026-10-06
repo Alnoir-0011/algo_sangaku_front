@@ -21,3 +21,6 @@ export const DEFAULT_LOGIN_REDIRECT: string = "/";
 export const profilePath = (id: string) => `/profiles/${id}`;
 
 export const guestReorderPath = (id: string) => `/play/reorder/${id}`;
+
+export const shrineSangakusPath = (shrineId: string) =>
+  `/shrines/${shrineId}/sangakus`;
