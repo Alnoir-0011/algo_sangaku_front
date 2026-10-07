@@ -110,10 +110,10 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("button", { name: "確認画面へ" }).click();
       await expect(page.getByTestId("check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL("/user/sangakus");
       const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("算額を作成しました");
+      await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
     test("should not allow me to click the generate button when description is empty", async ({
@@ -204,10 +204,10 @@ test.describe("/sangakus/create", () => {
         .locator(".monaco-editor");
       await expect(readOnlyEditor).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL("/user/sangakus");
       const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("算額を作成しました");
+      await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
     test("should allow me to see validation error messages on failed submission", async ({ page, msw }) => {
@@ -595,10 +595,10 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByTestId("reorder-check-page-modal")).toBeVisible();
       await page.getByRole("button", { name: "保存する" }).click();
 
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL("/user/sangakus");
       const flash = page.getByTestId("flash-message");
       await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText("算額を作成しました");
+      await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
     test("should allow me to see field errors when reorder sangaku submission fails", async ({ page, msw }) => {

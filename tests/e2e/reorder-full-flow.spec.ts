@@ -134,10 +134,10 @@ test.describe("reorder sangaku full creation flow", () => {
     await page.getByRole("button", { name: "保存する" }).click();
 
     // Assert: 保存成功後に遷移先ページでフラッシュメッセージが確認できる
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/user/sangakus");
     const flash = page.getByTestId("flash-message");
     await expect(flash).toBeVisible({ timeout: 10_000 });
-    await expect(flash).toContainText("算額を作成しました");
+    await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
   });
 
   test.describe("reorder sangaku dedication", () => {

@@ -3,7 +3,7 @@ import {
   fetchSavedSangakuIds,
   fetchRepresentativeReorderSangaku,
 } from "@/app/lib/data/sangaku";
-import { guestReorderPath, signinPath } from "@/routes";
+import { guestReorderPath, shrineSangakusPath, signinPath } from "@/routes";
 import { Box, Button, Typography } from "@mui/material";
 import Link from "next/link";
 import Grid from "@mui/material/Grid2";
@@ -82,7 +82,7 @@ export default async function SangakuList({
                 isSignedIn ? undefined : (
                   <Button
                     component={Link}
-                    href={`${signinPath}?callbackUrl=${encodeURIComponent(`/shrines/${shrine_id}/sangakus`)}`}
+                    href={`${signinPath}?callbackUrl=${encodeURIComponent(shrineSangakusPath(shrine_id))}`}
                     variant="contained"
                   >
                     サインインして算額を写す

@@ -48,29 +48,27 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
           onClose={handleClose}
           headerContent={<Typography>{shrine.attributes.name}</Typography>}
         >
+          <Typography variant="inherit" sx={{ mb: 1 }}>
+            算額の数: {shrine.attributes.sangaku_count ?? 0}
+          </Typography>
           {dist < activeDistance && (
-            <>
-              <Typography variant="inherit" sx={{ mb: 1 }}>
-                算額の数: {shrine.attributes.sangaku_count ?? 0}
-              </Typography>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Button
-                  variant="contained"
-                  LinkComponent={NextLink}
-                  href={`shrines/${shrine.id}/sangakus`}
-                  sx={{ marginRight: "0.5rem" }}
-                >
-                  算額を見る
-                </Button>
-                <Button
-                  variant="contained"
-                  LinkComponent={NextLink}
-                  href={`/shrines/${shrine.id}/dedicate`}
-                >
-                  算額を奉納する
-                </Button>
-              </Box>
-            </>
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Button
+                variant="contained"
+                LinkComponent={NextLink}
+                href={`shrines/${shrine.id}/sangakus`}
+                sx={{ marginRight: "0.5rem" }}
+              >
+                算額を見る
+              </Button>
+              <Button
+                variant="contained"
+                LinkComponent={NextLink}
+                href={`/shrines/${shrine.id}/dedicate`}
+              >
+                算額を奉納する
+              </Button>
+            </Box>
           )}
           {dist >= activeDistance && (
             <Typography variant="inherit">神社から離れています</Typography>

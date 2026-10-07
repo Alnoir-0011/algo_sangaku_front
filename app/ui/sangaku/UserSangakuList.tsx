@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import UserSangaku from "@/app/ui/sangaku/UserSangaku";
+import DedicateSangakuNotice from "@/app/ui/sangaku/DedicateSangakuNotice";
 import Typography from "@mui/material/Typography";
 import Pagination from "@/app/ui/Pagination";
 
@@ -46,13 +47,16 @@ export default async function UserSangakuList({
         }}
       >
         {sangakus.length != 0 ? (
-          sangakus.map((sangaku) => (
-            <UserSangaku
-              sangaku={sangaku}
-              key={sangaku.id}
-              dedicated={dedicated}
-            />
-          ))
+          <>
+            <DedicateSangakuNotice />
+            {sangakus.map((sangaku) => (
+              <UserSangaku
+                sangaku={sangaku}
+                key={sangaku.id}
+                dedicated={dedicated}
+              />
+            ))}
+          </>
         ) : (
           <Box display="flex" justifyContent="center" alignItems="center">
             <Typography variant="inherit" mr={1}>

@@ -13,24 +13,34 @@ import {
 } from "@/app/lib/actions/guest_answer";
 import { PuzzleBlock } from "@/app/lib/definitions";
 import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
-import { signinPath } from "@/routes";
+import { shrineSangakusPath, signinPath } from "@/routes";
 
 interface Props {
   sangakuId: string;
+  shrineId: string | null;
   blocks: PuzzleBlock[];
   title: string;
   description: string;
   isLoggedIn: boolean;
 }
 
+// サインイン後に、算額を奉納した神社の算額一覧へ戻れるようにする callbackUrl 付きリンクを組み立てる。
+// shrineId が無い（＝神社に紐付かない）場合は callbackUrl なしの signinPath を返す。
+function buildSigninCtaHref(shrineId: string | null): string {
+  if (!shrineId) return signinPath;
+  return `${signinPath}?callbackUrl=${encodeURIComponent(shrineSangakusPath(shrineId))}`;
+}
+
 export default function GuestReorderPuzzle({
   sangakuId,
+  shrineId,
   blocks,
   title,
   description,
   isLoggedIn,
 }: Props) {
   const [result, setResult] = useState<GuestAnswerResult | null>(null);
+  const ctaHref = buildSigninCtaHref(shrineId);
 
   async function handleSubmit(blockIds: number[]) {
     setResult(await submitGuestReorderAnswer(sangakuId, blockIds));
@@ -61,7 +71,7 @@ export default function GuestReorderPuzzle({
           </Alert>
           {!isLoggedIn && (
             <Box display="flex" justifyContent="end">
-              <Button component={Link} href={signinPath} variant="contained">
+              <Button component={Link} href={ctaHref} variant="contained">
                 サインインして他の算額も解く
               </Button>
             </Box>

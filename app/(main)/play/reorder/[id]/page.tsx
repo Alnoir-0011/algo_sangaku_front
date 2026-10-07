@@ -63,6 +63,7 @@ export default async function Page(props: Props) {
       title={sangaku.attributes.title}
       description={sangaku.attributes.description}
       isLoggedIn={!!session}
+      shrineId={sangaku.relationships.shrine.data?.id ?? null}
     />
   );
 }

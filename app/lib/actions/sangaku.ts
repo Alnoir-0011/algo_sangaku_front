@@ -29,6 +29,21 @@ const MAX_POLL_ATTEMPTS = 30; // back PaizaioApi と同値
 const MAX_SOURCE_LENGTH = 65_535;
 const MAX_FIXED_INPUTS = 20;
 
+// コード問題・並べ替え問題の作成成功時は、文言・遷移先ともに共通
+// （createSangaku / createReorderSangaku で共有）
+const SANGAKU_LIST_PATH = "/user/sangakus";
+const CREATE_SUCCESS_MESSAGE =
+  "算額を作成しました。神社の100m以内で奉納すると公開されます";
+
+// 作成成功時の共通処理: フラッシュメッセージ表示 → 一覧ページの再検証 → 一覧へリダイレクト。
+// redirect() は必ず例外を投げて戻らないため、戻り値型を never にして
+// 呼び出し側の switch で case 401 等へ静かにフォールスルーしないことを型で保証する
+const redirectAfterSangakuCreated = async (): Promise<never> => {
+  await setFlash({ type: "success", message: CREATE_SUCCESS_MESSAGE });
+  revalidatePath(SANGAKU_LIST_PATH);
+  redirect(SANGAKU_LIST_PATH);
+};
+
 export type State = {
   errors?: {
     title?: string[];
@@ -79,9 +94,7 @@ export const createSangaku = async (
 
     switch (res.status) {
       case 200: {
-        await setFlash({ type: "success", message: "算額を作成しました" });
-        revalidatePath("/user/sangakus");
-        redirect("/");
+        return redirectAfterSangakuCreated();
       }
       case 401:
         await setFlash({
@@ -182,9 +195,7 @@ export const createReorderSangaku = async (
 
     switch (res.status) {
       case 200: {
-        await setFlash({ type: "success", message: "算額を作成しました" });
-        revalidatePath("/user/sangakus");
-        redirect("/");
+        return redirectAfterSangakuCreated();
       }
       case 401:
         await setFlash({
@@ -261,8 +272,8 @@ export const updateSangaku = async (
     switch (res.status) {
       case 200: {
         await setFlash({ type: "success", message: "算額を更新しました" });
-        revalidatePath("/user/sangakus");
-        redirect("/user/sangakus");
+        revalidatePath(SANGAKU_LIST_PATH);
+        redirect(SANGAKU_LIST_PATH);
       }
       case 401:
         await setFlash({
@@ -288,7 +299,7 @@ export const updateSangaku = async (
           message:
             forbiddenData.errors?.[0] ?? "この算額は奉納済みのため更新できません",
         });
-        redirect("/user/sangakus");
+        redirect(SANGAKU_LIST_PATH);
       }
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -355,8 +366,8 @@ export const updateReorderSangaku = async (
     switch (res.status) {
       case 200: {
         await setFlash({ type: "success", message: "算額を更新しました" });
-        revalidatePath("/user/sangakus");
-        redirect("/user/sangakus");
+        revalidatePath(SANGAKU_LIST_PATH);
+        redirect(SANGAKU_LIST_PATH);
       }
       case 401:
         await setFlash({
@@ -382,7 +393,7 @@ export const updateReorderSangaku = async (
           message:
             forbiddenData.errors?.[0] ?? "この算額は奉納済みのため更新できません",
         });
-        redirect("/user/sangakus");
+        redirect(SANGAKU_LIST_PATH);
       }
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -424,7 +435,7 @@ export const deleteSangaku = async (id: string) => {
     switch (res.status) {
       case 200: {
         await setFlash({ type: "success", message: "算額を削除しました" });
-        redirect("/user/sangakus");
+        redirect(SANGAKU_LIST_PATH);
       }
       case 401:
         await setFlash({

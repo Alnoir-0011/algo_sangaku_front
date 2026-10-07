@@ -213,6 +213,73 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
     });
 
+    test("should allow me to see a notice to dedicate my sangaku at a shrine when I have at least one sangaku", async ({ page }) => {
+      // Arrange
+      await setSession(page);
+
+      // Act
+      await page.goto("/user/sangakus");
+
+      // Assert
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複するため first() で対象を絞る
+      await expect(
+        page
+          .getByText(
+            "手持ちの算額は、まだ誰にも公開されていません。神社の100m以内で奉納すると、その神社で公開されます。",
+          )
+          .first(),
+      ).toBeVisible();
+      // ナビゲーションドロワーにも同名の「神社を探す」リンクがあるため main 内に絞り込み、
+      // 上記と同じ理由で first() も付与する
+      const findShrineLink = page
+        .getByRole("main")
+        .getByRole("link", { name: "神社を探す" })
+        .first();
+      await expect(findShrineLink).toBeVisible();
+      await expect(findShrineLink).toHaveAttribute("href", "/shrines");
+    });
+
+    test("should not allow me to see the dedicate notice when I have no sangaku", async ({
+      page,
+      msw,
+    }) => {
+      // 回帰ガード: 0件時に DedicateSangakuNotice（案内文言・「神社を探す」リンク）が
+      // 表示されないことを明示的に検証する。UserSangakuList.tsx の表示分岐自体は
+      // 前サイクルで実装済みのため、この検証を欠落させないための回帰テスト。
+      // Arrange
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return new HttpResponse(JSON.stringify({ data: [] }), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "current-page": "1",
+              "page-items": "20",
+              "total-pages": "0",
+              "total-count": "0",
+            },
+          });
+        }),
+      );
+
+      // Act
+      await setSession(page);
+      await page.goto("/user/sangakus");
+
+      // Assert
+      // サインイン直後のクライアント遷移で前ページの DOM が一時的に重複するため first() で対象を絞る
+      await expect(page.getByText("算額がありません").first()).toBeVisible();
+      await expect(
+        page.getByText(
+          "手持ちの算額は、まだ誰にも公開されていません。神社の100m以内で奉納すると、その神社で公開されます。",
+        ),
+      ).not.toBeVisible();
+      await expect(
+        page.getByRole("main").getByRole("link", { name: "神社を探す" }),
+      ).toHaveCount(0);
+    });
+
     test("should allow me to filter my sangaku list by kind when the kind query param is present", async ({
       page,
       msw,
