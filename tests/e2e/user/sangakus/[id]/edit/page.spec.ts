@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { waitForInteractive, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
+import { setMonacoEditorValue, waitForInteractive, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -91,18 +91,12 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await page.goto("/user/sangakus/1/edit");
       await page.getByLabel("タイトル").fill("test_changed");
       await page.getByLabel("問題文").fill("changed_description");
-      const monacoEditor = page.getByTestId("monaco-editor-source");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
-      await page.keyboard.type("input = gets.chomp");
-      await page.keyboard.press("Enter");
-      await page.keyboard.type('puts "test changed #{input}"');
+      await setMonacoEditorValue(page, 'input = gets.chomp\nputs "test changed #{input}"');
       await page.getByRole("button", { name: "確認画面へ" }).click();
       const checkModal = page.getByTestId("check-page-modal");
       await expect(checkModal).toBeVisible();
-      await expect(page.getByTestId("check-page-editor")).toContainText("test changed");
+      await expect(page.getByTestId("check-page-editor").locator(".view-lines")).toHaveText('input = gets.chompputs "test changed #{input}"');
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
     });

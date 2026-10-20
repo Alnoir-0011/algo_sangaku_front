@@ -36,3 +36,57 @@ export async function waitForMonacoEditor(
     .locator(".view-lines")
     .waitFor({ state: "visible", timeout: 30_000 });
 }
+
+type MonacoOperation = { type: "get" } | { type: "set"; value: string };
+
+// キー操作（ControlOrMeta+a）での全選択は使わない。Monaco は userAgent から OS を判定して
+// キーを割り当てるため、実行 OS と userAgent が食い違うブラウザで全選択にならない。
+// 編集内容の確認に DOM の .view-lines は使わない。行が連結されて改行の有無を区別できない。
+async function operateMonacoEditor(
+  page: Page,
+  nth: number,
+  testId: string,
+  operation: MonacoOperation,
+): Promise<string> {
+  return page
+    .getByTestId(testId)
+    .nth(nth)
+    .evaluate((wrapper, op) => {
+      type MonacoEditor = {
+        getContainerDomNode(): HTMLElement;
+        getValue(): string;
+        setValue(value: string): void;
+      };
+      const { monaco } = window as unknown as {
+        monaco?: { editor: { getEditors(): MonacoEditor[] } };
+      };
+      if (!monaco) {
+        throw new Error(
+          "window.monaco is not loaded. Call waitForMonacoEditor before operating the editor",
+        );
+      }
+      const editor = monaco.editor
+        .getEditors()
+        .find((e) => wrapper.contains(e.getContainerDomNode()));
+      if (!editor) throw new Error("Monaco Editor not found in the given wrapper");
+      if (op.type === "set") editor.setValue(op.value);
+      return editor.getValue();
+    }, operation);
+}
+
+export async function setMonacoEditorValue(
+  page: Page,
+  value: string,
+  nth = 0,
+  testId = "monaco-editor-source",
+) {
+  await operateMonacoEditor(page, nth, testId, { type: "set", value });
+}
+
+export async function getMonacoEditorValue(
+  page: Page,
+  nth = 0,
+  testId = "monaco-editor-source",
+) {
+  return operateMonacoEditor(page, nth, testId, { type: "get" });
+}

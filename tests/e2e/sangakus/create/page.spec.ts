@@ -1,5 +1,5 @@
 import { setSession } from "../../../__helpers__/signin";
-import { waitForInteractive, waitForMonacoEditor } from "../../../__helpers__/hydration";
+import { getMonacoEditorValue, setMonacoEditorValue, waitForInteractive, waitForMonacoEditor } from "../../../__helpers__/hydration";
 
 import {
   test,
@@ -64,19 +64,13 @@ test.describe("/sangakus/create", () => {
       await page.getByLabel("タイトル").fill("test_title");
       await page.getByLabel("問題文").fill("test_description");
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
-      await page.keyboard.type("input = gets.chomp");
-      await page.keyboard.press("Enter");
-      await page.keyboard.type('puts "test #{input}"');
+      await setMonacoEditorValue(page, 'input = gets.chomp\nputs "test #{input}"');
       await page.getByRole("button", { name: "確認画面へ" }).click();
       const checkModal = page.getByTestId("check-page-modal");
       await expect(checkModal).toBeVisible();
       const editorLines = checkModal.locator(".view-lines");
-      await expect(editorLines).toContainText("test");
+      await expect(editorLines).toHaveText('input = gets.chompputs "test #{input}"');
       const resultText = page.getByLabel("result-1");
       await expect(resultText).toBeVisible();
     });
@@ -238,11 +232,9 @@ test.describe("/sangakus/create", () => {
       await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
       await page.getByRole("textbox", { name: "fixedInput-2" }).fill("example");
       // NOTE: monaco-editorの操作
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
+      await setMonacoEditorValue(page, "");
+      await expect.poll(() => getMonacoEditorValue(page)).toBe("");
       await page.getByRole("button", { name: "確認画面へ" }).click();
       const readOnlyEditor = page
         .getByTestId("check-page-modal")

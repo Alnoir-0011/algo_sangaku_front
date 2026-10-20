@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { waitForMonacoEditor } from "@/tests/__helpers__/hydration";
+import { getMonacoEditorValue, setMonacoEditorValue, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -227,15 +227,11 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(title).toBeVisible();
       const description = page.getByText("test_desc");
       await expect(description).toBeVisible();
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
-      await page.keyboard.type("input = gets.chomp");
-      await page.keyboard.press("Enter");
-      await page.keyboard.press("Enter");
-      await page.keyboard.type("puts input");
+      await setMonacoEditorValue(page, "input = gets.chomp\n\nputs input");
+      await expect
+        .poll(() => getMonacoEditorValue(page))
+        .toBe("input = gets.chomp\n\nputs input");
       const button = page.getByRole("button", { name: "解答を終了する" });
       page.once("dialog", async (dialog) => {
         await dialog.accept();
@@ -284,11 +280,9 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(title).toBeVisible();
       const description = page.getByText("test_desc");
       await expect(description).toBeVisible();
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
+      await setMonacoEditorValue(page, "");
+      await expect.poll(() => getMonacoEditorValue(page)).toBe("");
       const button = page.getByRole("button", { name: "解答を終了する" });
       page.once("dialog", async (dialog) => {
         await dialog.accept();
@@ -313,15 +307,11 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       );
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer/create");
-      const monacoEditor = page.getByTestId("monaco-editor-source").locator(".monaco-editor");
       await waitForMonacoEditor(page);
-      await monacoEditor.click();
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.press("Backspace");
-      await page.keyboard.type("input = gets.chomp");
-      await page.keyboard.press("Enter");
-      await page.keyboard.press("Enter");
-      await page.keyboard.type("puts input");
+      await setMonacoEditorValue(page, "input = gets.chomp\n\nputs input");
+      await expect
+        .poll(() => getMonacoEditorValue(page))
+        .toBe("input = gets.chomp\n\nputs input");
       const button = page.getByRole("button", { name: "解答を終了する" });
       page.once("dialog", async (dialog) => {
         await dialog.accept();
