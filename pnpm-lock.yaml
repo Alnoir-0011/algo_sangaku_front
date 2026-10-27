@@ -7,6 +7,9 @@ settings:
 overrides:
   '@types/google.maps': 3.66.0
 
+patchedDependencies:
+  next-auth@5.0.0-beta.32: dafcaf2f914fda874d42fd0537e87645eeabb70f07a7b68074ed947577d43e19
+
 importers:
 
   .:
@@ -64,7 +67,7 @@ importers:
         version: 16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       next-auth:
         specifier: 5.0.0-beta.32
-        version: 5.0.0-beta.32(next@16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(nodemailer@8.0.11)(react@19.3.1)
+        version: 5.0.0-beta.32(patch_hash=dafcaf2f914fda874d42fd0537e87645eeabb70f07a7b68074ed947577d43e19)(next@16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(nodemailer@8.0.11)(react@19.3.1)
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -6203,7 +6206,7 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  next-auth@5.0.0-beta.32(next@16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(nodemailer@8.0.11)(react@19.3.1):
+  next-auth@5.0.0-beta.32(patch_hash=dafcaf2f914fda874d42fd0537e87645eeabb70f07a7b68074ed947577d43e19)(next@16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(nodemailer@8.0.11)(react@19.3.1):
     dependencies:
       '@auth/core': 0.41.3(nodemailer@8.0.11)
       next: 16.4.3(@babel/core@7.28.0(supports-color@7.2.0))(@playwright/test@1.60.0)(@types/node@22.13.0)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
