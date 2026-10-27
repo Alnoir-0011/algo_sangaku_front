@@ -63,12 +63,13 @@ export default function Result({
   pollInterval = 250,
   maxPollCount = 40,
 }: Props) {
-  const [result, setResult] = useState<AnswerResult | null | undefined>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTimeout, setIsTimeout] = useState(false);
+  const [settled, setSettled] = useState<{
+    id: string;
+    result?: AnswerResult;
+    isTimeout: boolean;
+  } | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
     let count = 0;
     let abortController: AbortController | null = null;
 
@@ -77,8 +78,7 @@ export default function Result({
       count++;
       if (count >= maxPollCount) {
         clearInterval(interval);
-        setIsLoading(false);
-        setIsTimeout(true);
+        setSettled({ id, isTimeout: true });
         return;
       }
       abortController = new AbortController();
@@ -90,9 +90,8 @@ export default function Result({
           const json = await res.json();
           const data = json?.data as AnswerResult | undefined;
           if (data && data.attributes.status !== "pending") {
-            setResult(data);
             clearInterval(interval);
-            setIsLoading(false);
+            setSettled({ id, result: data, isTimeout: false });
           }
         }
       } catch (err) {
@@ -108,17 +107,17 @@ export default function Result({
     };
   }, [id, pollInterval, maxPollCount]);
 
-  if (isLoading) {
+  if (settled?.id !== id) {
     return <ResultLoading index={index} />;
   }
-  if (isTimeout) {
+  if (settled.isTimeout) {
     return <ResultRow index={index} isTimeout />;
   }
   return (
     <ResultRow
       index={index}
-      output={result?.attributes.output}
-      status={result?.attributes.status}
+      output={settled.result?.attributes.output}
+      status={settled.result?.attributes.status}
     />
   );
 }

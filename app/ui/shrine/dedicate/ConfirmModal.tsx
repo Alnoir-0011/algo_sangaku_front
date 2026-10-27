@@ -56,12 +56,23 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
     lng: number;
   } | null>(null);
   const [isDedicated, setIsDedicated] = useState(false);
-  const [reorderData, setReorderData] = useState<Sangaku | null>(null);
   // fetchUserSangaku が失敗（null/undefined）した場合に「読み込み中...」のまま
   // 固まってしまわないよう、失敗状態を区別して保持する。retryKey を更新すると
   // 下の useEffect が再実行され、再試行できる。
-  const [reorderFetchFailed, setReorderFetchFailed] = useState(false);
+  // 取得結果は id / retryKey とセットで持ち、現在の算額・試行と一致しないものは
+  // 取得中として扱う。effect 内で state を null に戻す方式は、余分な再レンダリングを招く
+  const [reorderFetch, setReorderFetch] = useState<{
+    id: string;
+    retryKey: number;
+    sangaku: Sangaku | null;
+  } | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const currentReorderFetch =
+    data && reorderFetch?.id === data.id && reorderFetch.retryKey === retryKey
+      ? reorderFetch
+      : null;
+  const reorderData = currentReorderFetch?.sangaku ?? null;
+  const reorderFetchFailed = currentReorderFetch?.sangaku === null;
 
   const { id: shrine_id } = useParams<{ id: string }>();
 
@@ -79,19 +90,13 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
 
     // data.id の変化（別の reorder 算額への切り替え）で古いレスポンスが
     // 後から解決して新しいレスポンスを上書きしないよう、ignore フラグで無効化する。
-    // 併せて取得中は前回の reorderData を表示し続けないよう、開始時点で null に戻す。
     let ignore = false;
-    setReorderData(null);
-    setReorderFetchFailed(false);
+    const id = data.id;
 
     (async () => {
-      const result = await fetchUserSangaku(data.id);
+      const result = await fetchUserSangaku(id);
       if (ignore) return;
-      if (result) {
-        setReorderData(result);
-      } else {
-        setReorderFetchFailed(true);
-      }
+      setReorderFetch({ id, retryKey, sangaku: result || null });
     })();
 
     return () => {
