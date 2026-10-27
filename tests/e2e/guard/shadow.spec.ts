@@ -30,7 +30,7 @@ function debugHeaders(testInfo: TestInfo, id: number): Record<string, string> {
   };
 }
 
-test.describe("Middleware guard (shadow)", () => {
+test.describe("Proxy guard (shadow)", () => {
   test("should allow me to see the guard verdict when I present the debug token", async ({
     request,
   }, testInfo) => {

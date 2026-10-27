@@ -4,7 +4,7 @@ import { checkLimit, createLimiter, type Limiter } from "@/app/lib/guard/ratelim
 /**
  * runSource（PaizaIO 試し実行）専用のレート制限。
  *
- * middleware の "server-action" バケット（全 Server Action 共通・20/分）とは
+ * proxy の "server-action" バケット（全 Server Action 共通・20/分）とは
  * 独立に、試し実行だけを狙って絞る。1 回の呼び出しで fixedInputs を
  * 何件並行実行しても、ここでは呼び出し単位で 1 カウントとする
  * （呼び出し側で呼ぶのは 1 回のみ）。

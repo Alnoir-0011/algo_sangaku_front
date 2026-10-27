@@ -204,7 +204,7 @@ export function createLimiter({
     limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
     analytics: false,
     // Upstash が「応答しない」場合は例外が出ないため try/catch では拾えず、
-    // middleware がハングして全リクエストのレイテンシに直結する
+    // proxy がハングして全リクエストのレイテンシに直結する
     timeout: UPSTASH_TIMEOUT_MS,
     // キーは呼び出し側で "guard:" から組み立てているため、ここでは付けない
     // （付けると guard:guard:... と二重になる）

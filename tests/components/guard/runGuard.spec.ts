@@ -148,7 +148,7 @@ test.describe("runGuard", () => {
 
   test("should not allow me to skip the rate limit by claiming to be a prefetch", async () => {
     // Arrange
-    // Next.js は middleware の手前で Next-Router-Prefetch を削除するため、
+    // Next.js は proxy の手前で Next-Router-Prefetch を削除するため、
     // このヘッダーを見て除外する分岐は本番で成立しない。仮に届いたとしても
     // 予算を消費しないと回避経路になるため、必ず数える
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 60, windowMs: 60_000 }));
@@ -194,7 +194,7 @@ test.describe("runGuard", () => {
   test("should allow me to keep browsing when the guard itself throws", async () => {
     // Arrange
     // fail-open を Upstash 呼び出しの例外（checkLimit が捕捉する）だけでなく、
-    // 判定処理そのものにも効かせる。ここで例外が漏れると middleware ごと
+    // 判定処理そのものにも効かせる。ここで例外が漏れると proxy ごと
     // 500 になり全リクエストが落ちる
     const getLimiter = (): Limiter => {
       throw new Error("failed to construct the limiter");
