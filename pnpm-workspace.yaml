@@ -13,3 +13,8 @@ allowBuilds:
   sharp: true
 overrides:
   '@types/google.maps': 3.66.0
+# @mui/material-nextjs 6 系は peer の next が 15 までで、MUI 7 へ上げないと Next 16 に対応しない。
+# MUI 全体の 7 系移行は別作業とし、ここでは peer のみ許容している
+peerDependencyRules:
+  allowedVersions:
+    "@mui/material-nextjs>next": "16"

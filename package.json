@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev -p 4020 --turbopack",
+    "dev": "next dev -p 4020",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -34,8 +34,8 @@
     "@upstash/redis": "^1.38.2",
     "@vercel/functions": "^3.9.3",
     "@vis.gl/react-google-maps": "^1.9.0",
-    "next": "15.5.28",
-    "next-auth": "5.0.0-beta.25",
+    "next": "16.4.3",
+    "next-auth": "5.0.0-beta.32",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",
