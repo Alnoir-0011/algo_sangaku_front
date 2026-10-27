@@ -4,7 +4,7 @@ import Grid from "@mui/material/Grid2";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 import { difficultyTranslation } from "../utility";
 import KindBadge from "@/app/ui/KindBadge";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import { profilePath } from "@/routes";
 
 interface Props {

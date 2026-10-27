@@ -5,7 +5,7 @@ import {
 } from "@/app/lib/data/sangaku";
 import { guestReorderPath, shrineSangakusPath, signinPath } from "@/routes";
 import { Box, Button, Typography } from "@mui/material";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import Grid from "@mui/material/Grid2";
 import Pagination from "@/app/ui/Pagination";
 import Sangaku from "./Sangaku";

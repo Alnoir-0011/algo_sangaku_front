@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import Image from "next/image";
-import NextLink from "next/link";
+import NextLink from "@/app/ui/shared/NextLink";
 import type { Shrine } from "@/app/lib/definitions";
 
 interface Props {

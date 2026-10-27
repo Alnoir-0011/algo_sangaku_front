@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
+import NextLink from "@/app/ui/shared/NextLink";
 
 export default function DedicateSangakuNotice() {
   return (
