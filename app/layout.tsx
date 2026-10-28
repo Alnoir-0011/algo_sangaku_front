@@ -46,6 +46,8 @@ export default function RootLayout({
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <CssBaseline />
+              {/* Server Component はクライアントの再レンダリングで再実行されないため、毎回異なる値が必要。サーバー描画のたびに flash を再取得させるのが目的で、固定値だと Server Action 後の flash が表示されない */}
+              {/* eslint-disable-next-line react-hooks/purity */}
               <FlashMessage refreshKey={Date.now()} />
               {children}
             </ThemeProvider>

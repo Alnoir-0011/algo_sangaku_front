@@ -10,9 +10,9 @@ import type { ComponentProps } from "react";
  * テスト環境ではバックエンドが未起動のため、プリフェッチ先ページの SSR で
  * MSW ハンドラのない API への接続が発生しエラーログが出る。
  * prefetch={false} を強制することでプリフェッチを無効化する。
- * 差し替えは next.config.ts の webpack alias（APP_ENV=test）で行う。
+ * 差し替えは next.config.ts の turbopack.resolveAlias（APP_ENV=test）で行う。
  *
- * `next/dist/client/link` を直接インポートすることで、webpack alias による
+ * `next/dist/client/link` を直接インポートすることで、resolveAlias による
  * 自己参照（無限ループ）を避けている。
  */
 export default function NoPrefetchLink(

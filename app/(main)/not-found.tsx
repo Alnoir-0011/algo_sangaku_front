@@ -1,6 +1,6 @@
 import { Box, Link, Typography } from "@mui/material";
 import Ema from "@/app/ui/Ema";
-import NextLink from "next/link";
+import NextLink from "@/app/ui/shared/NextLink";
 
 export default function NotFound() {
   return (

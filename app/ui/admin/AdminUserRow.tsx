@@ -1,5 +1,5 @@
 import { Button, TableCell, TableRow } from "@mui/material";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import type { AdminUser } from "@/app/lib/definitions";
 
 interface Props {

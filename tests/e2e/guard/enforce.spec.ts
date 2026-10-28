@@ -10,7 +10,7 @@ import { RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
 /** しきい値を実装から取得する。ハードコードすると変更時に静かにずれる */
 const PUBLIC_GET_LIMIT = RATE_LIMIT_BUCKETS["public-get"].limit;
 
-test.describe("Middleware guard (enforce)", () => {
+test.describe("Proxy guard (enforce)", () => {
   test("should not allow me to reach the app with a malicious user agent", async ({
     request,
   }) => {
@@ -159,7 +159,7 @@ test.describe("Middleware guard (enforce)", () => {
     request,
   }) => {
     // 動的セグメントはドットを含む値にもマッチする。matcher が拡張子で
-    // 除外していると middleware ごとスキップされ、ガードも認証も効かなくなる
+    // 除外していると proxy ごとスキップされ、ガードも認証も効かなくなる
     const response = await request.get("/profiles/abc.png", {
       headers: {
         "user-agent": "curl/8.4.0",

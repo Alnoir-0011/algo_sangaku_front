@@ -1,5 +1,5 @@
 import { Box, Button, TableCell, TableRow } from "@mui/material";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import type { AdminSangaku } from "@/app/lib/definitions";
 import { deleteSangaku } from "@/app/lib/actions/admin";
 import KindBadge from "@/app/ui/KindBadge";

@@ -1,6 +1,6 @@
 import { Box, Link, Typography, Grid2 } from "@mui/material";
 import Ema from "@/app/ui/Ema";
-import NextLink from "next/link";
+import NextLink from "@/app/ui/shared/NextLink";
 
 const linkContent = [
   { name: "算額を作る", href: "/sangakus/create" },

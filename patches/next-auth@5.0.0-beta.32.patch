@@ -1,0 +1,62 @@
+diff --git a/lib/actions.js b/lib/actions.js
+index aaddb37c357984eeafddae8d37b5560cd7094123..0be1d0ec49b8f04b96a284d6805144dfd42fbf78 100644
+--- a/lib/actions.js
++++ b/lib/actions.js
+@@ -4,7 +4,7 @@ import { headers as nextHeaders, cookies } from "next/headers";
+ // @ts-expect-error Next.js does not yet correctly use the `package.json#exports` field
+ import { redirect } from "next/navigation";
+ export async function signIn(provider, options = {}, authorizationParams, config) {
+-    const headers = new Headers(await nextHeaders());
++    const headers = new Headers([...(await nextHeaders()).entries()]);
+     const { redirect: shouldRedirect = true, redirectTo, ...rest } = options instanceof FormData ? Object.fromEntries(options) : options;
+     const callbackUrl = redirectTo?.toString() ?? headers.get("Referer") ?? "/";
+     const signInURL = createActionURL("signin", 
+@@ -54,7 +54,7 @@ export async function signIn(provider, options = {}, authorizationParams, config
+     return redirectUrl;
+ }
+ export async function signOut(options, config) {
+-    const headers = new Headers(await nextHeaders());
++    const headers = new Headers([...(await nextHeaders()).entries()]);
+     headers.set("Content-Type", "application/x-www-form-urlencoded");
+     const url = createActionURL("signout", 
+     // @ts-expect-error `x-forwarded-proto` is not nullable, next.js sets it by default
+@@ -71,7 +71,7 @@ export async function signOut(options, config) {
+     return res;
+ }
+ export async function update(data, config) {
+-    const headers = new Headers(await nextHeaders());
++    const headers = new Headers([...(await nextHeaders()).entries()]);
+     headers.set("Content-Type", "application/json");
+     const url = createActionURL("session", 
+     // @ts-expect-error `x-forwarded-proto` is not nullable, next.js sets it by default
+diff --git a/src/lib/actions.ts b/src/lib/actions.ts
+index 80081fa2e0603c0317ee7d9ea599d31e731e6b4d..ee559424351d27b11157d32983d1dd662f06af5a 100644
+--- a/src/lib/actions.ts
++++ b/src/lib/actions.ts
+@@ -15,7 +15,7 @@ export async function signIn(
+   authorizationParams: SignInParams[2],
+   config: NextAuthConfig
+ ) {
+-  const headers = new Headers(await nextHeaders())
++  const headers = new Headers([...(await nextHeaders()).entries()])
+   const {
+     redirect: shouldRedirect = true,
+     redirectTo,
+@@ -91,7 +91,7 @@ export async function signOut(
+   options: SignOutParams[0],
+   config: NextAuthConfig
+ ) {
+-  const headers = new Headers(await nextHeaders())
++  const headers = new Headers([...(await nextHeaders()).entries()])
+   headers.set("Content-Type", "application/x-www-form-urlencoded")
+ 
+   const url = createActionURL(
+@@ -121,7 +121,7 @@ export async function update(
+   data: UpdateParams[0],
+   config: NextAuthConfig
+ ): Promise<Session | null> {
+-  const headers = new Headers(await nextHeaders())
++  const headers = new Headers([...(await nextHeaders()).entries()])
+   headers.set("Content-Type", "application/json")
+ 
+   const url = createActionURL(

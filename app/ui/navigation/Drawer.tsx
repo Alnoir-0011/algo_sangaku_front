@@ -9,7 +9,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid2";
-import NextLink from "next/link";
+import NextLink from "@/app/ui/shared/NextLink";
 import { customSignOut } from "@/app/lib/actions/auth";
 
 const drawerContent = [

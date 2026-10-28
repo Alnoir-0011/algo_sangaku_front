@@ -1,5 +1,5 @@
 import { Box, Button, TableCell, TableRow } from "@mui/material";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import type { AdminShrine } from "@/app/lib/definitions";
 import { deleteShrine } from "@/app/lib/actions/admin";
 import AdminDeleteButton from "./AdminDeleteButton";
