@@ -82,8 +82,13 @@ const nextConfig: NextConfig = {
       }),
       // テスト環境では next/link のプリフェッチを無効化する
       // （未起動バックエンドへの接続エラーログを抑制するため）
+      //
+      // キーを "next/link" にすると Turbopack では差し替わらず、プリフェッチが有効なままになる
+      // （ビルドにモックが含まれないことを確認済み）。プリフェッチの応答が session-token を
+      // 再発行してサインアウトの cookie 削除を打ち消し、E2E が不安定になるため、
+      // Next が next/link の実体にしているファイルを指定している
       ...(process.env.APP_ENV === "test" && {
-        "next/link": "./tests/__mocks__/next-link-no-prefetch.tsx",
+        "next/dist/client/app-dir/link": "./tests/__mocks__/next-link-no-prefetch.tsx",
       }),
     },
   },
