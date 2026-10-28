@@ -55,8 +55,9 @@ export default function Results({ answer }: Props) {
           <Typography>結果</Typography>
         </Box>
       </Box>
+      {/* index を key にすると、同じ位置で id が変わったとき Result の取得結果やタイムアウト状態が引き継がれる */}
       {resultIds.map((value, index) => (
-        <Result key={index} index={index} id={value} />
+        <Result key={value} index={index} id={value} />
       ))}
     </Box>
   );

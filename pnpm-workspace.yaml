@@ -13,3 +13,13 @@ allowBuilds:
   sharp: true
 overrides:
   '@types/google.maps': 3.66.0
+# Next 16 では new Headers(await headers()) が空の Headers になり、next-auth の signIn / signOut / update が
+# cookie を見失う（サインアウトしても session-token が消えない）。beta.32 が最新で上流に修正版が無いため patch で回避している。
+# 修正版が出たら patch を外すこと
+patchedDependencies:
+  next-auth@5.0.0-beta.32: patches/next-auth@5.0.0-beta.32.patch
+# @mui/material-nextjs 6 系は peer の next が 15 までで、MUI 7 へ上げないと Next 16 に対応しない。
+# MUI 全体の 7 系移行は別作業とし、ここでは peer のみ許容している
+peerDependencyRules:
+  allowedVersions:
+    "@mui/material-nextjs>next": "16"

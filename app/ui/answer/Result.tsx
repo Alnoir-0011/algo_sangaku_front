@@ -68,7 +68,6 @@ export default function Result({
   const [isTimeout, setIsTimeout] = useState(false);
 
   useEffect(() => {
-    setIsLoading(true);
     let count = 0;
     let abortController: AbortController | null = null;
 

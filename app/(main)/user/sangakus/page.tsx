@@ -4,7 +4,7 @@ import PageTab from "@/app/ui/sangaku/PageTab";
 import UserSangakuList from "@/app/ui/sangaku/UserSangakuList";
 import { Suspense } from "react";
 import { SangakuListSkeleton } from "@/app/ui/skeletons";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import Search from "@/app/ui/Search";
 import { Container } from "@mui/material";
 import { Metadata } from "next";

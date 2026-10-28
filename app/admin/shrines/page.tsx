@@ -8,7 +8,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import Link from "next/link";
+import Link from "@/app/ui/shared/NextLink";
 import { fetchAdminShrines } from "@/app/lib/data/admin";
 import AdminShrineRow from "@/app/ui/admin/AdminShrineRow";
 import Pagination from "@/app/ui/Pagination";

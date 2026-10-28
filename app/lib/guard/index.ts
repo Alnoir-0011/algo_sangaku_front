@@ -253,7 +253,7 @@ export function getDefaultLimiter(group: RouteGroup): Limiter {
  * Bot 判定とレート制限を評価して判定結果を返す。
  *
  * この関数自体は遮断しない。shadow と enforce で同じ判定を返し、
- * それを実際に適用するかどうかは呼び出し側（middleware）が決める。
+ * それを実際に適用するかどうかは呼び出し側（proxy）が決める。
  */
 export async function runGuard(
   request: GuardRequest,
@@ -298,16 +298,16 @@ async function evaluateGuard(
     return { mode, action: "block", status: 403, reason: "crawler-scope" };
   }
 
-  // prefetch を除外する分岐は置かない。middleware から prefetch を識別する
+  // prefetch を除外する分岐は置かない。proxy から prefetch を識別する
   // 公式の手段が存在しないため。
-  //   - Next.js は middleware を呼ぶ直前に FLIGHT_HEADERS（rsc /
+  //   - Next.js は proxy を呼ぶ直前に FLIGHT_HEADERS（rsc /
   //     next-router-prefetch 等）を必ず削除するので、これらのヘッダーは届かない
   //   - クエリの _rsc は「Vary を尊重しない CDN 向けのキャッシュキー」と
   //     公式に位置づけられたもので（docs/01-app/02-guides/cdn-caching.mdx）、
   //     信頼できる識別子ではない。これで除外するとクライアントが付けるだけで
   //     レート制限を回避できてしまう
   // prefetch のぶんは「数える」前提で public-get のしきい値を決めること。
-  // 公式の認証ガイドも middleware が prefetch リクエスト上で動くことを前提に
+  // 公式の認証ガイドも proxy が prefetch リクエスト上で動くことを前提に
   // 「重い処理を置くな」と述べている（SPEC §9.5）。
 
   const ip = getClientIp(request.headers);

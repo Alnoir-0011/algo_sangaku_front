@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const securityHeaders = [
   {
@@ -75,29 +74,23 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  webpack: (config) => {
-    // E2E テスト時は実 Google Maps をロードせずモックに差し替える
-    if (process.env.E2E_MOCK_MAPS === "true") {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@vis.gl/react-google-maps": path.resolve(
-          __dirname,
-          "tests/__mocks__/react-google-maps.tsx",
-        ),
-      };
-    }
-    // テスト環境では next/link のプリフェッチを無効化する
-    // （未起動バックエンドへの接続エラーログを抑制するため）
-    if (process.env.APP_ENV === "test") {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "next/link": path.resolve(
-          __dirname,
-          "tests/__mocks__/next-link-no-prefetch.tsx",
-        ),
-      };
-    }
-    return config;
+  turbopack: {
+    resolveAlias: {
+      // E2E テスト時は実 Google Maps をロードせずモックに差し替える
+      ...(process.env.E2E_MOCK_MAPS === "true" && {
+        "@vis.gl/react-google-maps": "./tests/__mocks__/react-google-maps.tsx",
+      }),
+      // テスト環境では next/link のプリフェッチを無効化する
+      // （未起動バックエンドへの接続エラーログを抑制するため）
+      //
+      // キーを "next/link" にすると Turbopack では差し替わらず、プリフェッチが有効なままになる
+      // （ビルドにモックが含まれないことを確認済み）。プリフェッチの応答が session-token を
+      // 再発行してサインアウトの cookie 削除を打ち消し、E2E が不安定になるため、
+      // Next が next/link の実体にしているファイルを指定している
+      ...(process.env.APP_ENV === "test" && {
+        "next/dist/client/app-dir/link": "./tests/__mocks__/next-link-no-prefetch.tsx",
+      }),
+    },
   },
 };
 

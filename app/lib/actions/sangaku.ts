@@ -467,7 +467,7 @@ export const deleteSangaku = async (id: string) => {
 
 export const runSource = async (source: string, fixedInputs: string[]) => {
   // Server Action はどのルートからでも起動できる公開エンドポイントになるため、
-  // ページの middleware 認証とは独立にここで未認証アクセスを拒否する
+  // ページの proxy 認証とは独立にここで未認証アクセスを拒否する
   const session = await auth();
   if (!session) {
     throw new Error("認証が必要です");

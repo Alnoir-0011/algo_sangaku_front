@@ -6,7 +6,7 @@ import type { CSSProperties, ReactNode } from "react";
  * 実際の Google Maps JS API をロードせず、地図に依存しない最小限のスタブを提供する。
  * CI には Google Maps の API キーが無く、実地図は AuthFailure で描画されないため、
  * `useMap().getBounds()` を固定値で返して loadShrines（fetchShrines）を安定して
- * 呼び出せるようにする。差し替えは next.config.ts の webpack alias（E2E_MOCK_MAPS=true）で行う。
+ * 呼び出せるようにする。差し替えは next.config.ts の turbopack.resolveAlias（E2E_MOCK_MAPS=true）で行う。
  */
 
 export function APIProvider({ children }: { children?: ReactNode }) {
