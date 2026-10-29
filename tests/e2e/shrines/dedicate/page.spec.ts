@@ -146,6 +146,35 @@ test.describe("/shrines/[id]/dedicate", () => {
   });
 
   test.describe("after signin", () => {
+    test("should allow me to see my sangaku in the list", async ({ page }) => {
+      await setSession(page);
+
+      await page.goto("/shrines/1/dedicate");
+
+      await expect(
+        page.getByRole("heading", { name: "before_dedicate" }),
+      ).toBeVisible();
+    });
+
+    test("should not allow me to see my sangaku in the list when fetch fails", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json({}, { status: 500 });
+        }),
+      );
+      await setSession(page);
+
+      await page.goto("/shrines/1/dedicate");
+
+      await expect(page.getByText("リクエストに失敗しました")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "before_dedicate" }),
+      ).toHaveCount(0);
+    });
+
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {
