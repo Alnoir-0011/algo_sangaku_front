@@ -1,6 +1,6 @@
 import { Sangaku } from "@/app/lib/definitions";
 import Ema from "@/app/ui/Ema";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 import { difficultyTranslation } from "../utility";
 import KindBadge from "@/app/ui/KindBadge";
@@ -71,7 +71,9 @@ export default function SavedSangaku({ sangaku, answered }: Props) {
               {sangaku.relationships.user.data?.id ? (
                 <Tooltip title="プロフィールを見る" arrow>
                   <span>
-                    <Link href={profilePath(sangaku.relationships.user.data.id)}>
+                    <Link
+                      href={profilePath(sangaku.relationships.user.data.id)}
+                    >
                       {sangaku.attributes.author_name}
                     </Link>
                   </span>

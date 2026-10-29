@@ -44,37 +44,43 @@ export default function SourceResult(props: Props) {
   }
 
   return (
-    <Box display="flex" justifyContent="center">
+    <Box sx={{ display: "flex", justifyContent: "center" }}>
       {isCorrect() && (
         <Box
-          width={size}
-          height={size}
-          border={3}
-          borderRadius="100%"
-          m={3}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          sx={{ borderWidth: 4, borderColor: "#EB6101" }}
+          sx={{
+            width: size,
+            height: size,
+            border: 3,
+            borderRadius: "100%",
+            m: 3,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            borderWidth: 4,
+            borderColor: "#EB6101",
+          }}
         >
-          <Typography variant="h1" color="secondary.main">
+          <Typography variant="h1" sx={{ color: "secondary.main" }}>
             明<br />察
           </Typography>
         </Box>
       )}
       {isCorrect() || (
         <Box
-          width={size}
-          height={size}
-          border={2}
-          borderRadius="100%"
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          m={3}
-          sx={{ borderWidth: 5, borderColor: "#016AEB" }}
+          sx={{
+            width: size,
+            height: size,
+            border: 2,
+            borderRadius: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            m: 3,
+            borderWidth: 5,
+            borderColor: "#016AEB",
+          }}
         >
-          <Typography variant="h1" color="#016AEB">
+          <Typography variant="h1" sx={{ color: "#016AEB" }}>
             誤<br />謬
           </Typography>
         </Box>

@@ -1,7 +1,7 @@
 import type { Sangaku } from "@/app/lib/definitions";
 import Ema from "@/app/ui/Ema";
 import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import MenuButton from "@/app/ui/sangaku/MenuButton";
 import { difficultyTranslation } from "../utility";

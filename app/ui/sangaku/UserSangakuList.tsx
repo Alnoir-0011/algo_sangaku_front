@@ -1,7 +1,7 @@
 import { fetchUserSangakus } from "@/app/lib/data/sangaku";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import UserSangaku from "@/app/ui/sangaku/UserSangaku";
 import DedicateSangakuNotice from "@/app/ui/sangaku/DedicateSangakuNotice";
 import Typography from "@mui/material/Typography";
@@ -58,8 +58,14 @@ export default async function UserSangakuList({
             ))}
           </>
         ) : (
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <Typography variant="inherit" mr={1}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="inherit" sx={{ mr: 1 }}>
               算額がありません
             </Typography>
             <Button variant="contained" href="/sangakus/create" sx={{ ml: 1 }}>

@@ -1,4 +1,4 @@
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Box, Button, Typography } from "@mui/material";
 import { fetchSavedSangakus } from "@/app/lib/data/sangaku";
 import Pagination from "../Pagination";
@@ -54,8 +54,14 @@ export default async function SavedSangakuList({
             />
           ))}
         {sangakus.length > 0 || (
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <Typography variant="inherit" mr={1}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="inherit" sx={{ mr: 1 }}>
               算額がありません
             </Typography>
             <Button variant="contained" href="/shrines" sx={{ ml: 1 }}>

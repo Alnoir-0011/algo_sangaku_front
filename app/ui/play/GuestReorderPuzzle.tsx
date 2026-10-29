@@ -70,7 +70,7 @@ export default function GuestReorderPuzzle({
             正解です！
           </Alert>
           {!isLoggedIn && (
-            <Box display="flex" justifyContent="end">
+            <Box sx={{ display: "flex", justifyContent: "end" }}>
               <Button component={Link} href={ctaHref} variant="contained">
                 サインインして他の算額も解く
               </Button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { runSource } from "@/app/lib/actions/sangaku";
 import { Box, Button, CircularProgress, TextField } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 
 const initialOutput = "出力がこちらに表示されます。";
 
@@ -20,7 +20,9 @@ export default function SourceExecution({ source }: Props) {
       const result = await runSource(source, [input]);
       setOutput(result[0]);
     } catch (error) {
-      setOutput(error instanceof Error ? error.message : "実行できませんでした");
+      setOutput(
+        error instanceof Error ? error.message : "実行できませんでした",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -28,7 +30,7 @@ export default function SourceExecution({ source }: Props) {
 
   return (
     <>
-      <Box display="flex" justifyContent="end">
+      <Box sx={{ display: "flex", justifyContent: "end" }}>
         <Button variant="contained" onClick={handleRunSource} sx={{ mb: 1 }}>
           実行
         </Button>
@@ -48,9 +50,11 @@ export default function SourceExecution({ source }: Props) {
         </Grid>
         <Grid
           size={6}
-          justifyContent="center"
-          alignItems="center"
-          alignContent="center"
+          sx={{
+            justifyContent: "center",
+            alignItems: "center",
+            alignContent: "center",
+          }}
         >
           {isLoading || (
             <TextField

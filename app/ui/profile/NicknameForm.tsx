@@ -17,8 +17,8 @@ export default function NicknameForm({ nickname }: Props) {
 
   return (
     <form action={formAction}>
-      <Box display="flex" gap={1} alignItems="flex-start">
-        <Box flex={1}>
+      <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+        <Box sx={{ flex: 1 }}>
           <TextField
             required
             fullWidth

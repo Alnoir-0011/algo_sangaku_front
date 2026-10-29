@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import { fetchUserAnswerWithSangakuId } from "@/app/lib/data/answer";
 import { fetchSavedSangaku } from "@/app/lib/data/sangaku";
@@ -61,7 +61,7 @@ export default async function Page(props: Props) {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" mb={1}>
+      <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
         {sangaku?.attributes.title}の結果
       </Typography>
       <Grid container spacing={2}>

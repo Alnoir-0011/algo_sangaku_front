@@ -6,7 +6,7 @@ import {
 import { guestReorderPath, shrineSangakusPath, signinPath } from "@/routes";
 import { Box, Button, Typography } from "@mui/material";
 import Link from "@/app/ui/shared/NextLink";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Sangaku from "./Sangaku";
 
@@ -53,9 +53,13 @@ export default async function SangakuList({
         <Grid
           container
           spacing={3}
-          justifyContent="center"
-          alignItems="flex-start"
-          sx={{ mt: 3, mb: 2, flexGrow: 1 }}
+          sx={{
+            justifyContent: "center",
+            alignItems: "flex-start",
+            mt: 3,
+            mb: 2,
+            flexGrow: 1,
+          }}
         >
           {guestSangaku && (
             <Sangaku

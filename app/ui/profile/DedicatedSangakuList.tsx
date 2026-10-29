@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Ema from "@/app/ui/Ema";
 
 interface DedicatedSangaku {
@@ -15,11 +15,11 @@ interface Props {
 export default function DedicatedSangakuList({ sangakus }: Props) {
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+      <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
         奉納済み算額
       </Typography>
       {sangakus.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
           奉納済みの算額はありません
         </Typography>
       ) : (
@@ -38,8 +38,8 @@ export default function DedicatedSangakuList({ sangakus }: Props) {
                 >
                   <Typography
                     variant="body1"
-                    fontWeight="bold"
                     sx={{
+                      fontWeight: "bold",
                       textAlign: "center",
                       overflow: "hidden",
                       display: "-webkit-box",
@@ -52,8 +52,7 @@ export default function DedicatedSangakuList({ sangakus }: Props) {
                   </Typography>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
-                    sx={{ textAlign: "center", mt: 1 }}
+                    sx={{ color: "text.secondary", textAlign: "center", mt: 1 }}
                   >
                     {sangaku.shrine_name}
                   </Typography>

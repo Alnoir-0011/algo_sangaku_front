@@ -4,7 +4,7 @@ import type { Sangaku, Shrine } from "@/app/lib/definitions";
 import { useEffect, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import ConfirmModal from "./ConfirmModal";
 import { difficultyTranslation } from "../../utility";
@@ -51,7 +51,7 @@ export default function SangakuList({ page, query, shrine }: Props) {
 
   return (
     <>
-      <Grid container spacing={2} justifyContent="center" sx={{ mb: 2 }}>
+      <Grid container spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
         {sangakusData.sangakus.map((sangaku) => (
           <div
             key={sangaku.id}
