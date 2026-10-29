@@ -95,7 +95,7 @@ test.describe("/user/profile", () => {
       await setSession(page);
       await page.goto("/user/profile");
 
-      const switchEl = page.getByRole("checkbox", {
+      const switchEl = page.getByRole("switch", {
         name: "提出した回答数を公開プロフィールに表示する",
       });
       await expect(switchEl).not.toBeChecked({ timeout: 10_000 });
@@ -120,7 +120,7 @@ test.describe("/user/profile", () => {
       await setSession(page);
       await page.goto("/user/profile");
 
-      const switchEl = page.getByRole("checkbox", {
+      const switchEl = page.getByRole("switch", {
         name: "提出した回答数を公開プロフィールに表示する",
       });
       await switchEl.click();

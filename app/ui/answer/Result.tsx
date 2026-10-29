@@ -39,17 +39,20 @@ function ResultRow({ index, output, status, isTimeout }: RowProps) {
       </Box>
       <Box sx={{ flexGrow: 1, p: 1, borderRight: "1px solid gray" }}>
         <Typography
-          color={isTimeout ? "error" : undefined}
+          sx={{ color: isTimeout ? "error" : undefined }}
           data-testid={`result-${index + 1}`}
         >
           {isTimeout ? "採点タイムアウト" : output}
         </Typography>
       </Box>
       <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        sx={{ p: 1, width: 50 }}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 1,
+          width: 50,
+        }}
       >
         <Typography>{status === "correct" ? "○" : "×"}</Typography>
       </Box>

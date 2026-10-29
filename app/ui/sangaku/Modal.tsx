@@ -7,7 +7,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 // import { Editor } from "@monaco-editor/react";
 import { difficultyTranslation } from "@/app/ui/utility";
 import Ema from "@/app/ui/Ema";
@@ -59,7 +59,14 @@ export default function ModalComponent({ data, handleClose }: Props) {
         role="dialog"
       >
         {isLoading && (
-          <Box display="flex" justifyContent="center" alignItems="center" p={5}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              p: 5,
+            }}
+          >
             <CircularProgress size={200} />
           </Box>
         )}
@@ -68,15 +75,14 @@ export default function ModalComponent({ data, handleClose }: Props) {
             <Grid
               container
               spacing={2}
-              width="100%"
               columns={{ xs: 6, md: 12 }}
-              sx={{ mb: 2 }}
+              sx={{ width: "100%", mb: 2 }}
             >
               <Grid size={6}>
                 <Typography variant="h4" sx={{ mb: 2 }}>
                   {shrine?.attributes.name}
                 </Typography>
-                <Box display="flex" justifyContent="center" sx={{ mb: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
                   <Ema width={18}>
                     <Box
                       sx={{
@@ -124,29 +130,23 @@ export default function ModalComponent({ data, handleClose }: Props) {
                     </Box>
                   </Ema>
                 </Box>
-                <Box p={5}>
+                <Box sx={{ p: 5 }}>
                   <Typography
                     variant="inherit"
-                    fontWeight="bold"
-                    fontSize={18}
-                    mb={1}
+                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
                   >
                     算額が写された数:{" "}
                     {results!.attributes.user_sangaku_save_count}
                   </Typography>
                   <Typography
                     variant="inherit"
-                    fontWeight="bold"
-                    fontSize={18}
-                    mb={1}
+                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
                   >
                     明察: {results!.attributes.correct_count}
                   </Typography>
                   <Typography
                     variant="inherit"
-                    fontWeight="bold"
-                    fontSize={18}
-                    mb={1}
+                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
                   >
                     誤謬: {results!.attributes.incorrect_count}
                   </Typography>
@@ -154,8 +154,11 @@ export default function ModalComponent({ data, handleClose }: Props) {
               </Grid>
               <Grid size={6}>
                 <Typography
-                  height="60vh"
-                  sx={{ p: 1.5, backgroundColor: "primary.main" }}
+                  sx={{
+                    height: "60vh",
+                    p: 1.5,
+                    backgroundColor: "primary.main",
+                  }}
                 >
                   {data.attributes.description}
                 </Typography>

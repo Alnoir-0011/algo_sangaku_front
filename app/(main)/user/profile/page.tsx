@@ -18,18 +18,19 @@ export default async function Page() {
     fetchGenerateSourceUsage(),
   ]);
 
-  const nickname = profile?.attributes.nickname ?? session?.user?.nickname ?? "";
+  const nickname =
+    profile?.attributes.nickname ?? session?.user?.nickname ?? "";
   const initial = nickname.charAt(0).toUpperCase() || "?";
 
   return (
-    <Box maxWidth={640} mx="auto">
-      <Typography variant="h4" component="h1" mb={3}>
+    <Box sx={{ maxWidth: 640, mx: "auto" }}>
+      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
         マイページ
       </Typography>
 
       <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
         {/* アバター + アカウント情報 */}
-        <Box display="flex" alignItems="center" gap={2} mb={3}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
           <Avatar
             sx={{
               width: 72,
@@ -40,18 +41,18 @@ export default async function Page() {
           >
             {initial}
           </Avatar>
-          <Box flex={1}>
+          <Box sx={{ flex: 1 }}>
             <NicknameForm nickname={nickname} />
           </Box>
         </Box>
 
         <Divider sx={{ mb: 2 }} />
 
-        <Box display="flex" flexDirection="column" gap={0.5}>
-          <Typography variant="body2" color="text.secondary">
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             メール: {profile?.attributes.email ?? session?.user?.email ?? "—"}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             登録日:{" "}
             {profile?.attributes.created_at
               ? new Date(profile.attributes.created_at).toLocaleDateString(
@@ -76,11 +77,11 @@ export default async function Page() {
 
       {/* AI生成利用状況 */}
       <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
-        <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+        <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
           AI生成利用状況
         </Typography>
         {usage ? (
-          <Box display="flex" flexDirection="column" gap={0.5}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
             <Typography variant="body2">
               本日の残り生成回数:{" "}
               <Box
@@ -90,7 +91,7 @@ export default async function Page() {
                 {usage.remaining} / {usage.limit}
               </Box>
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               リセット時刻:{" "}
               {new Date(usage.reset_at).toLocaleTimeString("ja-JP", {
                 hour: "2-digit",
@@ -99,7 +100,7 @@ export default async function Page() {
             </Typography>
           </Box>
         ) : (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             利用状況を取得できませんでした
           </Typography>
         )}

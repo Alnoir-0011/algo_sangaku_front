@@ -15,7 +15,7 @@ export default function Form({ user }: Props) {
 
   return (
     <form action={formAction}>
-      <Box mb={1}>
+      <Box sx={{ mb: 1 }}>
         <TextField
           required
           fullWidth
@@ -35,7 +35,7 @@ export default function Form({ user }: Props) {
             </Typography>
           ))}
       </Box>
-      <Box display="flex" justifyContent="end">
+      <Box sx={{ display: "flex", justifyContent: "end" }}>
         <Button variant="contained" type="submit">
           更新する
         </Button>

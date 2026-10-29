@@ -4,7 +4,7 @@ import type { Sangaku } from "@/app/lib/definitions";
 import { useEffect, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Modal from "./Modal";
 import { difficultyTranslation } from "../utility";

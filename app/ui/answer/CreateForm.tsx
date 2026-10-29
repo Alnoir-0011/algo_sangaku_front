@@ -3,7 +3,7 @@
 import { useState, useActionState } from "react";
 import { Editor } from "@monaco-editor/react";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { Sangaku } from "@/app/lib/definitions";
@@ -50,8 +50,8 @@ export default function Form({ sangaku }: Props) {
           </Typography>
           {/* 問題文 */}
           <Box
-            height="65vh"
             sx={{
+              height: "65vh",
               p: 1,
               backgroundColor: "primary.main",
               overflowY: "auto",
@@ -84,7 +84,7 @@ export default function Form({ sangaku }: Props) {
           </Box>
           {/* input output */}
           <SourceExecution source={source} />
-          <Box display="flex" justifyContent="end">
+          <Box sx={{ display: "flex", justifyContent: "end" }}>
             <Button variant="contained" type="submit">
               解答を終了する
             </Button>

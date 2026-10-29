@@ -8,7 +8,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Link from "@mui/material/Link";
-import Grid from "@mui/material/Grid2";
+import Stack from "@mui/material/Stack";
 import NextLink from "@/app/ui/shared/NextLink";
 import { customSignOut } from "@/app/lib/actions/auth";
 
@@ -41,9 +41,7 @@ export default function ResponsiveDrawer({
   };
 
   const beforeSignIn = (
-    <Grid
-      container
-      direction="column"
+    <Stack
       sx={{
         justifyContent: "flex-start",
         alignItems: "flex-start",
@@ -73,7 +71,9 @@ export default function ResponsiveDrawer({
               href="/shrines"
               sx={{ pl: "1.5rem" }}
             >
-              <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
+              <ListItemText
+                slotProps={{ primary: { sx: { fontSize: "1.3rem" } } }}
+              >
                 神社を探す
               </ListItemText>
             </ListItemButton>
@@ -85,7 +85,9 @@ export default function ResponsiveDrawer({
               }}
               sx={{ pl: "1.5rem" }}
             >
-              <ListItemText slotProps={{ primary: { fontSize: "1.3rem" } }}>
+              <ListItemText
+                slotProps={{ primary: { sx: { fontSize: "1.3rem" } } }}
+              >
                 サインイン
               </ListItemText>
             </ListItemButton>
@@ -114,13 +116,11 @@ export default function ResponsiveDrawer({
           </ListItem>
         </List>
       </div>
-    </Grid>
+    </Stack>
   );
 
   const afterSignin = (
-    <Grid
-      container
-      direction="column"
+    <Stack
       sx={{
         justifyContent: "flex-start",
         alignItems: "flex-start",
@@ -153,7 +153,7 @@ export default function ResponsiveDrawer({
               >
                 <ListItemText
                   primary={text}
-                  slotProps={{ primary: { fontSize: "1.3rem" } }}
+                  slotProps={{ primary: { sx: { fontSize: "1.3rem" } } }}
                 />
               </ListItemButton>
             </ListItem>
@@ -188,7 +188,7 @@ export default function ResponsiveDrawer({
           </ListItem>
         </List>
       </div>
-    </Grid>
+    </Stack>
   );
 
   const drawerInnerElement = session ? afterSignin : beforeSignIn;

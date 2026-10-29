@@ -16,7 +16,7 @@ export default function FlashMessagePresentation({ type, message }: Props) {
   const [open, setOpen] = useState(true);
 
   const handleClose = (
-    _event?: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event | null,
     reason?: SnackbarCloseReason,
   ) => {
     if (reason === "clickaway") {

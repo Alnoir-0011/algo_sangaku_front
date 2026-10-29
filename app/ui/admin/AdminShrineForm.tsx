@@ -41,14 +41,14 @@ export default function AdminShrineForm({ shrine }: Props) {
             label="緯度"
             name="latitude"
             type="number"
-            inputProps={{ step: "any" }}
+            slotProps={{ htmlInput: { step: "any" } }}
             required
           />
           <TextField
             label="経度"
             name="longitude"
             type="number"
-            inputProps={{ step: "any" }}
+            slotProps={{ htmlInput: { step: "any" } }}
             required
           />
           <TextField label="Place ID" name="place_id" required />

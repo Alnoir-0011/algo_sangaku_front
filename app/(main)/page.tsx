@@ -1,4 +1,4 @@
-import { Box, Link, Typography, Grid2 } from "@mui/material";
+import { Box, Link, Typography, Grid } from "@mui/material";
 import Ema from "@/app/ui/Ema";
 import NextLink from "@/app/ui/shared/NextLink";
 
@@ -35,7 +35,7 @@ export default function Home() {
           </Typography>
         </Ema>
       </Box>
-      <Grid2
+      <Grid
         container
         rowSpacing={1}
         columnSpacing={2}
@@ -45,7 +45,7 @@ export default function Home() {
         }}
       >
         {linkContent.map(({ name, href }) => (
-          <Grid2
+          <Grid
             size={6}
             key={name}
             sx={{ display: "flex", justifyContent: "center" }}
@@ -67,9 +67,9 @@ export default function Home() {
                 </Box>
               </Ema>
             </Link>
-          </Grid2>
+          </Grid>
         ))}
-      </Grid2>
+      </Grid>
     </Box>
   );
 }

@@ -11,7 +11,7 @@ import {
   Paper,
   Skeleton,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Editor } from "@monaco-editor/react";
 import { dedicateSangaku } from "@/app/lib/actions/shrine";
 import { fetchUserSangaku } from "@/app/lib/data/sangaku";
@@ -217,30 +217,40 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                   >
                     {reorderData ? (
                       <Stack spacing={1}>
-                        {reorderData.attributes.code_blocks?.map((block, index) => (
-                          <Paper
-                            key={block.id}
-                            variant="outlined"
-                            data-testid={`confirm-modal-code-block-${index + 1}`}
-                            sx={{ display: "flex", alignItems: "center", p: 1 }}
-                          >
-                            <Box
+                        {reorderData.attributes.code_blocks?.map(
+                          (block, index) => (
+                            <Paper
+                              key={block.id}
+                              variant="outlined"
+                              data-testid={`confirm-modal-code-block-${index + 1}`}
                               sx={{
-                                width: 40,
-                                textAlign: "center",
-                                fontWeight: "bold",
-                                mr: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                p: 1,
                               }}
                             >
-                              {block.correct_position ?? DUMMY_LABEL}
-                            </Box>
-                            <Typography>{block.content}</Typography>
-                          </Paper>
-                        ))}
+                              <Box
+                                sx={{
+                                  width: 40,
+                                  textAlign: "center",
+                                  fontWeight: "bold",
+                                  mr: 1,
+                                }}
+                              >
+                                {block.correct_position ?? DUMMY_LABEL}
+                              </Box>
+                              <Typography>{block.content}</Typography>
+                            </Paper>
+                          ),
+                        )}
                       </Stack>
                     ) : reorderFetchFailed ? (
                       <Box>
-                        <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                        <Typography
+                          variant="body2"
+                          color="error"
+                          sx={{ mb: 1 }}
+                        >
                           コードブロックの取得に失敗しました
                         </Typography>
                         <Button

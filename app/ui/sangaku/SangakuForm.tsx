@@ -5,7 +5,7 @@ import { Editor } from "@monaco-editor/react";
 import { generateSource, State } from "@/app/lib/actions/sangaku";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import FixedInputField from "@/app/ui/sangaku/FixedInputField";
 import CheckPage from "@/app/ui/sangaku/CheckPage";
 import Box from "@mui/material/Box";
@@ -58,7 +58,9 @@ export default function SangakuForm({
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
   const [modalOpen, setModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [usage, setUsage] = useState<GenerateSourceUsage | undefined>(initialUsage);
+  const [usage, setUsage] = useState<GenerateSourceUsage | undefined>(
+    initialUsage,
+  );
   const [generateErrorMessage, setGenerateErrorMessage] = useState<
     string | undefined
   >(undefined);

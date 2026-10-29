@@ -1,8 +1,8 @@
-import { Box, Grid2, Skeleton } from "@mui/material";
+import { Box, Grid, Skeleton } from "@mui/material";
 
 export function SangakuListSkeleton() {
   return (
-    <Grid2
+    <Grid
       container
       direction="row"
       spacing={3}
@@ -14,7 +14,7 @@ export function SangakuListSkeleton() {
       }}
     >
       {[...Array(9)].map((_, i: number) => (
-        <Grid2 key={i}>
+        <Grid key={i}>
           <Skeleton
             data-testid="skeleton-item"
             variant="rectangular"
@@ -33,9 +33,9 @@ export function SangakuListSkeleton() {
               // paddingBottom: "0.75rem",
             }}
           />
-        </Grid2>
+        </Grid>
       ))}
-    </Grid2>
+    </Grid>
   );
 }
 
@@ -45,7 +45,7 @@ export function SangakuWithButtonListSkeleton({
   width: string | number;
 }) {
   return (
-    <Grid2
+    <Grid
       container
       direction="row"
       spacing={3}
@@ -57,7 +57,7 @@ export function SangakuWithButtonListSkeleton({
       }}
     >
       {[...Array(9)].map((_, i: number) => (
-        <Grid2 key={i}>
+        <Grid key={i}>
           <Skeleton
             data-testid="skeleton-item"
             variant="rectangular"
@@ -85,9 +85,9 @@ export function SangakuWithButtonListSkeleton({
               sx={{ borderRadius: 1 }}
             />
           </Box>
-        </Grid2>
+        </Grid>
       ))}
-    </Grid2>
+    </Grid>
   );
 }
 
@@ -95,9 +95,18 @@ export function MapSkeleton() {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "end", mb: "0.5rem" }}>
-        <Skeleton data-testid="skeleton-item" variant="rounded" width="9rem" height="36.5px" />
+        <Skeleton
+          data-testid="skeleton-item"
+          variant="rounded"
+          width="9rem"
+          height="36.5px"
+        />
       </Box>
-      <Skeleton data-testid="skeleton-item" variant="rectangular" height="40rem" />
+      <Skeleton
+        data-testid="skeleton-item"
+        variant="rectangular"
+        height="40rem"
+      />
     </>
   );
 }

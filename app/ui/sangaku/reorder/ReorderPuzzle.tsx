@@ -26,7 +26,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -502,7 +502,11 @@ export default function ReorderPuzzle({
 
     const activeContainer = findContainer(active.id);
     const overContainer = findContainer(over.id);
-    if (activeContainer === overContainer || !activeContainer || !overContainer) {
+    if (
+      activeContainer === overContainer ||
+      !activeContainer ||
+      !overContainer
+    ) {
       return;
     }
 
@@ -576,14 +580,23 @@ export default function ReorderPuzzle({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <Grid container spacing={2} columns={{ xs: 6, md: 12 }} sx={{ width: "100%" }}>
+      <Grid
+        container
+        spacing={2}
+        columns={{ xs: 6, md: 12 }}
+        sx={{ width: "100%" }}
+      >
         <Grid size={6}>
           <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
             {title}
           </Typography>
           <Box
-            height="65vh"
-            sx={{ p: 1, backgroundColor: "primary.main", overflowY: "auto" }}
+            sx={{
+              height: "65vh",
+              p: 1,
+              backgroundColor: "primary.main",
+              overflowY: "auto",
+            }}
           >
             <MarkdownPreview content={description} />
           </Box>
@@ -603,7 +616,7 @@ export default function ReorderPuzzle({
             onMoveToAnswer={moveToAnswerArea}
             locked={locked}
           />
-          <Box display="flex" justifyContent="end">
+          <Box sx={{ display: "flex", justifyContent: "end" }}>
             <Button
               variant="contained"
               disabled={locked || answerBlockIds.length === 0}

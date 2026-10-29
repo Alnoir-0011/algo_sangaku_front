@@ -2,7 +2,9 @@ import { Box, CircularProgress } from "@mui/material";
 
 export function SourceResultLoading() {
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
+    <Box
+      sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+    >
       <CircularProgress size={240} sx={{ m: 3 }} />
     </Box>
   );
@@ -29,17 +31,24 @@ export function ResultLoading({ index }: { index: number }) {
         {index + 1}
       </Box>
       <Box
-        display="flex"
-        justifyContent="center"
-        sx={{ flexGrow: 1, p: 1, borderRight: "1px solid gray" }}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          flexGrow: 1,
+          p: 1,
+          borderRight: "1px solid gray",
+        }}
       >
         <CircularProgress size={24} />
       </Box>
       <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        sx={{ p: 1, width: 50 }}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 1,
+          width: 50,
+        }}
       >
         <CircularProgress size={24} />
       </Box>

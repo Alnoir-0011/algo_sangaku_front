@@ -39,18 +39,26 @@ export default function Results({ answer }: Props) {
           }}
         />
         <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="end"
-          sx={{ flexGrow: 1, p: 1, borderRight: "1px solid gray", py: 0.5 }}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "end",
+            flexGrow: 1,
+            p: 1,
+            borderRight: "1px solid gray",
+            py: 0.5,
+          }}
         >
           <Typography>出力</Typography>
         </Box>
         <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          sx={{ py: 0.5, width: 50 }}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 0.5,
+            width: 50,
+          }}
         >
           <Typography>結果</Typography>
         </Box>

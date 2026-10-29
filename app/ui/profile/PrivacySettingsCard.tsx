@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Box,
-  FormControlLabel,
-  Switch,
-  Typography,
-} from "@mui/material";
+import { Box, FormControlLabel, Switch, Typography } from "@mui/material";
 import { useState, useTransition } from "react";
 import { updateShowAnswerCount } from "@/app/lib/actions/profile";
 
@@ -30,7 +25,7 @@ export default function PrivacySettingsCard({ showAnswerCount }: Props) {
 
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+      <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
         プライバシー設定
       </Typography>
       <FormControlLabel

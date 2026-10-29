@@ -25,14 +25,14 @@ export default async function Page({ params }: Props) {
   const initial = attributes.nickname.charAt(0).toUpperCase() || "?";
 
   return (
-    <Box maxWidth={640} mx="auto">
-      <Typography variant="h4" component="h1" mb={3}>
+    <Box sx={{ maxWidth: 640, mx: "auto" }}>
+      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
         プロフィール
       </Typography>
 
       <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
         {/* アバター + 基本情報 */}
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <Avatar
             sx={{
               width: 72,
@@ -45,7 +45,7 @@ export default async function Page({ params }: Props) {
           </Avatar>
           <Box>
             <Typography variant="h6">{attributes.nickname}</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               登録日:{" "}
               {new Date(attributes.created_at).toLocaleDateString("ja-JP")}
             </Typography>

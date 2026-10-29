@@ -1,5 +1,5 @@
 import { Box, Toolbar } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Stack from "@mui/material/Stack";
 import ResponsiveNav from "@/app/ui/navigation/ResponsiveNav";
 import Footer from "@/app/ui/navigation/Footer";
 
@@ -13,17 +13,15 @@ export default function MainLayout({
   return (
     <Box sx={{ display: "flex" }}>
       <ResponsiveNav drawerWidth={drawerWidth} />
-      <Grid
-        container
-        direction="column"
+      <Stack
         sx={{
           flexGrow: 1,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           minHeight: "100vh",
+          // 旧 Grid container は min-width: 0 を持っていた。Stack は持たないため、長い URL など
+          // 折り返せない子要素に合わせて本文の列ごと画面幅を超えて広がってしまう。
+          minWidth: 0,
           justifyContent: "start",
-          // Grid container は既定で wrap のため、column 方向で main(flexGrow: 1) が
-          // 本来の高さより引き伸ばされフッターとの間に空白ができる。nowrap で防ぐ。
-          flexWrap: "nowrap",
         }}
       >
         <Toolbar />
@@ -31,7 +29,7 @@ export default function MainLayout({
           {children}
         </Box>
         <Footer />
-      </Grid>
+      </Stack>
     </Box>
   );
 }

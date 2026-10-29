@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Sangaku } from "@/app/lib/definitions";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Ema from "@/app/ui/Ema";
 import { Box, Typography } from "@mui/material";
 import { difficultyTranslation } from "@/app/ui/utility";
