@@ -1,4 +1,5 @@
 import { Suspense, use, useEffect, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
 import type { ReorderDetail } from "@/app/lib/sangaku-detail";
@@ -67,32 +68,21 @@ function ReorderCodeBlocksLoading() {
   );
 }
 
-function ReorderCodeBlocks({
-  detail,
-  onRetry,
-}: {
-  detail: ReorderDetail;
-  onRetry: () => void;
-}) {
-  const reorderData = use(detail);
+function ReorderCodeBlocksError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Box>
+      <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+        コードブロックの取得に失敗しました
+      </Typography>
+      <Button variant="outlined" size="small" type="button" onClick={onRetry}>
+        再試行
+      </Button>
+    </Box>
+  );
+}
 
-  if (!reorderData) {
-    return (
-      <Box>
-        <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-          コードブロックの取得に失敗しました
-        </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          type="button"
-          onClick={onRetry}
-        >
-          再試行
-        </Button>
-      </Box>
-    );
-  }
+function ReorderCodeBlocks({ detail }: { detail: ReorderDetail }) {
+  const reorderData = use(detail);
 
   return (
     <Stack spacing={1}>
@@ -135,15 +125,26 @@ export default function ConfirmModal({
     lat: number;
     lng: number;
   } | null>(null);
-  const [isDedicated, setIsDedicated] = useState(false);
+  // 奉納済みかどうかは、奉納した算額の id から導出する。真偽値で持つと、
+  // 閉じて別の算額を開いても「奉納しました」の表示が残ってしまう。
+  const [dedicatedId, setDedicatedId] = useState<string | null>(null);
+  const isDedicated = data !== null && dedicatedId === data.id;
   const { id: shrine_id } = useParams<{ id: string }>();
 
   useEffect(() => {
+    let ignore = false;
+
     (async () => {
       const newLatLng = await getLocation();
-      setCurrentPosition(newLatLng);
+      if (!ignore) {
+        setCurrentPosition(newLatLng);
+      }
     })();
-  }, [setCurrentPosition]);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <Modal open={!!data} onClose={handleClose}>
@@ -170,7 +171,7 @@ export default function ConfirmModal({
               if (
                 await dedicateSangaku(shrine_id, data!.id, currentPosition!)
               ) {
-                setIsDedicated(true);
+                setDedicatedId(data!.id);
               }
             }}
           >
@@ -257,12 +258,22 @@ export default function ConfirmModal({
                     }}
                   >
                     {reorderDetail && (
-                      <Suspense fallback={<ReorderCodeBlocksLoading />}>
-                        <ReorderCodeBlocks
-                          detail={reorderDetail}
-                          onRetry={onRetryReorder}
-                        />
-                      </Suspense>
+                      <ErrorBoundary
+                        resetKeys={[reorderDetail]}
+                        onError={(error) =>
+                          console.error(
+                            "[ConfirmModal] fetch reorder detail error:",
+                            error,
+                          )
+                        }
+                        fallback={
+                          <ReorderCodeBlocksError onRetry={onRetryReorder} />
+                        }
+                      >
+                        <Suspense fallback={<ReorderCodeBlocksLoading />}>
+                          <ReorderCodeBlocks detail={reorderDetail} />
+                        </Suspense>
+                      </ErrorBoundary>
                     )}
                   </Grid>
                 </Grid>

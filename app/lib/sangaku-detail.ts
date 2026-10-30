@@ -7,24 +7,23 @@ import {
 
 export type SangakuModalDetail = {
   shrine: Shrine | null;
-  result: SangakuResult | null | undefined;
+  result: SangakuResult;
 };
 
-export type ReorderDetail = Promise<Sangaku | null | undefined>;
+export type ReorderDetail = Promise<Sangaku>;
 
-// use() は reject を ErrorBoundary に伝播し、ページ全体がエラー画面になる。
-// 取得失敗はモーダル内で完結させたいので、ログを残したうえで null として扱う。
-// 取得関数自身の console.error はサーバー側の失敗しか拾えず、Server Action の
-// 呼び出し自体の失敗（セッション切れの 302、通信断、デプロイ直後など）は
-// ここで記録しないと誰にも残らない。
-const logAndFallback = <T>(name: string, fallback: T) => (error: unknown) => {
-  console.error(`[sangaku-detail] ${name} error:`, error);
-  return fallback;
+// 取得関数は失敗を例外ではなく null / undefined で返す。use() に渡す Promise は
+// 失敗を reject で表さないと、呼び出し側の Error Boundary で受けられない。
+const orThrow = <T>(value: T | null | undefined, message: string): T => {
+  if (value === null || value === undefined) {
+    throw new Error(message);
+  }
+  return value;
 };
 
 // Server Action はクライアントから 1 つずつ dispatch されるため、Promise.all で
-// 並べても並列にはならない。1 つの Server Action にまとめれば並列にできるが、
-// データ層に新しい公開エンドポイントが増えるので、ここでは見送っている。
+// 並べても並列にはならない。読み取りを Route Handler に移せば並列にできるが、
+// 新しい公開エンドポイントが増えるので、ここでは見送っている。
 export const fetchSangakuModalDetail = (
   sangaku: Sangaku,
 ): Promise<SangakuModalDetail> => {
@@ -33,15 +32,13 @@ export const fetchSangakuModalDetail = (
   return Promise.all([
     shrineId ? fetchShrine(shrineId) : Promise.resolve(null),
     fetchUserSangakuResult(sangaku.id),
-  ])
-    .then(([shrine, result]) => ({ shrine, result }))
-    .catch(
-      logAndFallback<SangakuModalDetail>("fetchSangakuModalDetail", {
-        shrine: null,
-        result: null,
-      }),
-    );
+  ]).then(([shrine, result]) => ({
+    shrine,
+    result: orThrow(result, "fetchUserSangakuResult failed"),
+  }));
 };
 
 export const fetchReorderDetail = (id: string): ReorderDetail =>
-  fetchUserSangaku(id).catch(logAndFallback("fetchReorderDetail", null));
+  fetchUserSangaku(id).then((sangaku) =>
+    orThrow(sangaku, "fetchUserSangaku failed"),
+  );

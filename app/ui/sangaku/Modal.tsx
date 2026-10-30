@@ -1,4 +1,5 @@
 import { Suspense, use } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import type { Sangaku } from "@/app/lib/definitions";
 import type { SangakuModalDetail } from "@/app/lib/sangaku-detail";
 import {
@@ -6,6 +7,7 @@ import {
   Box,
   SxProps,
   Typography,
+  Button,
   CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -16,6 +18,7 @@ import Ema from "@/app/ui/Ema";
 interface Props {
   data: Sangaku | null;
   detail: Promise<SangakuModalDetail> | null;
+  onRetry: () => void;
   handleClose: () => void;
 }
 
@@ -41,14 +44,6 @@ function SangakuModalContent({
   detail: Promise<SangakuModalDetail>;
 }) {
   const { shrine, result: results } = use(detail);
-
-  if (!results) {
-    return (
-      <Typography color="error" sx={{ p: 2 }}>
-        算額の情報の取得に失敗しました
-      </Typography>
-    );
-  }
 
   return (
     <Grid
@@ -148,7 +143,12 @@ function SangakuModalContent({
   );
 }
 
-export default function ModalComponent({ data, detail, handleClose }: Props) {
+export default function ModalComponent({
+  data,
+  detail,
+  onRetry,
+  handleClose,
+}: Props) {
   return (
     <Modal open={!!data} onClose={handleClose}>
       <Box
@@ -156,22 +156,44 @@ export default function ModalComponent({ data, detail, handleClose }: Props) {
         role="dialog"
       >
         {data && detail && (
-          <Suspense
+          <ErrorBoundary
+            resetKeys={[detail]}
+            onError={(error) =>
+              console.error("[sangaku/Modal] fetch detail error:", error)
+            }
             fallback={
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  p: 5,
-                }}
-              >
-                <CircularProgress size={200} />
+              <Box sx={{ p: 2 }}>
+                <Typography color="error" sx={{ mb: 1 }}>
+                  算額の情報の取得に失敗しました
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  type="button"
+                  onClick={onRetry}
+                >
+                  再試行
+                </Button>
               </Box>
             }
           >
-            <SangakuModalContent data={data} detail={detail} />
-          </Suspense>
+            <Suspense
+              fallback={
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    p: 5,
+                  }}
+                >
+                  <CircularProgress size={200} />
+                </Box>
+              }
+            >
+              <SangakuModalContent data={data} detail={detail} />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Box>
     </Modal>

@@ -113,6 +113,44 @@ test.describe("DedicatedSangakuListView", () => {
     await expect(page.getByText(/算額が写された数/)).toHaveCount(0);
   });
 
+  test("should allow me to retry fetching the sangaku result after a failure", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <DedicatedSangakuListView sangakus={sangakus} totalPage={1} />,
+      { hooksConfig: { fetchUserSangakuResultRejectCount: 1 } },
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await expect(
+      page.getByText("算額の情報の取得に失敗しました"),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "再試行" }).click();
+
+    await expect(page.getByText(/算額が写された数/)).toContainText("5");
+    await expect(
+      page.getByText("算額の情報の取得に失敗しました"),
+    ).toHaveCount(0);
+  });
+
+  test("should not allow me to see the shrine modal when the selected sangaku is removed from the list", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <DedicatedSangakuListView sangakus={sangakus} totalPage={1} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    await component.update(
+      <DedicatedSangakuListView sangakus={[sangakus[1]]} totalPage={1} />,
+    );
+
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
   test("should allow me to see the sangaku result without a shrine name when the sangaku has no shrine", async ({
     mount,
     page,

@@ -160,6 +160,50 @@ test.describe("SangakuListView", () => {
     );
   });
 
+  test("should not allow me to see the dedicated screen of the previous sangaku when I select another sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <SangakuListView sangakus={sangakus} totalPage={1} shrine={shrine} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await page.getByRole("button", { name: "この算額を奉納する" }).click();
+    await expect(page.getByText("算額を奉納しました")).toBeVisible();
+    // 完了画面には閉じるボタンがなく、送信ボタンが消えてフォーカスも外れるため、
+    // Escape ではなくモーダルの外（背景）のクリックで閉じる。
+    await page.mouse.click(5, 5);
+    await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
+
+    await component.getByRole("button", { name: /title_2/ }).click();
+
+    await expect(
+      page.getByRole("button", { name: "この算額を奉納する" }),
+    ).toBeVisible();
+    await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
+  });
+
+  test("should not allow me to see the confirm modal when the selected sangaku is removed from the list", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <SangakuListView sangakus={sangakus} totalPage={1} shrine={shrine} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await expect(page.getByTestId("monaco-editor")).toBeVisible();
+
+    await component.update(
+      <SangakuListView
+        sangakus={[sangakus[1]]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+    );
+
+    await expect(page.getByTestId("monaco-editor")).toHaveCount(0);
+  });
+
   test("should allow me to close the confirm modal with the Escape key", async ({
     mount,
     page,

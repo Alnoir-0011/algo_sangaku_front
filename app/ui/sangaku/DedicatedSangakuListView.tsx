@@ -1,7 +1,7 @@
 "use client";
 
 import type { Sangaku } from "@/app/lib/definitions";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -23,14 +23,31 @@ export default function DedicatedSangakuListView({
   totalPage,
 }: Props) {
   const [selected, setSelected] = useState<{
-    sangaku: Sangaku;
+    id: string;
     detail: Promise<SangakuModalDetail>;
   } | null>(null);
+  // 選択中の算額は、複製を state に持たず、id から props を引く。
+  const selectedSangaku = sangakus.find((s) => s.id === selected?.id) ?? null;
 
   // Promise は render 中ではなくクリックで生成する。Suspense 内の子で生成すると、
   // 初回 mount で suspend した際に state が破棄され、毎回作り直されてしまう。
+  // Server Function は Transition 内で呼ぶ（React のドキュメントの注意事項）。
   const handleClick = (sangaku: Sangaku) => {
-    setSelected({ sangaku, detail: fetchSangakuModalDetail(sangaku) });
+    startTransition(() => {
+      setSelected({ id: sangaku.id, detail: fetchSangakuModalDetail(sangaku) });
+    });
+  };
+
+  // updater の中で fetch すると StrictMode で二重実行されるため、取得は外で行う。
+  const handleRetry = () => {
+    if (!selectedSangaku) return;
+    const sangaku = selectedSangaku;
+    startTransition(() => {
+      const detail = fetchSangakuModalDetail(sangaku);
+      setSelected((current) =>
+        current?.id === sangaku.id ? { ...current, detail } : current,
+      );
+    });
   };
 
   const handleClose = () => {
@@ -133,8 +150,9 @@ export default function DedicatedSangakuListView({
           </div>
         ))}
         <Modal
-          data={selected?.sangaku ?? null}
+          data={selectedSangaku}
           detail={selected?.detail ?? null}
+          onRetry={handleRetry}
           handleClose={handleClose}
         />
       </Grid>
