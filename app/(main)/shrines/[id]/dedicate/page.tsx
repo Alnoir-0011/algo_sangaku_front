@@ -1,9 +1,9 @@
 import { fetchShrine } from "@/app/lib/data/shrine";
 import SangakuList from "@/app/ui/shrine/dedicate/SangakuList";
-// import { SangakuListSkeleton } from "@/app/ui/skeletons";
+import { SangakuListSkeleton } from "@/app/ui/skeletons";
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-// import { Suspense } from "react";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
@@ -41,9 +41,12 @@ export default async function Page(props: Props) {
       <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
         {shrine.attributes.name}に算額を奉納する
       </Typography>
-      {/* <Suspense fallback={<SangakuListSkeleton />}> */}
-      <SangakuList page={page} query={query} shrine={shrine} />
-      {/* </Suspense> */}
+      <Suspense
+        key={JSON.stringify([page, query])}
+        fallback={<SangakuListSkeleton />}
+      >
+        <SangakuList page={page} query={query} shrine={shrine} />
+      </Suspense>
     </Box>
   );
 }
