@@ -169,7 +169,9 @@ test.describe("/shrines/[id]/dedicate", () => {
 
       await page.goto("/shrines/1/dedicate");
 
-      await expect(page.getByText("リクエストに失敗しました")).toBeVisible();
+      await expect(
+        page.getByRole("main").getByText("リクエストに失敗しました"),
+      ).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "before_dedicate" }),
       ).toHaveCount(0);
