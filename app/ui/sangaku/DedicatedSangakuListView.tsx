@@ -6,7 +6,8 @@ import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
-import Modal from "./Modal";
+import Modal, { fetchSangakuModalDetail } from "./Modal";
+import type { SangakuModalDetail } from "./Modal";
 import { difficultyTranslation } from "../utility";
 
 interface Props {
@@ -18,14 +19,19 @@ export default function DedicatedSangakuListView({
   sangakus,
   totalPage,
 }: Props) {
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
+  const [selected, setSelected] = useState<{
+    sangaku: Sangaku;
+    detail: Promise<SangakuModalDetail>;
+  } | null>(null);
 
+  // Promise は render 中ではなくクリックで生成する。Suspense 内の子で生成すると、
+  // 初回 mount で suspend した際に state が破棄され、毎回作り直されてしまう。
   const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
+    setSelected({ sangaku, detail: fetchSangakuModalDetail(sangaku) });
   };
 
   const handleClose = () => {
-    setModalData(null);
+    setSelected(null);
   };
 
   return (
@@ -123,7 +129,11 @@ export default function DedicatedSangakuListView({
             </ButtonBase>
           </div>
         ))}
-        <Modal data={modalData} handleClose={handleClose} />
+        <Modal
+          data={selected?.sangaku ?? null}
+          detail={selected?.detail ?? null}
+          handleClose={handleClose}
+        />
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Pagination totalPage={totalPage} />

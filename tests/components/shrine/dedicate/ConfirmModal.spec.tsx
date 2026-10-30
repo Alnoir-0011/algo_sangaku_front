@@ -1,5 +1,5 @@
 import { test, expect } from "@/tests/fixtures.ct";
-import ConfirmModal from "@/app/ui/shrine/dedicate/ConfirmModal";
+import { ConfirmModalWithReorderDetail } from "./ConfirmModalStories";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
 
 // kind: "code" のとき、既存どおりソースコード（Monaco）と解答チェック用入力を
@@ -27,9 +27,10 @@ const shrine: Shrine = {
 
 // kind: "reorder" のとき、一覧APIから渡される data には code_blocks が含まれない
 // （back の設計: 一覧レスポンスは code_blocks を返さない）。
-// ConfirmModal は data.attributes.kind === "reorder" を検知すると
-// fetchUserSangaku(data.id)（"use server" のクライアントコンポーネントからの直接呼び出し）
-// で詳細データ（code_blocks込み）を取得し、それを表示に使う想定。
+// 呼び出し側（SangakuListView）が reorder のクリック時に fetchUserSangaku(data.id)
+// で詳細データ（code_blocks込み）の Promise を作り、ConfirmModal は reorderDetail として
+// 受け取って表示する。Playwright CT は Promise を props に渡せないため、
+// ConfirmModalStories の ConfirmModalWithReorderDetail がブラウザ側で同じ流れを再現する。
 //
 // fetchUserSangaku は @/app/lib/data/sangaku ごと playwright-ct.config.ts の Vite alias で
 // tests/__mocks__/data/sangaku.ts に差し替えられる。同モックは他の *_id を無視する
@@ -84,7 +85,7 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Arrange & Act
     await mount(
-      <ConfirmModal data={codeSangaku} shrine={shrine} handleClose={() => {}} />,
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -100,7 +101,7 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Arrange & Act
     await mount(
-      <ConfirmModal data={codeSangaku} shrine={shrine} handleClose={() => {}} />,
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -115,11 +116,7 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Arrange & Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -145,11 +142,7 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Arrange & Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -170,11 +163,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -206,11 +195,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -242,11 +227,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -284,11 +265,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={markdownCodeSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={markdownCodeSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -315,11 +292,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={markdownReorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={markdownReorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -357,7 +330,7 @@ test.describe("ConfirmModal", () => {
 
       // Act
       await mount(
-        <ConfirmModal data={sangaku} shrine={shrine} handleClose={() => {}} />,
+        <ConfirmModalWithReorderDetail data={sangaku} shrine={shrine} />,
       );
 
       // Assert
@@ -383,7 +356,7 @@ test.describe("ConfirmModal", () => {
 
       // Act
       await mount(
-        <ConfirmModal data={sangaku} shrine={shrine} handleClose={() => {}} />,
+        <ConfirmModalWithReorderDetail data={sangaku} shrine={shrine} />,
       );
 
       // Assert
@@ -429,7 +402,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal data={longCodeSangaku} shrine={shrine} handleClose={() => {}} />,
+      <ConfirmModalWithReorderDetail data={longCodeSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -454,11 +427,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={longReorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={longReorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -483,11 +452,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -513,11 +478,7 @@ test.describe("ConfirmModal", () => {
 
     // Act
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
     );
 
     // Assert
@@ -550,11 +511,7 @@ test.describe("ConfirmModal", () => {
     // playwright/index.tsx の beforeMount から遅延を設定する
     // （fetchUserSangakuDelay を直接 import して書き換えても反映されない）。
     await mount(
-      <ConfirmModal
-        data={reorderSangaku}
-        shrine={shrine}
-        handleClose={() => {}}
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
       { hooksConfig: { fetchUserSangakuDelayMs: 2000 } },
     );
 
@@ -567,5 +524,52 @@ test.describe("ConfirmModal", () => {
       loadingContainer.getByTestId("confirm-modal-code-block-skeleton"),
     ).toHaveCount(3);
     await expect(page.getByText("読み込み中")).toHaveCount(0);
+  });
+
+  test("should allow me to see an error message and a retry button when fetching code blocks fails and kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Act
+    await mount(
+      <ConfirmModalWithReorderDetail
+        data={reorderSangaku}
+        shrine={shrine}
+        failFirst
+      />,
+    );
+
+    // Assert
+    await expect(
+      page.getByText("コードブロックの取得に失敗しました"),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "再試行" })).toBeVisible();
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toHaveCount(0);
+  });
+
+  test("should allow me to see the code blocks after I click the retry button when fetching code blocks failed and kind is reorder", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail
+        data={reorderSangaku}
+        shrine={shrine}
+        failFirst
+      />,
+    );
+    await expect(page.getByRole("button", { name: "再試行" })).toBeVisible();
+
+    // Act
+    await page.getByRole("button", { name: "再試行" }).click();
+
+    // Assert
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
+      "block_content_1",
+    );
+    await expect(
+      page.getByText("コードブロックの取得に失敗しました"),
+    ).toHaveCount(0);
   });
 });

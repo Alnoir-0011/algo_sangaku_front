@@ -107,6 +107,33 @@ test.describe("SangakuListView", () => {
     await expect(page.getByTestId("monaco-editor")).toHaveText("puts 'second'");
   });
 
+  test("should allow me to see the code blocks when I select a reorder sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const reorderSangaku: Sangaku = {
+      ...buildSangaku("3", "title_3", "easy", ""),
+      attributes: {
+        ...buildSangaku("3", "title_3", "easy", "").attributes,
+        kind: "reorder",
+        source: undefined,
+      },
+    };
+    const component = await mount(
+      <SangakuListView
+        sangakus={[reorderSangaku]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+    );
+
+    await component.getByRole("button", { name: /title_3/ }).click();
+
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
+      "block_content_1",
+    );
+  });
+
   test("should allow me to close the confirm modal with the Escape key", async ({
     mount,
     page,

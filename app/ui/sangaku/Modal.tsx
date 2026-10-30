@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, use } from "react";
 import type { Sangaku, Shrine, SangakuResult } from "@/app/lib/definitions";
 import {
   Modal,
@@ -14,10 +14,26 @@ import Ema from "@/app/ui/Ema";
 import { fetchShrine } from "@/app/lib/data/shrine";
 import { fetchUserSangakuResult } from "@/app/lib/data/sangaku";
 
+export type SangakuModalDetail = [
+  Shrine | null,
+  SangakuResult | null | undefined,
+];
+
 interface Props {
   data: Sangaku | null;
+  detail: Promise<SangakuModalDetail> | null;
   handleClose: () => void;
 }
+
+// use() は reject を ErrorBoundary に伝播し、ページ全体がエラー画面になる。
+// 取得失敗はモーダル内で完結させたいので null として扱う。
+export const fetchSangakuModalDetail = (
+  sangaku: Sangaku,
+): Promise<SangakuModalDetail> =>
+  Promise.all([
+    fetchShrine(sangaku.relationships.shrine.data?.id ?? ""),
+    fetchUserSangakuResult(sangaku.id),
+  ]).catch((): SangakuModalDetail => [null, null]);
 
 const style: SxProps = {
   position: "absolute",
@@ -32,139 +48,141 @@ const style: SxProps = {
   pb: 3,
   borderRadius: 1,
 };
-export default function ModalComponent({ data, handleClose }: Props) {
-  const [shrine, setShrine] = useState<Shrine | null>(null);
-  const [results, setResult] = useState<SangakuResult | null | undefined>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      if (!!data) {
-        setIsLoading(true);
-        const [shrineData, resultData] = await Promise.all([
-          await fetchShrine(data!.relationships.shrine.data!.id),
-          await fetchUserSangakuResult(data!.id),
-        ]);
-        setResult(resultData);
-        setShrine(shrineData);
-        setIsLoading(false);
-      }
-    })();
-  }, [data]);
+function SangakuModalContent({
+  data,
+  detail,
+}: {
+  data: Sangaku;
+  detail: Promise<SangakuModalDetail>;
+}) {
+  const [shrine, results] = use(detail);
 
+  if (!results) {
+    return null;
+  }
+
+  return (
+    <Grid
+      container
+      spacing={2}
+      columns={{ xs: 6, md: 12 }}
+      sx={{ width: "100%", mb: 2 }}
+    >
+      <Grid size={6}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          {shrine?.attributes.name}
+        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <Ema width={18}>
+            <Box
+              sx={{
+                display: "flex",
+                height: "100%",
+                flexDirection: "column",
+                justifyContent: "start",
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 1,
+                  textAlign: "center",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {data.attributes.title}
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "end",
+                  marginTop: "auto",
+                }}
+              >
+                <Typography
+                  component="p"
+                  sx={{
+                    px: 1,
+                    py: 0.5,
+                    border: 1,
+                    borderRadius: 2,
+                    textAlign: "right",
+                  }}
+                >
+                  {difficultyTranslation(data.attributes.difficulty)}
+                </Typography>
+              </Box>
+            </Box>
+          </Ema>
+        </Box>
+        <Box sx={{ p: 5 }}>
+          <Typography
+            variant="inherit"
+            sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
+          >
+            算額が写された数:{" "}
+            {results.attributes.user_sangaku_save_count}
+          </Typography>
+          <Typography
+            variant="inherit"
+            sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
+          >
+            明察: {results.attributes.correct_count}
+          </Typography>
+          <Typography
+            variant="inherit"
+            sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
+          >
+            誤謬: {results.attributes.incorrect_count}
+          </Typography>
+        </Box>
+      </Grid>
+      <Grid size={6}>
+        <Typography
+          sx={{
+            height: "60vh",
+            p: 1.5,
+            backgroundColor: "primary.main",
+          }}
+        >
+          {data.attributes.description}
+        </Typography>
+      </Grid>
+    </Grid>
+  );
+}
+
+export default function ModalComponent({ data, detail, handleClose }: Props) {
   return (
     <Modal open={!!data} onClose={handleClose}>
       <Box
         sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}
         role="dialog"
       >
-        {isLoading && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              p: 5,
-            }}
+        {data && detail && (
+          <Suspense
+            fallback={
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  p: 5,
+                }}
+              >
+                <CircularProgress size={200} />
+              </Box>
+            }
           >
-            <CircularProgress size={200} />
-          </Box>
+            <SangakuModalContent data={data} detail={detail} />
+          </Suspense>
         )}
-        {isLoading ||
-          (data && results && (
-            <Grid
-              container
-              spacing={2}
-              columns={{ xs: 6, md: 12 }}
-              sx={{ width: "100%", mb: 2 }}
-            >
-              <Grid size={6}>
-                <Typography variant="h4" sx={{ mb: 2 }}>
-                  {shrine?.attributes.name}
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-                  <Ema width={18}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        height: "100%",
-                        flexDirection: "column",
-                        justifyContent: "start",
-                      }}
-                    >
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          mb: 1,
-                          textAlign: "center",
-                          overflow: "hidden",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: "vertical",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "pre-line",
-                        }}
-                      >
-                        {data!.attributes.title}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "end",
-                          marginTop: "auto",
-                        }}
-                      >
-                        <Typography
-                          component="p"
-                          sx={{
-                            px: 1,
-                            py: 0.5,
-                            border: 1,
-                            borderRadius: 2,
-                            textAlign: "right",
-                          }}
-                        >
-                          {difficultyTranslation(data!.attributes.difficulty)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Ema>
-                </Box>
-                <Box sx={{ p: 5 }}>
-                  <Typography
-                    variant="inherit"
-                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
-                  >
-                    算額が写された数:{" "}
-                    {results!.attributes.user_sangaku_save_count}
-                  </Typography>
-                  <Typography
-                    variant="inherit"
-                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
-                  >
-                    明察: {results!.attributes.correct_count}
-                  </Typography>
-                  <Typography
-                    variant="inherit"
-                    sx={{ fontWeight: "bold", fontSize: 18, mb: 1 }}
-                  >
-                    誤謬: {results!.attributes.incorrect_count}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid size={6}>
-                <Typography
-                  sx={{
-                    height: "60vh",
-                    p: 1.5,
-                    backgroundColor: "primary.main",
-                  }}
-                >
-                  {data.attributes.description}
-                </Typography>
-              </Grid>
-            </Grid>
-          ))}
       </Box>
     </Modal>
   );

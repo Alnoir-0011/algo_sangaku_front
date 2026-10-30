@@ -7,6 +7,7 @@ import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import ConfirmModal from "./ConfirmModal";
+import { fetchUserSangaku } from "@/app/lib/data/sangaku";
 import { difficultyTranslation } from "../../utility";
 
 interface Props {
@@ -15,19 +16,46 @@ interface Props {
   shrine: Shrine;
 }
 
+type ReorderDetail = Promise<Sangaku | null | undefined>;
+
+// use() は reject を ErrorBoundary に伝播し、ページ全体がエラー画面になる。
+// 取得失敗はモーダル内の再試行 UI で扱いたいので null として扱う。
+const fetchReorderDetail = (id: string): ReorderDetail =>
+  fetchUserSangaku(id).catch(() => null);
+
 export default function SangakuListView({
   sangakus,
   totalPage,
   shrine,
 }: Props) {
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
+  const [selected, setSelected] = useState<{
+    sangaku: Sangaku;
+    reorderDetail: ReorderDetail | null;
+  } | null>(null);
 
+  // Promise は render 中ではなくクリックで生成する。Suspense 内の子で生成すると、
+  // 初回 mount で suspend した際に state が破棄され、毎回作り直されてしまう。
   const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
+    setSelected({
+      sangaku,
+      reorderDetail:
+        sangaku.attributes.kind === "reorder"
+          ? fetchReorderDetail(sangaku.id)
+          : null,
+    });
+  };
+
+  const handleRetryReorder = () => {
+    if (selected) {
+      setSelected({
+        ...selected,
+        reorderDetail: fetchReorderDetail(selected.sangaku.id),
+      });
+    }
   };
 
   const handleClose = () => {
-    setModalData(null);
+    setSelected(null);
   };
 
   return (
@@ -126,7 +154,9 @@ export default function SangakuListView({
           </div>
         ))}
         <ConfirmModal
-          data={modalData}
+          data={selected?.sangaku ?? null}
+          reorderDetail={selected?.reorderDetail}
+          onRetryReorder={handleRetryReorder}
           handleClose={handleClose}
           shrine={shrine}
         />
