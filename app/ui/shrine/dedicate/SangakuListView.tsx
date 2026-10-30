@@ -7,7 +7,7 @@ import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import ConfirmModal from "./ConfirmModal";
-import { fetchUserSangaku } from "@/app/lib/data/sangaku";
+import { fetchReorderDetail, type ReorderDetail } from "@/app/lib/sangaku-detail";
 import { difficultyTranslation } from "../../utility";
 
 interface Props {
@@ -15,13 +15,6 @@ interface Props {
   totalPage: number;
   shrine: Shrine;
 }
-
-type ReorderDetail = Promise<Sangaku | null | undefined>;
-
-// use() は reject を ErrorBoundary に伝播し、ページ全体がエラー画面になる。
-// 取得失敗はモーダル内の再試行 UI で扱いたいので null として扱う。
-const fetchReorderDetail = (id: string): ReorderDetail =>
-  fetchUserSangaku(id).catch(() => null);
 
 export default function SangakuListView({
   sangakus,
@@ -45,13 +38,15 @@ export default function SangakuListView({
     });
   };
 
+  // updater の中で fetch すると StrictMode で二重実行されるため、取得は外で行い、
+  // 別の算額に切り替わっていた場合だけ差し替えを捨てる。
   const handleRetryReorder = () => {
-    if (selected) {
-      setSelected({
-        ...selected,
-        reorderDetail: fetchReorderDetail(selected.sangaku.id),
-      });
-    }
+    if (!selected) return;
+    const id = selected.sangaku.id;
+    const reorderDetail = fetchReorderDetail(id);
+    setSelected((current) =>
+      current?.sangaku.id === id ? { ...current, reorderDetail } : current,
+    );
   };
 
   const handleClose = () => {
@@ -155,7 +150,7 @@ export default function SangakuListView({
         ))}
         <ConfirmModal
           data={selected?.sangaku ?? null}
-          reorderDetail={selected?.reorderDetail}
+          reorderDetail={selected?.reorderDetail ?? null}
           onRetryReorder={handleRetryReorder}
           handleClose={handleClose}
           shrine={shrine}

@@ -1,6 +1,7 @@
 import { Suspense, use, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
+import type { ReorderDetail } from "@/app/lib/sangaku-detail";
 import {
   Modal,
   Box,
@@ -23,8 +24,8 @@ interface Props {
   data: Sangaku | null;
   shrine: Shrine;
   handleClose: () => void;
-  reorderDetail?: Promise<Sangaku | null | undefined> | null;
-  onRetryReorder?: () => void;
+  reorderDetail: ReorderDetail | null;
+  onRetryReorder: () => void;
 }
 
 const style: SxProps = {
@@ -70,8 +71,8 @@ function ReorderCodeBlocks({
   detail,
   onRetry,
 }: {
-  detail: Promise<Sangaku | null | undefined>;
-  onRetry?: () => void;
+  detail: ReorderDetail;
+  onRetry: () => void;
 }) {
   const reorderData = use(detail);
 
@@ -255,15 +256,13 @@ export default function ConfirmModal({
                       overflowY: { xs: "visible", sm: "auto" },
                     }}
                   >
-                    {reorderDetail ? (
+                    {reorderDetail && (
                       <Suspense fallback={<ReorderCodeBlocksLoading />}>
                         <ReorderCodeBlocks
                           detail={reorderDetail}
                           onRetry={onRetryReorder}
                         />
                       </Suspense>
-                    ) : (
-                      <ReorderCodeBlocksLoading />
                     )}
                   </Grid>
                 </Grid>

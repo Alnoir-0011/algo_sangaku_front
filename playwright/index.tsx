@@ -7,7 +7,11 @@ import { CssBaseline } from "@mui/material";
 import theme from "@/theme";
 import { SessionProvider } from "next-auth/react";
 import type { Session } from "next-auth";
-import { fetchUserSangakuDelay } from "@/tests/__mocks__/data/sangaku";
+import {
+  fetchUserSangakuDelay,
+  fetchUserSangakuRejects,
+  fetchUserSangakuResultRejects,
+} from "@/tests/__mocks__/data/sangaku";
 
 type HooksConfig = {
   session?: Session | null;
@@ -16,10 +20,16 @@ type HooksConfig = {
   // fetchUserSangakuDelay を直接 import して書き換えてもコンポーネント側には
   // 反映されない。hooksConfig 経由でブラウザ側の beforeMount から設定する。
   fetchUserSangakuDelayMs?: number;
+  // 先頭から指定回数だけ fetchUserSangaku / fetchUserSangakuResult を reject させる。
+  fetchUserSangakuRejectCount?: number;
+  fetchUserSangakuResultRejectCount?: number;
 };
 
 beforeMount<HooksConfig>(({ App, hooksConfig }) => {
   fetchUserSangakuDelay.ms = hooksConfig?.fetchUserSangakuDelayMs ?? 0;
+  fetchUserSangakuRejects.count = hooksConfig?.fetchUserSangakuRejectCount ?? 0;
+  fetchUserSangakuResultRejects.count =
+    hooksConfig?.fetchUserSangakuResultRejectCount ?? 0;
   return Promise.resolve(
     <SessionProvider session={hooksConfig?.session ?? undefined}>
       <AppRouterCacheProvider>

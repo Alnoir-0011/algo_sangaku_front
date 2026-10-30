@@ -96,6 +96,46 @@ test.describe("DedicatedSangakuListView", () => {
     await expect(page.getByText(/算額が写された数/)).toContainText("5");
   });
 
+  test("should not allow me to see the sangaku result and should allow me to see an error message when fetching the result fails", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <DedicatedSangakuListView sangakus={sangakus} totalPage={1} />,
+      { hooksConfig: { fetchUserSangakuResultRejectCount: 1 } },
+    );
+
+    await component.getByRole("button", { name: /title_1/ }).click();
+
+    await expect(
+      page.getByText("算額の情報の取得に失敗しました"),
+    ).toBeVisible();
+    await expect(page.getByText(/算額が写された数/)).toHaveCount(0);
+  });
+
+  test("should allow me to see the sangaku result without a shrine name when the sangaku has no shrine", async ({
+    mount,
+    page,
+  }) => {
+    const withoutShrine: Sangaku = {
+      ...buildSangaku("5", "title_5", "normal"),
+      relationships: {
+        user: { data: { id: "1", type: "user" } },
+        shrine: { data: null },
+      },
+    };
+    const component = await mount(
+      <DedicatedSangakuListView sangakus={[withoutShrine]} totalPage={1} />,
+    );
+
+    await component.getByRole("button", { name: /title_5/ }).click();
+
+    await expect(page.getByText(/算額が写された数/)).toContainText("5");
+    await expect(
+      page.getByRole("heading", { name: "テスト神社" }),
+    ).toHaveCount(0);
+  });
+
   test("should allow me to close the shrine modal with the Escape key", async ({
     mount,
     page,

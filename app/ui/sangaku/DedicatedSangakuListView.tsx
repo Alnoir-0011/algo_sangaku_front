@@ -6,8 +6,11 @@ import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
-import Modal, { fetchSangakuModalDetail } from "./Modal";
-import type { SangakuModalDetail } from "./Modal";
+import Modal from "./Modal";
+import {
+  fetchSangakuModalDetail,
+  type SangakuModalDetail,
+} from "@/app/lib/sangaku-detail";
 import { difficultyTranslation } from "../utility";
 
 interface Props {

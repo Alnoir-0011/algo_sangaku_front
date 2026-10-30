@@ -1,5 +1,6 @@
 import { Suspense, use } from "react";
-import type { Sangaku, Shrine, SangakuResult } from "@/app/lib/definitions";
+import type { Sangaku } from "@/app/lib/definitions";
+import type { SangakuModalDetail } from "@/app/lib/sangaku-detail";
 import {
   Modal,
   Box,
@@ -11,29 +12,12 @@ import Grid from "@mui/material/Grid";
 // import { Editor } from "@monaco-editor/react";
 import { difficultyTranslation } from "@/app/ui/utility";
 import Ema from "@/app/ui/Ema";
-import { fetchShrine } from "@/app/lib/data/shrine";
-import { fetchUserSangakuResult } from "@/app/lib/data/sangaku";
-
-export type SangakuModalDetail = [
-  Shrine | null,
-  SangakuResult | null | undefined,
-];
 
 interface Props {
   data: Sangaku | null;
   detail: Promise<SangakuModalDetail> | null;
   handleClose: () => void;
 }
-
-// use() は reject を ErrorBoundary に伝播し、ページ全体がエラー画面になる。
-// 取得失敗はモーダル内で完結させたいので null として扱う。
-export const fetchSangakuModalDetail = (
-  sangaku: Sangaku,
-): Promise<SangakuModalDetail> =>
-  Promise.all([
-    fetchShrine(sangaku.relationships.shrine.data?.id ?? ""),
-    fetchUserSangakuResult(sangaku.id),
-  ]).catch((): SangakuModalDetail => [null, null]);
 
 const style: SxProps = {
   position: "absolute",
@@ -56,10 +40,14 @@ function SangakuModalContent({
   data: Sangaku;
   detail: Promise<SangakuModalDetail>;
 }) {
-  const [shrine, results] = use(detail);
+  const { shrine, result: results } = use(detail);
 
   if (!results) {
-    return null;
+    return (
+      <Typography color="error" sx={{ p: 2 }}>
+        算額の情報の取得に失敗しました
+      </Typography>
+    );
   }
 
   return (
@@ -70,9 +58,11 @@ function SangakuModalContent({
       sx={{ width: "100%", mb: 2 }}
     >
       <Grid size={6}>
-        <Typography variant="h4" sx={{ mb: 2 }}>
-          {shrine?.attributes.name}
-        </Typography>
+        {shrine && (
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            {shrine.attributes.name}
+          </Typography>
+        )}
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
           <Ema width={18}>
             <Box

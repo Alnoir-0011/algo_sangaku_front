@@ -532,11 +532,8 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Act
     await mount(
-      <ConfirmModalWithReorderDetail
-        data={reorderSangaku}
-        shrine={shrine}
-        failFirst
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
+      { hooksConfig: { fetchUserSangakuRejectCount: 1 } },
     );
 
     // Assert
@@ -553,11 +550,8 @@ test.describe("ConfirmModal", () => {
   }) => {
     // Arrange
     await mount(
-      <ConfirmModalWithReorderDetail
-        data={reorderSangaku}
-        shrine={shrine}
-        failFirst
-      />,
+      <ConfirmModalWithReorderDetail data={reorderSangaku} shrine={shrine} />,
+      { hooksConfig: { fetchUserSangakuRejectCount: 1 } },
     );
     await expect(page.getByRole("button", { name: "再試行" })).toBeVisible();
 

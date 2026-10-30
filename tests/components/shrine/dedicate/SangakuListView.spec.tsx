@@ -42,6 +42,14 @@ const buildSangaku = (
   },
 });
 
+const buildReorderSangaku = (): Sangaku => {
+  const base = buildSangaku("3", "title_3", "easy", "");
+  return {
+    ...base,
+    attributes: { ...base.attributes, kind: "reorder", source: undefined },
+  };
+};
+
 const sangakus = [
   buildSangaku("1", "title_1", "normal", "puts 'first'"),
   buildSangaku("2", "title_2", "difficult", "puts 'second'"),
@@ -111,14 +119,7 @@ test.describe("SangakuListView", () => {
     mount,
     page,
   }) => {
-    const reorderSangaku: Sangaku = {
-      ...buildSangaku("3", "title_3", "easy", ""),
-      attributes: {
-        ...buildSangaku("3", "title_3", "easy", "").attributes,
-        kind: "reorder",
-        source: undefined,
-      },
-    };
+    const reorderSangaku = buildReorderSangaku();
     const component = await mount(
       <SangakuListView
         sangakus={[reorderSangaku]}
@@ -128,6 +129,31 @@ test.describe("SangakuListView", () => {
     );
 
     await component.getByRole("button", { name: /title_3/ }).click();
+
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
+      "block_content_1",
+    );
+  });
+
+  test("should allow me to retry fetching the code blocks after a failure when I select a reorder sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const reorderSangaku = buildReorderSangaku();
+    const component = await mount(
+      <SangakuListView
+        sangakus={[reorderSangaku]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+      { hooksConfig: { fetchUserSangakuRejectCount: 1 } },
+    );
+
+    await component.getByRole("button", { name: /title_3/ }).click();
+    await expect(
+      page.getByText("コードブロックの取得に失敗しました"),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "再試行" }).click();
 
     await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
       "block_content_1",
