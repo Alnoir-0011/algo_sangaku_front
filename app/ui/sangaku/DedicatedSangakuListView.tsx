@@ -1,12 +1,16 @@
 "use client";
 
 import type { Sangaku } from "@/app/lib/definitions";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Modal from "./Modal";
+import {
+  fetchSangakuModalDetail,
+  type SangakuModalDetail,
+} from "@/app/lib/sangaku-detail";
 import { difficultyTranslation } from "../utility";
 
 interface Props {
@@ -18,14 +22,36 @@ export default function DedicatedSangakuListView({
   sangakus,
   totalPage,
 }: Props) {
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
+  const [selected, setSelected] = useState<{
+    id: string;
+    detail: Promise<SangakuModalDetail>;
+  } | null>(null);
+  // 選択中の算額は、複製を state に持たず、id から props を引く。
+  const selectedSangaku = sangakus.find((s) => s.id === selected?.id) ?? null;
 
+  // Promise は render 中ではなくクリックで生成する。Suspense 内の子で生成すると、
+  // 初回 mount で suspend した際に state が破棄され、毎回作り直されてしまう。
+  // Server Function は Transition 内で呼ぶ（React のドキュメントの注意事項）。
   const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
+    startTransition(() => {
+      setSelected({ id: sangaku.id, detail: fetchSangakuModalDetail(sangaku) });
+    });
+  };
+
+  // updater の中で fetch すると StrictMode で二重実行されるため、取得は外で行う。
+  const handleRetry = () => {
+    if (!selectedSangaku) return;
+    const sangaku = selectedSangaku;
+    startTransition(() => {
+      const detail = fetchSangakuModalDetail(sangaku);
+      setSelected((current) =>
+        current?.id === sangaku.id ? { ...current, detail } : current,
+      );
+    });
   };
 
   const handleClose = () => {
-    setModalData(null);
+    setSelected(null);
   };
 
   return (
@@ -123,7 +149,12 @@ export default function DedicatedSangakuListView({
             </ButtonBase>
           </div>
         ))}
-        <Modal data={modalData} handleClose={handleClose} />
+        <Modal
+          data={selectedSangaku}
+          detail={selected?.detail ?? null}
+          onRetry={handleRetry}
+          handleClose={handleClose}
+        />
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Pagination totalPage={totalPage} />

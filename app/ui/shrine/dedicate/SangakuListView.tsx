@@ -1,12 +1,13 @@
 "use client";
 
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import ConfirmModal from "./ConfirmModal";
+import { fetchReorderDetail, type ReorderDetail } from "@/app/lib/sangaku-detail";
 import { difficultyTranslation } from "../../utility";
 
 interface Props {
@@ -20,14 +21,43 @@ export default function SangakuListView({
   totalPage,
   shrine,
 }: Props) {
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
+  const [selected, setSelected] = useState<{
+    id: string;
+    reorderDetail: ReorderDetail | null;
+  } | null>(null);
+  // 選択中の算額は、複製を state に持たず、id から props を引く。
+  const selectedSangaku = sangakus.find((s) => s.id === selected?.id) ?? null;
 
+  // Promise は render 中ではなくクリックで生成する。Suspense 内の子で生成すると、
+  // 初回 mount で suspend した際に state が破棄され、毎回作り直されてしまう。
+  // Server Function は Transition 内で呼ぶ（React のドキュメントの注意事項）。
   const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
+    startTransition(() => {
+      setSelected({
+        id: sangaku.id,
+        reorderDetail:
+          sangaku.attributes.kind === "reorder"
+            ? fetchReorderDetail(sangaku.id)
+            : null,
+      });
+    });
+  };
+
+  // updater の中で fetch すると StrictMode で二重実行されるため、取得は外で行い、
+  // 別の算額に切り替わっていた場合だけ差し替えを捨てる。
+  const handleRetryReorder = () => {
+    if (!selected) return;
+    const id = selected.id;
+    startTransition(() => {
+      const reorderDetail = fetchReorderDetail(id);
+      setSelected((current) =>
+        current?.id === id ? { ...current, reorderDetail } : current,
+      );
+    });
   };
 
   const handleClose = () => {
-    setModalData(null);
+    setSelected(null);
   };
 
   return (
@@ -126,7 +156,9 @@ export default function SangakuListView({
           </div>
         ))}
         <ConfirmModal
-          data={modalData}
+          data={selectedSangaku}
+          reorderDetail={selected?.reorderDetail ?? null}
+          onRetryReorder={handleRetryReorder}
           handleClose={handleClose}
           shrine={shrine}
         />

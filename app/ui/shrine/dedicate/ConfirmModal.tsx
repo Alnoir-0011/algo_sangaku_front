@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
+import type { ReorderDetail } from "@/app/lib/sangaku-detail";
 import {
   Modal,
   Box,
@@ -14,7 +16,6 @@ import {
 import Grid from "@mui/material/Grid";
 import { Editor } from "@monaco-editor/react";
 import { dedicateSangaku } from "@/app/lib/actions/shrine";
-import { fetchUserSangaku } from "@/app/lib/data/sangaku";
 import { difficultyTranslation } from "@/app/ui/utility";
 import { ShareButton } from "./ShareButton";
 import Ema from "@/app/ui/Ema";
@@ -24,6 +25,8 @@ interface Props {
   data: Sangaku | null;
   shrine: Shrine;
   handleClose: () => void;
+  reorderDetail: ReorderDetail | null;
+  onRetryReorder: () => void;
 }
 
 const style: SxProps = {
@@ -50,59 +53,98 @@ const readOnlyMessage = {
 // 分岐に ?? を使い、0 番（あり得るなら）を誤ってダミー扱いしないようにする。
 const DUMMY_LABEL = "ダミー";
 
-export default function ConfirmModal({ data, shrine, handleClose }: Props) {
+function ReorderCodeBlocksLoading() {
+  return (
+    <Stack spacing={1} data-testid="confirm-modal-code-blocks-loading">
+      {[1, 2, 3].map((key) => (
+        <Skeleton
+          key={key}
+          data-testid="confirm-modal-code-block-skeleton"
+          variant="rectangular"
+          height={48}
+        />
+      ))}
+    </Stack>
+  );
+}
+
+function ReorderCodeBlocksError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Box>
+      <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+        コードブロックの取得に失敗しました
+      </Typography>
+      <Button variant="outlined" size="small" type="button" onClick={onRetry}>
+        再試行
+      </Button>
+    </Box>
+  );
+}
+
+function ReorderCodeBlocks({ detail }: { detail: ReorderDetail }) {
+  const reorderData = use(detail);
+
+  return (
+    <Stack spacing={1}>
+      {reorderData.attributes.code_blocks?.map((block, index) => (
+        <Paper
+          key={block.id}
+          variant="outlined"
+          data-testid={`confirm-modal-code-block-${index + 1}`}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            p: 1,
+          }}
+        >
+          <Box
+            sx={{
+              width: 40,
+              textAlign: "center",
+              fontWeight: "bold",
+              mr: 1,
+            }}
+          >
+            {block.correct_position ?? DUMMY_LABEL}
+          </Box>
+          <Typography>{block.content}</Typography>
+        </Paper>
+      ))}
+    </Stack>
+  );
+}
+
+export default function ConfirmModal({
+  data,
+  shrine,
+  handleClose,
+  reorderDetail,
+  onRetryReorder,
+}: Props) {
   const [currentPosition, setCurrentPosition] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  const [isDedicated, setIsDedicated] = useState(false);
-  // fetchUserSangaku が失敗（null/undefined）した場合に「読み込み中...」のまま
-  // 固まってしまわないよう、失敗状態を区別して保持する。retryKey を更新すると
-  // 下の useEffect が再実行され、再試行できる。
-  // 取得結果は id / retryKey とセットで持ち、現在の算額・試行と一致しないものは
-  // 取得中として扱う。effect 内で state を null に戻す方式は、余分な再レンダリングを招く
-  const [reorderFetch, setReorderFetch] = useState<{
-    id: string;
-    retryKey: number;
-    sangaku: Sangaku | null;
-  } | null>(null);
-  const [retryKey, setRetryKey] = useState(0);
-  const currentReorderFetch =
-    data && reorderFetch?.id === data.id && reorderFetch.retryKey === retryKey
-      ? reorderFetch
-      : null;
-  const reorderData = currentReorderFetch?.sangaku ?? null;
-  const reorderFetchFailed = currentReorderFetch?.sangaku === null;
-
+  // 奉納済みかどうかは、奉納した算額の id から導出する。真偽値で持つと、
+  // 閉じて別の算額を開いても「奉納しました」の表示が残ってしまう。
+  const [dedicatedId, setDedicatedId] = useState<string | null>(null);
+  const isDedicated = data !== null && dedicatedId === data.id;
   const { id: shrine_id } = useParams<{ id: string }>();
 
   useEffect(() => {
+    let ignore = false;
+
     (async () => {
       const newLatLng = await getLocation();
-      setCurrentPosition(newLatLng);
-    })();
-  }, [setCurrentPosition]);
-
-  useEffect(() => {
-    if (data?.attributes.kind !== "reorder") {
-      return;
-    }
-
-    // data.id の変化（別の reorder 算額への切り替え）で古いレスポンスが
-    // 後から解決して新しいレスポンスを上書きしないよう、ignore フラグで無効化する。
-    let ignore = false;
-    const id = data.id;
-
-    (async () => {
-      const result = await fetchUserSangaku(id);
-      if (ignore) return;
-      setReorderFetch({ id, retryKey, sangaku: result || null });
+      if (!ignore) {
+        setCurrentPosition(newLatLng);
+      }
     })();
 
     return () => {
       ignore = true;
     };
-  }, [data?.id, data?.attributes.kind, retryKey]);
+  }, []);
 
   return (
     <Modal open={!!data} onClose={handleClose}>
@@ -129,7 +171,7 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
               if (
                 await dedicateSangaku(shrine_id, data!.id, currentPosition!)
               ) {
-                setIsDedicated(true);
+                setDedicatedId(data!.id);
               }
             }}
           >
@@ -215,67 +257,23 @@ export default function ConfirmModal({ data, shrine, handleClose }: Props) {
                       overflowY: { xs: "visible", sm: "auto" },
                     }}
                   >
-                    {reorderData ? (
-                      <Stack spacing={1}>
-                        {reorderData.attributes.code_blocks?.map(
-                          (block, index) => (
-                            <Paper
-                              key={block.id}
-                              variant="outlined"
-                              data-testid={`confirm-modal-code-block-${index + 1}`}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                p: 1,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  width: 40,
-                                  textAlign: "center",
-                                  fontWeight: "bold",
-                                  mr: 1,
-                                }}
-                              >
-                                {block.correct_position ?? DUMMY_LABEL}
-                              </Box>
-                              <Typography>{block.content}</Typography>
-                            </Paper>
-                          ),
-                        )}
-                      </Stack>
-                    ) : reorderFetchFailed ? (
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          color="error"
-                          sx={{ mb: 1 }}
-                        >
-                          コードブロックの取得に失敗しました
-                        </Typography>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          type="button"
-                          onClick={() => setRetryKey((key) => key + 1)}
-                        >
-                          再試行
-                        </Button>
-                      </Box>
-                    ) : (
-                      <Stack
-                        spacing={1}
-                        data-testid="confirm-modal-code-blocks-loading"
+                    {reorderDetail && (
+                      <ErrorBoundary
+                        resetKeys={[reorderDetail]}
+                        onError={(error) =>
+                          console.error(
+                            "[ConfirmModal] fetch reorder detail error:",
+                            error,
+                          )
+                        }
+                        fallback={
+                          <ReorderCodeBlocksError onRetry={onRetryReorder} />
+                        }
                       >
-                        {[1, 2, 3].map((key) => (
-                          <Skeleton
-                            key={key}
-                            data-testid="confirm-modal-code-block-skeleton"
-                            variant="rectangular"
-                            height={48}
-                          />
-                        ))}
-                      </Stack>
+                        <Suspense fallback={<ReorderCodeBlocksLoading />}>
+                          <ReorderCodeBlocks detail={reorderDetail} />
+                        </Suspense>
+                      </ErrorBoundary>
                     )}
                   </Grid>
                 </Grid>

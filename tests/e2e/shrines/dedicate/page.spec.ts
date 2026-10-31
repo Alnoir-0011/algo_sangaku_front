@@ -177,6 +177,61 @@ test.describe("/shrines/[id]/dedicate", () => {
       ).toHaveCount(0);
     });
 
+    test("should allow me to retry fetching the code blocks of a reorder sangaku after the first request fails", async ({
+      page,
+      msw,
+    }) => {
+      const reorderSangaku = {
+        id: "5",
+        type: "sangaku",
+        attributes: {
+          title: "reorder_before_dedicate",
+          description: "reorder_description",
+          difficulty: "easy",
+          kind: "reorder",
+          source: null,
+          inputs: [],
+          code_blocks: [
+            { id: 1, content: "puts 1", correct_position: 1 },
+            { id: 2, content: "puts 2", correct_position: 2 },
+          ],
+        },
+        relationships: {
+          user: { data: { id: "1", type: "user" } },
+          shrine: { data: null },
+        },
+      };
+      let detailRequests = 0;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json({ data: [reorderSangaku] }, { status: 200 });
+        }),
+        http.get(`${apiUrl}/api/v1/user/sangakus/5`, () => {
+          detailRequests += 1;
+          if (detailRequests === 1) {
+            return HttpResponse.json({}, { status: 500 });
+          }
+          return HttpResponse.json({ data: reorderSangaku }, { status: 200 });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/shrines/1/dedicate");
+      await page.getByRole("heading", { name: "reorder_before_dedicate" }).click();
+      const modal = page.getByRole("dialog");
+      await expect(
+        modal.getByText("コードブロックの取得に失敗しました"),
+      ).toBeVisible();
+
+      await modal.getByRole("button", { name: "再試行" }).click();
+
+      await expect(modal.getByTestId("confirm-modal-code-block-1")).toContainText(
+        "puts 1",
+      );
+      await expect(
+        modal.getByText("コードブロックの取得に失敗しました"),
+      ).not.toBeVisible();
+    });
+
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {

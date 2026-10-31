@@ -42,6 +42,14 @@ const buildSangaku = (
   },
 });
 
+const buildReorderSangaku = (): Sangaku => {
+  const base = buildSangaku("3", "title_3", "easy", "");
+  return {
+    ...base,
+    attributes: { ...base.attributes, kind: "reorder", source: undefined },
+  };
+};
+
 const sangakus = [
   buildSangaku("1", "title_1", "normal", "puts 'first'"),
   buildSangaku("2", "title_2", "difficult", "puts 'second'"),
@@ -105,6 +113,95 @@ test.describe("SangakuListView", () => {
     await component.getByRole("button", { name: /title_2/ }).click();
 
     await expect(page.getByTestId("monaco-editor")).toHaveText("puts 'second'");
+  });
+
+  test("should allow me to see the code blocks when I select a reorder sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const reorderSangaku = buildReorderSangaku();
+    const component = await mount(
+      <SangakuListView
+        sangakus={[reorderSangaku]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+    );
+
+    await component.getByRole("button", { name: /title_3/ }).click();
+
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
+      "block_content_1",
+    );
+  });
+
+  test("should allow me to retry fetching the code blocks after a failure when I select a reorder sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const reorderSangaku = buildReorderSangaku();
+    const component = await mount(
+      <SangakuListView
+        sangakus={[reorderSangaku]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+      { hooksConfig: { fetchUserSangakuRejectCount: 1 } },
+    );
+
+    await component.getByRole("button", { name: /title_3/ }).click();
+    await expect(
+      page.getByText("コードブロックの取得に失敗しました"),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "再試行" }).click();
+
+    await expect(page.getByTestId("confirm-modal-code-block-1")).toContainText(
+      "block_content_1",
+    );
+  });
+
+  test("should not allow me to see the dedicated screen of the previous sangaku when I select another sangaku", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <SangakuListView sangakus={sangakus} totalPage={1} shrine={shrine} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await page.getByRole("button", { name: "この算額を奉納する" }).click();
+    await expect(page.getByText("算額を奉納しました")).toBeVisible();
+    // 完了画面には閉じるボタンがなく、送信ボタンが消えてフォーカスも外れるため、
+    // Escape ではなくモーダルの外（背景）のクリックで閉じる。
+    await page.mouse.click(5, 5);
+    await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
+
+    await component.getByRole("button", { name: /title_2/ }).click();
+
+    await expect(
+      page.getByRole("button", { name: "この算額を奉納する" }),
+    ).toBeVisible();
+    await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
+  });
+
+  test("should not allow me to see the confirm modal when the selected sangaku is removed from the list", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <SangakuListView sangakus={sangakus} totalPage={1} shrine={shrine} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await expect(page.getByTestId("monaco-editor")).toBeVisible();
+
+    await component.update(
+      <SangakuListView
+        sangakus={[sangakus[1]]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+    );
+
+    await expect(page.getByTestId("monaco-editor")).toHaveCount(0);
   });
 
   test("should allow me to close the confirm modal with the Escape key", async ({
