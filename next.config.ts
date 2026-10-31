@@ -63,6 +63,9 @@ const nextConfig: NextConfig = {
   // 本番デプロイ用のビルド/ワークフローでこの変数を継承しないこと
   // （ソースマップにソースコードが埋め込まれ公開される）。
   productionBrowserSourceMaps: process.env.COVERAGE === "true",
+  // next dev のたびに AGENTS.md が未追跡ファイルとして生成されるため無効化する。
+  // エージェント向けの指示は CLAUDE.md で管理している。
+  agentRules: false,
   experimental: {
     testProxy: true,
   },
