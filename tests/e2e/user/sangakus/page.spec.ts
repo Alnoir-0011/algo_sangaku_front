@@ -406,6 +406,48 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
     });
 
+    test("should allow me to retry fetching the dedicated sangaku details after the first request fails", async ({
+      page,
+      msw,
+    }) => {
+      let resultRequests = 0;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/1/result`, () => {
+          resultRequests += 1;
+          if (resultRequests === 1) {
+            return HttpResponse.json({}, { status: 500 });
+          }
+          return HttpResponse.json(
+            {
+              data: {
+                attributes: {
+                  user_sangaku_save_count: 10,
+                  correct_count: 7,
+                  incorrect_count: 3,
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      await page.getByRole("tab", { name: "奉納した算額" }).click();
+      await page.getByRole("heading", { name: "dedicated" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(
+        dialog.getByText("算額の情報の取得に失敗しました"),
+      ).toBeVisible();
+
+      await dialog.getByRole("button", { name: "再試行" }).click();
+
+      await expect(dialog.getByRole("heading", { name: "test_shrine" })).toBeVisible();
+      await expect(
+        dialog.getByText("算額の情報の取得に失敗しました"),
+      ).not.toBeVisible();
+    });
+
     test("should allow me to delete my sangaku", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
