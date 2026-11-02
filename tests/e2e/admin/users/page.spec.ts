@@ -1,4 +1,5 @@
 import { setSession, setAdminSession } from "@/tests/__helpers__/signin";
+import { waitForHydration } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -150,7 +151,9 @@ test.describe("/admin/users", () => {
     test("should allow me to see query param in URL when typing in search form", async ({ page }) => {
       // Arrange: beforeEach で /admin/users に遷移済み
       // Act
-      await page.getByPlaceholder("ユーザーを検索").fill("Admin");
+      const searchBox = page.getByPlaceholder("ユーザーを検索");
+      await waitForHydration(searchBox);
+      await searchBox.fill("Admin");
       // Assert
       await expect(page).toHaveURL(/[?&]query=Admin/, { timeout: 5_000 });
     });
@@ -160,7 +163,9 @@ test.describe("/admin/users", () => {
       // Arrange
       await page.goto("/admin/users?sort=asc");
       // Act
-      await page.getByPlaceholder("ユーザーを検索").fill("Admin");
+      const searchBox = page.getByPlaceholder("ユーザーを検索");
+      await waitForHydration(searchBox);
+      await searchBox.fill("Admin");
       // Assert: sort と query の両パラメータが URL に存在すること
       await expect(page).toHaveURL(/[?&]sort=asc/, { timeout: 5_000 });
       await expect(page).toHaveURL(/[?&]query=Admin/);
