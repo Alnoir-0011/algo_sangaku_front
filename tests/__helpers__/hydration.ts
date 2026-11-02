@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import { Page, Locator, expect } from "@playwright/test";
 
 /**
  * 操作対象要素が visible になるまで待つ。
@@ -7,6 +7,26 @@ import { Page, Locator } from "@playwright/test";
  */
 export async function waitForInteractive(locator: Locator) {
   await locator.waitFor({ state: "visible", timeout: 10_000 });
+}
+
+/**
+ * 操作対象要素に React のイベントハンドラが付く（hydration される）まで待つ。
+ * visible 判定だけでは SSR 済みの HTML も通ってしまい、hydration 前に fill すると
+ * onChange が発火せず入力が失われる（遅い CI の WebKit で発生）。
+ * hydration の完了を示す公開 API はないため、React が hydrate 時に要素へ付ける
+ * 内部プロパティ（__reactProps$）の有無で判定している。
+ */
+export async function waitForHydration(locator: Locator) {
+  await locator.waitFor({ state: "visible", timeout: 10_000 });
+  await expect
+    .poll(
+      () =>
+        locator.evaluate((el) =>
+          Object.keys(el).some((key) => key.startsWith("__reactProps$")),
+        ),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
 }
 
 /**
