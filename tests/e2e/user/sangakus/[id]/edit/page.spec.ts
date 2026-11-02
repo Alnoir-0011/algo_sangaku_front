@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { setMonacoEditorValue, waitForInteractive, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
+import { setMonacoEditorValue, waitForHydration, waitForInteractive, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -539,7 +539,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
     test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
-      await waitForInteractive(page.getByLabel("問題文"));
+      await waitForHydration(page.getByLabel("問題文"));
 
       const longDescription = "あ".repeat(2001);
       await page.getByLabel("問題文").fill(longDescription);
