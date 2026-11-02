@@ -50,7 +50,7 @@ export default async function Page(props: Props) {
             <Search placeholder="タイトルで検索" kind />
           </Container>
           <Suspense
-            key={JSON.stringify([page, query, kind ?? ""])}
+            key={page + query + (kind ?? "")}
             fallback={<SangakuListSkeleton />}
           >
             <DedicatedSangakuList page={page} query={query} kind={kind} />
@@ -68,7 +68,7 @@ export default async function Page(props: Props) {
             "undefined" という値が key に混入しないよう ?? "" でフォールバックする
           */}
           <Suspense
-            key={JSON.stringify([page, query, kind ?? ""])}
+            key={page + query + (kind ?? "")}
             fallback={<SangakuListSkeleton />}
           >
             <UserSangakuList page={page} query={query} kind={kind} />
