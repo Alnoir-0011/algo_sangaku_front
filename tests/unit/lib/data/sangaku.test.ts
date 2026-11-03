@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 // fetchShrineSangakus 自体は auth() を呼ばないが、同一モジュール内の他関数が
 // トップレベルで "@/auth" を import しており、実体（next-auth）を読み込むと
@@ -7,6 +7,7 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
+import { auth } from "@/auth";
 import {
   fetchShrineSangakus,
   fetchUserSangakus,
@@ -183,6 +184,10 @@ describe("fetchUserSangakus", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   test("should include kind=code in the request URL when kind is 'code'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -223,6 +228,145 @@ describe("fetchUserSangakus", () => {
     const calledUrl = fetchMock.mock.calls[0][0] as string;
     const params = new URLSearchParams(calledUrl.split("?")[1]);
     expect(params.has("kind")).toBe(false);
+  });
+
+  test("should return an unexpected error message when the session cannot be read", async () => {
+    // Arrange
+    const sessionError = new Error("session decode failed");
+    vi.mocked(auth).mockRejectedValueOnce(sessionError);
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    // Act
+    const result = await fetchUserSangakus("1", "", "");
+
+    // Assert
+    expect(result).toEqual({
+      sangakus: [],
+      totalPage: 0,
+      message: "予期せぬエラーが発生しました",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("fetchUserSangakus"),
+      sessionError,
+    );
+  });
+
+  test("should return a session expired message when the response status is 401", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+
+    // Act
+    const result = await fetchUserSangakus("1", "", "");
+
+    // Assert
+    expect(result.sangakus).toEqual([]);
+    expect(result.totalPage).toBe(0);
+    expect(result.message).toContain("セッションの有効期限が切れています");
+  });
+
+  test("should return a request failed message when the response status is 500", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 500 }));
+
+    // Act
+    const result = await fetchUserSangakus("1", "", "");
+
+    // Assert
+    expect(result).toEqual({
+      sangakus: [],
+      totalPage: 0,
+      message: "リクエストに失敗しました",
+    });
+  });
+
+  test("should return an unexpected error message when the request itself fails", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockRejectedValueOnce(new TypeError("fetch failed"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    // Act
+    const result = await fetchUserSangakus("1", "", "");
+
+    // Assert
+    expect(result).toEqual({
+      sangakus: [],
+      totalPage: 0,
+      message: "予期せぬエラーが発生しました",
+    });
+  });
+
+  test("should rethrow a redirect error instead of returning a message", async () => {
+    // Arrange
+    // Next.js の redirect() が投げるエラーの digest 形式
+    const redirectError = Object.assign(new Error("NEXT_REDIRECT"), {
+      digest: "NEXT_REDIRECT;replace;/signin;307;",
+    });
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockRejectedValueOnce(redirectError);
+
+    // Act & Assert
+    await expect(fetchUserSangakus("1", "", "")).rejects.toBe(redirectError);
+  });
+
+  test.each([
+    ["abc", "1"],
+    ["0", "1"],
+    ["-1", "1"],
+    ["1.5", "1"],
+    ["", "1"],
+    ["1,2", "1"],
+    ["3", "3"],
+    ["10", "10"],
+  ])(
+    "should request page=%j as page=%j",
+    async (page, expectedPage) => {
+      // Arrange
+      const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+      fetchMock.mockResolvedValueOnce(mockSuccessResponse());
+
+      // Act
+      await fetchUserSangakus(page, "", "");
+
+      // Assert
+      const calledUrl = fetchMock.mock.calls[0][0] as string;
+      const params = new URLSearchParams(calledUrl.split("?")[1]);
+      expect(params.get("page")).toBe(expectedPage);
+    },
+  );
+
+  test("should include the title parameter in the request URL when query is a string", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(mockSuccessResponse());
+
+    // Act
+    await fetchUserSangakus("1", "foo", "");
+
+    // Assert
+    const calledUrl = fetchMock.mock.calls[0][0] as string;
+    const params = new URLSearchParams(calledUrl.split("?")[1]);
+    expect(params.get("title")).toBe("foo");
+  });
+
+  test("should not include a title parameter when query is not a string", async () => {
+    // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(mockSuccessResponse());
+
+    // Act
+    // ?query=a&query=b のとき searchParams.query は実行時に配列になる
+    await fetchUserSangakus("1", ["a", "b"] as unknown as string, "");
+
+    // Assert
+    const calledUrl = fetchMock.mock.calls[0][0] as string;
+    const params = new URLSearchParams(calledUrl.split("?")[1]);
+    expect(params.has("title")).toBe(false);
   });
 });
 

@@ -68,6 +68,12 @@ export type Sangaku = {
   };
 };
 
+export type UserSangakusResult = {
+  sangakus: Sangaku[];
+  totalPage: number;
+  message?: string;
+};
+
 export type Difficulty = "easy" | "normal" | "difficult" | "very_difficult";
 
 type Input = {

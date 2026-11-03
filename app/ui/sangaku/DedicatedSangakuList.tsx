@@ -1,41 +1,21 @@
 "use client";
 
-import type { Sangaku } from "@/app/lib/definitions";
-import { useEffect, useState } from "react";
+import type { Sangaku, UserSangakusResult } from "@/app/lib/definitions";
+import { use, useState } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Modal from "./Modal";
 import { difficultyTranslation } from "../utility";
-import { fetchUserSangakus } from "@/app/lib/data/sangaku";
-import { SangakuListSkeleton } from "../skeletons";
 
 interface Props {
-  page: string;
-  query: string;
-  kind?: string;
+  sangakusPromise: Promise<UserSangakusResult>;
 }
 
-const initialState = { sangakus: [], totalPage: 0 };
-
-export default function SangakuList({ page, query, kind }: Props) {
-  const [sangakusData, setSangakusData] = useState<{
-    sangakus: Sangaku[];
-    totalPage: number;
-    message?: string;
-  }>(initialState);
+export default function SangakuList({ sangakusPromise }: Props) {
+  const { sangakus, totalPage, message } = use(sangakusPromise);
   const [modalData, setModalData] = useState<Sangaku | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      setIsLoading(true);
-      const data = await fetchUserSangakus(page, query, "any", kind);
-      setSangakusData(data);
-      setIsLoading(false);
-    })();
-  }, [page, query, kind]);
 
   const handleClick = (sangaku: Sangaku) => {
     setModalData(sangaku);
@@ -45,17 +25,11 @@ export default function SangakuList({ page, query, kind }: Props) {
     setModalData(null);
   };
 
-  if (isLoading) {
-    return <SangakuListSkeleton />;
-  }
-
   return (
     <Box>
-      {sangakusData.message && (
+      {message && (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <Typography sx={{ color: "red", mt: 2 }}>
-            {sangakusData.message}
-          </Typography>
+          <Typography sx={{ color: "red", mt: 2 }}>{message}</Typography>
         </Box>
       )}
       <Grid
@@ -69,7 +43,7 @@ export default function SangakuList({ page, query, kind }: Props) {
           mb: 2,
         }}
       >
-        {sangakusData.sangakus.map((sangaku) => (
+        {sangakus.map((sangaku) => (
           <div
             key={sangaku.id}
             style={{
@@ -154,7 +128,7 @@ export default function SangakuList({ page, query, kind }: Props) {
         <Modal data={modalData} handleClose={handleClose} />
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <Pagination totalPage={sangakusData.totalPage} />
+        <Pagination totalPage={totalPage} />
       </Box>
     </Box>
   );

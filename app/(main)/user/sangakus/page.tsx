@@ -9,6 +9,7 @@ import Search from "@/app/ui/Search";
 import { Container } from "@mui/material";
 import { Metadata } from "next";
 import DedicatedSangakuList from "@/app/ui/sangaku/DedicatedSangakuList";
+import { fetchUserSangakus } from "@/app/lib/data/sangaku";
 
 export const metadata: Metadata = {
   title: "自分の算額一覧",
@@ -50,10 +51,12 @@ export default async function Page(props: Props) {
             <Search placeholder="タイトルで検索" kind />
           </Container>
           <Suspense
-            key={page + query + (kind ?? "")}
+            key={JSON.stringify([page, query, kind ?? null])}
             fallback={<SangakuListSkeleton />}
           >
-            <DedicatedSangakuList page={page} query={query} kind={kind} />
+            <DedicatedSangakuList
+              sangakusPromise={fetchUserSangakus(page, query, "any", kind)}
+            />
           </Suspense>
         </>
       ) : (
@@ -63,12 +66,12 @@ export default async function Page(props: Props) {
           </Container>
           {/*
             kind はクエリパラメータ未指定時 undefined を取り得るため、
-            page/query と同様に key へ含めて絞り込み変更時に
-            Suspense を再マウントさせつつ、undefined が文字列化されて
-            "undefined" という値が key に混入しないよう ?? "" でフォールバックする
+            page/query と同様に key へ含めて絞り込み変更時に Suspense を再マウントさせる。
+            文字列連結だと page="1", query="2" と page="12", query="" が衝突するため、
+            JSON.stringify で区切る（undefined は配列内で null になる）
           */}
           <Suspense
-            key={page + query + (kind ?? "")}
+            key={JSON.stringify([page, query, kind ?? null])}
             fallback={<SangakuListSkeleton />}
           >
             <UserSangakuList page={page} query={query} kind={kind} />

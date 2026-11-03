@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { waitForInteractive } from "@/tests/__helpers__/hydration";
+import { waitForHydration, waitForInteractive } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -9,6 +9,22 @@ import {
 } from "@/tests/e2e/fixtures.msw";
 
 const apiUrl = process.env.API_URL;
+
+const dedicatedSangakuOf = (title: string) => ({
+  id: title,
+  type: "sangaku",
+  attributes: {
+    title,
+    description: "test_description",
+    source: "puts 'Hello world'",
+    difficulty: "easy",
+    inputs: [],
+  },
+  relationships: {
+    user: { data: { id: "1", type: "user" } },
+    shrine: { data: { id: "1", type: "shrine" } },
+  },
+});
 
 const beforeDedicateSangakus = {
   data: [
@@ -340,6 +356,89 @@ test.describe("/user/sangakus", () => {
       // Assert
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
       expect(capturedKind).toBe("reorder");
+    });
+
+    test("should allow me to see the dedicated sangakus of the next page when clicking the pagination", async ({ page, msw }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const currentPage = new URL(request.url).searchParams.get("page");
+          const title = currentPage === "2" ? "second_page" : "first_page";
+          return HttpResponse.json(
+            { data: [dedicatedSangakuOf(title)] },
+            { status: 200, headers: { "total-pages": "2" } },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus?tab=already_dedicate");
+      await expect(page.getByRole("heading", { name: "first_page" })).toBeVisible();
+
+      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      await waitForHydration(nextPageButton);
+      await nextPageButton.click();
+
+      await expect(page.getByRole("heading", { name: "second_page" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "first_page" })).toHaveCount(0);
+      await expect(page).toHaveURL(/[?&]page=2/);
+      await expect(page).toHaveURL(/[?&]tab=already_dedicate/);
+    });
+
+    test("should allow me to see the dedicated sangakus filtered by title when typing in the search box", async ({ page, msw }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const title = new URL(request.url).searchParams.get("title");
+          const sangaku = title === "foo" ? "matched_foo" : "all_sangaku";
+          return HttpResponse.json(
+            { data: [dedicatedSangakuOf(sangaku)] },
+            { status: 200, headers: { "total-pages": "1" } },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus?tab=already_dedicate");
+      await expect(page.getByRole("heading", { name: "all_sangaku" })).toBeVisible();
+      const searchBox = page.getByPlaceholder("タイトルで検索");
+      await waitForHydration(searchBox);
+
+      await searchBox.fill("foo");
+
+      await expect(page.getByRole("heading", { name: "matched_foo" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "all_sangaku" })).toHaveCount(0);
+      await expect(page).toHaveURL(/[?&]query=foo/);
+    });
+
+    test("should allow me to see the dedicated sangakus filtered by kind when selecting a kind", async ({ page, msw }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+          const kind = new URL(request.url).searchParams.get("kind");
+          const sangaku = kind === "reorder" ? "reorder_sangaku" : "all_sangaku";
+          return HttpResponse.json(
+            { data: [dedicatedSangakuOf(sangaku)] },
+            { status: 200, headers: { "total-pages": "1" } },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus?tab=already_dedicate");
+      await expect(page.getByRole("heading", { name: "all_sangaku" })).toBeVisible();
+      const kindSelect = page.getByRole("combobox", { name: "形式" });
+      await waitForHydration(kindSelect);
+
+      await kindSelect.click();
+      await page.getByRole("option", { name: "並べ替え" }).click();
+
+      await expect(page.getByRole("heading", { name: "reorder_sangaku" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "all_sangaku" })).toHaveCount(0);
+      await expect(page).toHaveURL(/[?&]kind=reorder/);
+    });
+
+    test("should not allow my dedicated sangakus page to be stored in shared caches", async ({ page }) => {
+      await setSession(page);
+
+      const response = await page.goto("/user/sangakus?tab=already_dedicate");
+
+      expect(response).not.toBeNull();
+      expect(response!.headers()["cache-control"]).toContain("no-store");
     });
 
     test("should allow me to see the edit link with correct href in sangaku menu", async ({ page }) => {
