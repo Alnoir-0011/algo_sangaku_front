@@ -1,4 +1,5 @@
 import { setSession } from "../../../__helpers__/signin";
+import { waitForHydration } from "../../../__helpers__/hydration";
 
 import {
   test,
@@ -9,6 +10,33 @@ import {
 } from "@/tests/e2e/fixtures.msw";
 
 const apiUrl = process.env.API_URL;
+
+const sangakuOf = (title: string, id = title) => ({
+  id,
+  type: "sangaku",
+  attributes: {
+    title,
+    description: "test_description",
+    source: "puts 'Hello world'",
+    difficulty: "easy",
+    inputs: [],
+  },
+  relationships: {
+    user: { data: { id: "1", type: "user" } },
+    shrine: { data: null },
+  },
+});
+
+// page クエリで中身が変わる2ページ分の一覧を返す
+const pagedSangakusHandler = () =>
+  http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
+    const currentPage = new URL(request.url).searchParams.get("page");
+    const title = currentPage === "2" ? "second_page" : "first_page";
+    return HttpResponse.json(
+      { data: [sangakuOf(title)] },
+      { status: 200, headers: { "total-pages": "2" } },
+    );
+  });
 
 test.describe("/shrines/[id]/dedicate", () => {
   test.use({
@@ -146,6 +174,169 @@ test.describe("/shrines/[id]/dedicate", () => {
   });
 
   test.describe("after signin", () => {
+    test("should allow me to see an error message when fetching my sangakus fails", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json({}, { status: 500 });
+        }),
+      );
+      await setSession(page);
+
+      await page.goto("/shrines/1/dedicate");
+
+      await expect(
+        page.getByRole("main").getByText("リクエストに失敗しました"),
+      ).toBeVisible();
+      // 一覧の取得が失敗しても、ページ全体はエラー画面に切り替わらない
+      await expect(
+        page.getByRole("heading", { name: "test_shrineに算額を奉納する" }),
+      ).toBeVisible();
+    });
+
+    test("should allow me to see skeleton items while my sangakus are loading", async ({
+      page,
+      msw,
+    }) => {
+      let releaseSangakus!: () => void;
+      const sangakusReleased = new Promise<void>((resolve) => {
+        releaseSangakus = resolve;
+      });
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, async () => {
+          await sangakusReleased;
+          return HttpResponse.json(
+            { data: [sangakuOf("loaded_sangaku")] },
+            { status: 200 },
+          );
+        }),
+      );
+      await setSession(page);
+
+      try {
+        // load を待つとストリーミングが終わって取得後の画面になるため、commit で戻る
+        await page.goto("/shrines/1/dedicate", { waitUntil: "commit" });
+
+        await expect(page.getByTestId("skeleton-item").first()).toBeVisible();
+        // 一覧の取得を待たずに、ページの見出しが先に表示される
+        await expect(
+          page.getByRole("heading", { name: "test_shrineに算額を奉納する" }),
+        ).toBeVisible();
+      } finally {
+        releaseSangakus();
+      }
+
+      await expect(
+        page.getByRole("heading", { name: "loaded_sangaku" }),
+      ).toBeVisible();
+      await expect(page.getByTestId("skeleton-item")).toHaveCount(0);
+    });
+
+    test("should allow me to see the sangakus of the next page when clicking the pagination", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(pagedSangakusHandler());
+      await setSession(page);
+
+      await page.goto("/shrines/1/dedicate");
+      await expect(
+        page.getByRole("heading", { name: "first_page" }),
+      ).toBeVisible();
+
+      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      await waitForHydration(nextPageButton);
+      await nextPageButton.click();
+
+      await expect(
+        page.getByRole("heading", { name: "second_page" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "first_page" }),
+      ).toHaveCount(0);
+      await expect(page).toHaveURL(/[?&]page=2/);
+    });
+
+    test("should not allow me to see the confirm modal left open after going back to the previous page", async ({
+      page,
+      msw,
+    }) => {
+      msw.use(pagedSangakusHandler());
+      await setSession(page);
+      await page.goto("/shrines/1/dedicate");
+      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      await waitForHydration(nextPageButton);
+      await nextPageButton.click();
+      const secondPageSangaku = page.getByRole("heading", {
+        name: "second_page",
+      });
+      await waitForHydration(secondPageSangaku);
+      await secondPageSangaku.click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+
+      await page.goBack();
+
+      await expect(
+        page.getByRole("heading", { name: "first_page" }),
+      ).toBeVisible();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    });
+
+    test("should allow me to see the dedicated sangaku removed from the list after dedicating", async ({
+      page,
+      msw,
+    }) => {
+      let dedicated = false;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
+          return HttpResponse.json(
+            { data: dedicated ? [] : [sangakuOf("before_dedicate", "1")] },
+            { status: 200 },
+          );
+        }),
+        http.post(`${apiUrl}/api/v1/user/sangakus/1/dedicate`, () => {
+          dedicated = true;
+          return HttpResponse.json({
+            data: sangakuOf("before_dedicate", "1"),
+          });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/shrines/1/dedicate");
+      const sangaku = page.getByRole("heading", { name: "before_dedicate" });
+      await waitForHydration(sangaku);
+      await sangaku.click();
+      const modal = page.getByRole("dialog");
+      await modal.getByRole("button", { name: "この算額を奉納する" }).click();
+      await expect(page.getByRole("link", { name: "でシェア" })).toBeVisible({
+        timeout: 10_000,
+      });
+
+      // 奉納で押したボタンが消えてフォーカスがモーダルの外に出るため、戻してから閉じる
+      await modal.getByRole("heading", { name: "算額を奉納しました" }).click();
+      await page.keyboard.press("Escape");
+
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      // 再取得中のスケルトンの間だけ見出しが 0 件になる状態と区別する
+      await expect(page.getByTestId("skeleton-item")).toHaveCount(0);
+      await expect(
+        page.getByRole("heading", { name: "before_dedicate" }),
+      ).toHaveCount(0);
+    });
+
+    test("should not allow my sangakus page to be stored in shared caches", async ({
+      page,
+    }) => {
+      await setSession(page);
+
+      const response = await page.goto("/shrines/1/dedicate");
+
+      expect(response).not.toBeNull();
+      expect(response!.headers()["cache-control"]).toContain("no-store");
+    });
+
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {

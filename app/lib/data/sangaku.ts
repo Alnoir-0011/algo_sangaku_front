@@ -2,7 +2,12 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import type { Sangaku, SangakuResult, GenerateSourceUsage } from "../definitions";
+import type {
+  Sangaku,
+  SangakuResult,
+  GenerateSourceUsage,
+  UserSangakusResult,
+} from "../definitions";
 import { isKind } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
@@ -23,20 +28,23 @@ export async function fetchUserSangakus(
   query: string,
   shrine_id: "" | "any" | number,
   kind?: string,
-): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
-  const session = await auth();
-
+): Promise<UserSangakusResult> {
   const params = new URLSearchParams();
-  params.set("page", page);
+  // searchParams は ?page=1&page=2 のように同名で複数渡されると実行時に配列になり、
+  // 型（string）が実態を保証しない。back へは正の整数だけを渡す
+  params.set("page", /^[1-9]\d*$/.test(page) ? page : "1");
   params.set("shrine_id", String(shrine_id));
 
-  if (query) {
+  if (typeof query === "string" && query) {
     params.set("title", query);
   }
 
   appendKindParam(params, kind);
 
   try {
+    // auth() を try の外に置くと、セッションの復号失敗が reject のまま Client の
+    // use() に届き、一覧ではなくエラー画面全体に切り替わってしまう
+    const session = await auth();
     const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus?${params.toString()}`,
       { token: session?.accessToken },
