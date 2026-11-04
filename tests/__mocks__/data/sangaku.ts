@@ -15,7 +15,21 @@ import type { Sangaku, SangakuResult } from "@/app/lib/definitions";
 // 経由で playwright/index.tsx の beforeMount から設定すること。
 export const fetchUserSangakuDelay = { ms: 0 };
 
+// 先頭から count 回の呼び出しを reject させる。use() の reject が ErrorBoundary に
+// 伝播せず、呼び出し側の catch で握られることをテストするためのもの。
+// 設定方法は fetchUserSangakuDelay と同じく hooksConfig 経由。
+export const fetchUserSangakuRejects = { count: 0 };
+export const fetchUserSangakuResultRejects = { count: 0 };
+
+const rejectIfNeeded = (rejects: { count: number }) => {
+  if (rejects.count > 0) {
+    rejects.count -= 1;
+    throw new Error("mock reject");
+  }
+};
+
 export const fetchUserSangaku = async (_id: string): Promise<Sangaku | null> => {
+  rejectIfNeeded(fetchUserSangakuRejects);
   if (fetchUserSangakuDelay.ms > 0) {
     await new Promise((resolve) => setTimeout(resolve, fetchUserSangakuDelay.ms));
   }
@@ -44,13 +58,16 @@ export const fetchUserSangaku = async (_id: string): Promise<Sangaku | null> => 
 
 export const fetchUserSangakuResult = async (
   _id: string,
-): Promise<SangakuResult | null> => ({
-  attributes: {
-    user_sangaku_save_count: 5,
-    correct_count: 3,
-    incorrect_count: 2,
-  },
-});
+): Promise<SangakuResult | null> => {
+  rejectIfNeeded(fetchUserSangakuResultRejects);
+  return {
+    attributes: {
+      user_sangaku_save_count: 5,
+      correct_count: 3,
+      incorrect_count: 2,
+    },
+  };
+};
 
 export const fetchShrineSangakus = async () => ({ data: [] });
 

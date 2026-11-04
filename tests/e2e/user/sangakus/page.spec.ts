@@ -432,6 +432,26 @@ test.describe("/user/sangakus", () => {
       await expect(page).toHaveURL(/[?&]kind=reorder/);
     });
 
+    test("should allow me to see a sign-in message without a retry button when the session has expired while fetching the dedicated sangaku details", async ({ page, msw }) => {
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/1/result`, () => {
+          return HttpResponse.json({}, { status: 401 });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      const dedicatedTab = page.getByRole("tab", { name: "奉納した算額" });
+      await waitForHydration(dedicatedTab);
+      await dedicatedTab.click();
+      const dedicatedCard = page.getByRole("heading", { name: "dedicated" });
+      await waitForHydration(dedicatedCard);
+      await dedicatedCard.click();
+
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.getByRole("alert")).toContainText("セッションの有効期限が切れています");
+      await expect(dialog.getByRole("button", { name: "再試行" })).toHaveCount(0);
+    });
+
     test("should not allow my dedicated sangakus page to be stored in shared caches", async ({ page }) => {
       await setSession(page);
 
@@ -503,6 +523,52 @@ test.describe("/user/sangakus", () => {
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
+    });
+
+    test("should allow me to retry fetching the dedicated sangaku details after the first request fails", async ({
+      page,
+      msw,
+    }) => {
+      let resultRequests = 0;
+      msw.use(
+        http.get(`${apiUrl}/api/v1/user/sangakus/1/result`, () => {
+          resultRequests += 1;
+          if (resultRequests === 1) {
+            return HttpResponse.json({}, { status: 500 });
+          }
+          return HttpResponse.json(
+            {
+              data: {
+                attributes: {
+                  user_sangaku_save_count: 10,
+                  correct_count: 7,
+                  incorrect_count: 3,
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/user/sangakus");
+      const dedicatedTab = page.getByRole("tab", { name: "奉納した算額" });
+      await waitForHydration(dedicatedTab);
+      await dedicatedTab.click();
+      const dedicatedCard = page.getByRole("heading", { name: "dedicated" });
+      await waitForHydration(dedicatedCard);
+      await dedicatedCard.click();
+      const dialog = page.getByRole("dialog");
+      await expect(
+        dialog.getByText("算額の情報の取得に失敗しました"),
+      ).toBeVisible();
+
+      await dialog.getByRole("button", { name: "再試行" }).click();
+
+      await expect(dialog.getByRole("heading", { name: "test_shrine" })).toBeVisible();
+      await expect(
+        dialog.getByText("算額の情報の取得に失敗しました"),
+      ).not.toBeVisible();
     });
 
     test("should allow me to delete my sangaku", async ({ page }) => {
