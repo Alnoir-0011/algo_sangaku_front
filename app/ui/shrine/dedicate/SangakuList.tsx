@@ -1,17 +1,15 @@
 "use client";
 
-import type {
-  Sangaku,
-  Shrine,
-  UserSangakusResult,
-} from "@/app/lib/definitions";
-import { use, useState } from "react";
+import type { Shrine, UserSangakusResult } from "@/app/lib/definitions";
+import { use } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import ConfirmModal from "./ConfirmModal";
 import { difficultyTranslation } from "../../utility";
+import { fetchReorderDetail } from "@/app/lib/sangaku-detail";
+import { useSelectedSangaku } from "@/app/ui/sangaku/useSelectedSangaku";
 
 interface Props {
   sangakusPromise: Promise<UserSangakusResult>;
@@ -20,15 +18,11 @@ interface Props {
 
 export default function SangakuList({ sangakusPromise, shrine }: Props) {
   const { sangakus, totalPage, message } = use(sangakusPromise);
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
-
-  const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
-  };
-
-  const handleClose = () => {
-    setModalData(null);
-  };
+  const { selected, select, retry, close } = useSelectedSangaku((sangaku) =>
+    sangaku.attributes.kind === "reorder"
+      ? fetchReorderDetail(sangaku.id)
+      : null,
+  );
 
   return (
     <>
@@ -48,7 +42,7 @@ export default function SangakuList({ sangakusPromise, shrine }: Props) {
             <ButtonBase
               key={sangaku.id}
               onClick={() => {
-                handleClick(sangaku);
+                select(sangaku);
               }}
               sx={{
                 clipPath:
@@ -121,8 +115,10 @@ export default function SangakuList({ sangakusPromise, shrine }: Props) {
           </div>
         ))}
         <ConfirmModal
-          data={modalData}
-          handleClose={handleClose}
+          data={selected?.sangaku ?? null}
+          reorderDetail={selected?.detail ?? null}
+          onRetryReorder={retry}
+          handleClose={close}
           shrine={shrine}
         />
       </Grid>

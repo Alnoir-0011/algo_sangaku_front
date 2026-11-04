@@ -1,13 +1,15 @@
 "use client";
 
-import type { Sangaku, UserSangakusResult } from "@/app/lib/definitions";
-import { use, useState } from "react";
+import type { UserSangakusResult } from "@/app/lib/definitions";
+import { use } from "react";
 import Ema from "@/app/ui/Ema";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Modal from "./Modal";
 import { difficultyTranslation } from "../utility";
+import { fetchSangakuModalDetail } from "@/app/lib/sangaku-detail";
+import { useSelectedSangaku } from "./useSelectedSangaku";
 
 interface Props {
   sangakusPromise: Promise<UserSangakusResult>;
@@ -15,15 +17,9 @@ interface Props {
 
 export default function SangakuList({ sangakusPromise }: Props) {
   const { sangakus, totalPage, message } = use(sangakusPromise);
-  const [modalData, setModalData] = useState<Sangaku | null>(null);
-
-  const handleClick = (sangaku: Sangaku) => {
-    setModalData(sangaku);
-  };
-
-  const handleClose = () => {
-    setModalData(null);
-  };
+  const { selected, select, retry, close } = useSelectedSangaku(
+    fetchSangakuModalDetail,
+  );
 
   return (
     <Box>
@@ -53,7 +49,7 @@ export default function SangakuList({ sangakusPromise }: Props) {
             <ButtonBase
               key={sangaku.id}
               onClick={() => {
-                handleClick(sangaku);
+                select(sangaku);
               }}
               sx={{
                 clipPath:
@@ -125,7 +121,12 @@ export default function SangakuList({ sangakusPromise }: Props) {
             </ButtonBase>
           </div>
         ))}
-        <Modal data={modalData} handleClose={handleClose} />
+        <Modal
+          data={selected?.sangaku ?? null}
+          detail={selected?.detail ?? null}
+          onRetry={retry}
+          handleClose={close}
+        />
       </Grid>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Pagination totalPage={totalPage} />
