@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 /**
  * E2E テスト用の `@vis.gl/react-google-maps` モック。
@@ -16,10 +16,23 @@ export function APIProvider({ children }: { children?: ReactNode }) {
 export function Map({
   children,
   style,
-}: { children?: ReactNode; style?: CSSProperties } & Record<string, unknown>) {
+  defaultCenter,
+  defaultZoom,
+}: {
+  children?: ReactNode;
+  style?: CSSProperties;
+  defaultCenter?: { lat: number; lng: number };
+  defaultZoom?: number;
+} & Record<string, unknown>) {
+  // 本物の Map と同じく、defaultCenter と defaultZoom は初回のマウント時の値だけを使う。
+  // 再マウントされたかどうかを、テストから属性で確認できるようにする。
+  const [initial] = useState({ center: defaultCenter, zoom: defaultZoom });
+
   return (
     <div
       data-testid="map-mock"
+      data-default-center={JSON.stringify(initial.center)}
+      data-default-zoom={initial.zoom}
       style={{
         ...style,
         backgroundColor: "#cccccc",
