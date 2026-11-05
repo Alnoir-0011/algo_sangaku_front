@@ -10,45 +10,61 @@ import { activeDistance } from "./Map";
 import ShrineListCard from "./ShrineListCard";
 import { ShrineSearchSkeleton } from "../skeletons";
 
+type SearchState =
+  | { status: "loading" }
+  | { status: "locationError" }
+  | {
+      status: "loaded";
+      location: { lat: number; lng: number };
+      shrines: Shrine[];
+    };
+
 export default function ShrineSearch() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [locationError, setLocationError] = useState(false);
-  const [shrines, setShrines] = useState<Shrine[]>([]);
-  const [location, setLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+  // 読み込み中・位置情報エラー・取得済みは同時に成り立たないため、1 つの state で持つ。
+  // 別々の state（isLoading・locationError・location・shrines）にすると、食い違う
+  // 組み合わせを作れてしまう。
+  const [state, setState] = useState<SearchState>({ status: "loading" });
 
   useEffect(() => {
+    let ignore = false;
+
     (async () => {
-      setIsLoading(true);
       const currentLocation = await getCurrentPosition();
+      if (ignore) return;
       if (!currentLocation) {
-        setLocationError(true);
-        setIsLoading(false);
+        setState({ status: "locationError" });
         return;
       }
-      setLocation(currentLocation);
       const newShrines = await fetchShrinesByLocation(
         currentLocation.lat.toString(),
         currentLocation.lng.toString(),
       );
-      setShrines(newShrines);
-      setIsLoading(false);
+      if (ignore) return;
+      setState({
+        status: "loaded",
+        location: currentLocation,
+        shrines: newShrines,
+      });
     })();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  if (isLoading) {
+  if (state.status === "loading") {
     return <ShrineSearchSkeleton />;
   }
 
-  if (locationError || !location) {
+  if (state.status === "locationError") {
     return (
       <Alert severity="error" sx={{ mt: 2 }}>
         位置情報を取得できませんでした。位置情報の利用を許可してください。
       </Alert>
     );
   }
+
+  const { location, shrines } = state;
 
   const currentShrines = shrines.filter(
     (shrine) =>
