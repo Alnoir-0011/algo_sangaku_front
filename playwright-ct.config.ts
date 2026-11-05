@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/experimental-ct-react";
 import path from "path";
 import dotenv from "dotenv";
+import { reactCompiler } from "./playwright/react-compiler";
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -35,6 +36,7 @@ export default defineConfig({
     ctPort: 3100,
 
     ctViteConfig: {
+      plugins: [reactCompiler()],
       resolve: {
         alias: [
           {

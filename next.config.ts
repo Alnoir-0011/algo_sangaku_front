@@ -66,6 +66,7 @@ const nextConfig: NextConfig = {
   // next dev のたびに AGENTS.md が未追跡ファイルとして生成されるため無効化する。
   // エージェント向けの指示は CLAUDE.md で管理している。
   agentRules: false,
+  reactCompiler: true,
   experimental: {
     testProxy: true,
   },
