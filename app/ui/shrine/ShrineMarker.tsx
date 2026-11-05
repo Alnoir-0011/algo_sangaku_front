@@ -4,7 +4,7 @@ import {
   InfoWindow,
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import type { Shrine } from "../../lib/definitions";
 import NextLink from "@/app/ui/shared/NextLink";
 import { Box, Typography, Button } from "@mui/material";
@@ -21,8 +21,8 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
 
-  const handleMarkerClick = useCallback(() => setIsOpen(true), []);
-  const handleClose = useCallback(() => setIsOpen(false), []);
+  const handleMarkerClick = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
 
   const dist = distance(
     shrine.attributes.latitude,
