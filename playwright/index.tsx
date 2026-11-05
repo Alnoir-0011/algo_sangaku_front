@@ -12,6 +12,9 @@ import {
   fetchUserSangakuRejects,
   fetchUserSangakuResultRejects,
 } from "@/tests/__mocks__/data/sangaku";
+import { runSourceBehavior } from "@/tests/__mocks__/actions/sangaku";
+import { consumeFlashBehavior } from "@/tests/__mocks__/actions/flash";
+import type { Flash } from "@/app/lib/actions/flash";
 
 type HooksConfig = {
   session?: Session | null;
@@ -23,6 +26,13 @@ type HooksConfig = {
   // 先頭から指定回数だけ fetchUserSangaku / fetchUserSangakuResult を reject させる。
   fetchUserSangakuRejectCount?: number;
   fetchUserSangakuResultRejectCount?: number;
+  // runSource の呼び出し順の遅延（ms）、先頭から reject する回数、結果に source を含めるか。
+  runSourceDelaysMs?: number[];
+  runSourceRejectCount?: number;
+  runSourceEchoSource?: boolean;
+  // consumeFlash が呼び出し順に返すフラッシュと、先頭から reject する回数。
+  consumeFlashQueue?: (Flash | null)[];
+  consumeFlashRejectCount?: number;
 };
 
 beforeMount<HooksConfig>(({ App, hooksConfig }) => {
@@ -30,6 +40,11 @@ beforeMount<HooksConfig>(({ App, hooksConfig }) => {
   fetchUserSangakuRejects.count = hooksConfig?.fetchUserSangakuRejectCount ?? 0;
   fetchUserSangakuResultRejects.count =
     hooksConfig?.fetchUserSangakuResultRejectCount ?? 0;
+  runSourceBehavior.delaysMs = [...(hooksConfig?.runSourceDelaysMs ?? [])];
+  runSourceBehavior.rejectCount = hooksConfig?.runSourceRejectCount ?? 0;
+  runSourceBehavior.echoSource = hooksConfig?.runSourceEchoSource ?? false;
+  consumeFlashBehavior.queue = [...(hooksConfig?.consumeFlashQueue ?? [])];
+  consumeFlashBehavior.rejectCount = hooksConfig?.consumeFlashRejectCount ?? 0;
   return Promise.resolve(
     <SessionProvider session={hooksConfig?.session ?? undefined}>
       <AppRouterCacheProvider>

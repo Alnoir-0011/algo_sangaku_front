@@ -10,26 +10,46 @@ interface Props {
 }
 
 export default function SourceResult({ source, fixedInputs }: Props) {
-  const [results, setResults] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // 結果は、どの入力（source・fixedInputs）に対するものかと一緒に持つ。入力が変わると、
+  // 結果は現在の入力のものではなくなるため、実行中として扱える。isLoading を別の state に
+  // すると、effect の中で true に戻す更新が要り、余分な再レンダリングが起きる。
+  const [state, setState] = useState<{
+    source: string;
+    fixedInputs: string[];
+    results: string[];
+  } | null>(null);
 
   useEffect(() => {
+    // 入力が変わった後に、古い入力の実行が遅れて終わっても、結果を上書きしない
+    let ignore = false;
+
     async function getResult() {
-      setIsLoading(true);
+      let results: string[];
       try {
-        const newResult = await runSource(source, fixedInputs);
-        setResults(newResult);
+        results = await runSource(source, fixedInputs);
       } catch (error) {
-        setResults([error instanceof Error ? error.message : "実行できませんでした"]);
-      } finally {
-        setIsLoading(false);
+        results = [
+          error instanceof Error ? error.message : "実行できませんでした",
+        ];
+      }
+      if (!ignore) {
+        setState({ source, fixedInputs, results });
       }
     }
 
     getResult();
+
+    return () => {
+      ignore = true;
+    };
   }, [source, fixedInputs]);
 
-  if (isLoading) {
+  const results =
+    state?.source === source && state.fixedInputs === fixedInputs
+      ? state.results
+      : null;
+
+  if (results === null) {
     return (
       <Box
         sx={{

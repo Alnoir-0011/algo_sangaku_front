@@ -10,35 +10,42 @@ type Props = {
 };
 
 export default function FlashMessageContainer({ refreshKey }: Props) {
-  const [flash, setFlash] = useState<(Flash & { key: string }) | null>(null);
+  // key は、同じ文言が続けて来ても FlashMessagePresentation を作り直して、開閉の state を
+  // 戻すためのもの。
+  const [current, setCurrent] = useState<{ flash: Flash; key: string } | null>(
+    null,
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    consumeFlash()
-      .then((data) => {
-        if (!cancelled && data) {
-          setFlash({ ...data, key: uuid() });
+    let ignore = false;
+
+    (async () => {
+      try {
+        const flash = await consumeFlash();
+        if (!ignore && flash) {
+          setCurrent({ flash, key: uuid() });
         }
-      })
-      .catch((error) => {
-        if (!cancelled) {
+      } catch (error) {
+        if (!ignore) {
           console.error("Error in FlashMessage component:", error);
         }
-      });
+      }
+    })();
+
     return () => {
-      cancelled = true;
+      ignore = true;
     };
   }, [refreshKey]);
 
-  if (!flash) {
+  if (!current) {
     return null;
   }
 
   return (
     <FlashMessagePresentation
-      key={flash.key}
-      type={flash.type}
-      message={flash.message}
+      key={current.key}
+      type={current.flash.type}
+      message={current.flash.message}
     />
   );
 }
