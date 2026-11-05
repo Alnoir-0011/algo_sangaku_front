@@ -1,3 +1,4 @@
+import { waitForHydration } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -87,6 +88,114 @@ test.describe("/shrines (successful load)", () => {
     await page.goto("/shrines?lat=35.6809591&lng=139.7673068");
     const button = page.getByRole("button", { name: "このエリアで探す" });
     await expect(button).toBeVisible({ timeout: 10_000 });
+  });
+});
+
+test.describe("/shrines (map center and zoom)", () => {
+  // 実装の初期値（東京駅）と異なる座標にして、現在地が使われることを区別できるようにする
+  test.use({
+    geolocation: { latitude: 34.6937, longitude: 135.5023 },
+    permissions: ["geolocation"],
+    mswHandlers: [
+      [
+        http.get(`${apiUrl}/api/v1/shrines`, () => {
+          return HttpResponse.json(shrinesListResponse, { status: 200 });
+        }),
+        http.all("*", () => passthrough()),
+      ],
+      { scope: "test" },
+    ],
+  });
+
+  test("should allow me to see the map centered on my current location with zoom 16 when there are no query params", async ({
+    page,
+  }) => {
+    await page.goto("/shrines");
+
+    const map = page.getByTestId("map-mock");
+    await expect(map).toHaveAttribute(
+      "data-default-center",
+      JSON.stringify({ lat: 34.6937, lng: 135.5023 }),
+    );
+    await expect(map).toHaveAttribute("data-default-zoom", "16");
+  });
+
+  test("should allow me to see the map centered on the lat/lng query params with zoom 18", async ({
+    page,
+  }) => {
+    // 現在地と異なる座標にして、現在地ではなくクエリが使われることを確認する
+    await page.goto("/shrines?lat=35.7&lng=139.8");
+
+    const map = page.getByTestId("map-mock");
+    await expect(map).toHaveAttribute(
+      "data-default-center",
+      JSON.stringify({ lat: 35.7, lng: 139.8 }),
+    );
+    await expect(map).toHaveAttribute("data-default-zoom", "18");
+  });
+
+  test("should allow me to see the map centered again when the lat/lng query params change without a page reload", async ({
+    page,
+  }) => {
+    await page.goto("/shrines");
+    const map = page.getByTestId("map-mock");
+    await expect(map).toHaveAttribute("data-default-zoom", "16");
+    await waitForHydration(map);
+
+    // Next のクライアントルーターで、ページを読み込み直さずにクエリだけを変える
+    await page.evaluate(() => {
+      (
+        window as unknown as { next: { router: { push: (url: string) => void } } }
+      ).next.router.push("/shrines?lat=35.7&lng=139.8");
+    });
+
+    await expect(map).toHaveAttribute(
+      "data-default-center",
+      JSON.stringify({ lat: 35.7, lng: 139.8 }),
+    );
+    await expect(map).toHaveAttribute("data-default-zoom", "18");
+  });
+});
+
+test.describe("/shrines (area search in progress)", () => {
+  test.use({
+    geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
+    permissions: ["geolocation"],
+  });
+
+  test("should not allow me to click the area search button while the search is in progress", async ({
+    page,
+    msw,
+  }) => {
+    let releaseShrines!: () => void;
+    const shrinesReleased = new Promise<void>((resolve) => {
+      releaseShrines = resolve;
+    });
+    let shrineRequests = 0;
+    msw.use(
+      http.get(`${apiUrl}/api/v1/shrines`, async () => {
+        shrineRequests += 1;
+        await shrinesReleased;
+        return HttpResponse.json(shrinesListResponse, { status: 200 });
+      }),
+      http.all("*", () => passthrough()),
+    );
+    await page.goto("/shrines");
+    const button = page.getByRole("button", { name: "このエリアで探す" });
+    await waitForHydration(button);
+
+    try {
+      await button.click();
+
+      await expect(button).toBeDisabled();
+      // ボタンは押した直後に無効になるが、リクエストが API に届くまでには少し遅れる
+      await expect.poll(() => shrineRequests).toBe(1);
+    } finally {
+      releaseShrines();
+    }
+
+    await expect(button).toBeEnabled();
+    await expect(page.getByTestId("advanced-marker-mock")).toHaveCount(1);
   });
 });
 

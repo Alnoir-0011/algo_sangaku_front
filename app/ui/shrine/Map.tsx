@@ -1,7 +1,7 @@
 "use client";
 
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Box, Button } from "@mui/material";
 import type { Shrine } from "@/app/lib/definitions";
 import ShrineMarker from "./ShrineMarker";
@@ -31,30 +31,37 @@ export default function MapProvider({ mapApiKey }: Props) {
 }
 
 function MapComponent() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [center, setCenter] = useState(initialLatLng);
+  // 現在地（ブラウザの位置情報）。決まるまでは null で、地図の代わりにスケルトンを出す
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [completeLoadEvent, setCompleteLoadEvent] = useState(false);
   const [shrines, setShrines] = useState<Shrine[]>([]);
   const [circle, setCircle] = useState<locationCircle | null>(null);
-  const [zoom, setZoom] = useState(16);
-  const [location, setLocation] = useState(initialLatLng);
+  const [isSearching, startSearching] = useTransition();
   const searchParams = useSearchParams();
 
   const map = useMap();
 
-  useLayoutEffect(() => {
+  const lat = Number(searchParams.get("lat"));
+  const lng = Number(searchParams.get("lng"));
+  const hasQueryCenter = Boolean(lat && lng);
+  const zoom = hasQueryCenter ? 18 : 16;
+
+  useEffect(() => {
+    let ignore = false;
+
     (async () => {
-      setIsLoading(true);
-      const lat = Number(searchParams.get("lat"));
-      const lng = Number(searchParams.get("lng"));
-      if (lat && lng) setZoom(18);
       const newLocation = (await getCurrentPosition()) ?? initialLatLng;
-      const newCenter = lat && lng ? { lat, lng } : newLocation;
-      setLocation(newLocation);
-      setCenter(newCenter);
-      setIsLoading(false);
+      if (!ignore) {
+        setLocation(newLocation);
+      }
     })();
-  }, [searchParams]);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const loadShrines = async () => {
     const bounds = map?.getBounds();
@@ -104,29 +111,47 @@ function MapComponent() {
     /* v8 ignore stop */
   };
 
-  if (isLoading) {
+  // Server Function（fetchShrines）は Transition 内で呼ぶ（React のドキュメントの注意事項）。
+  // await の後の state 更新は Transition にならないが、検索結果の反映なので緊急の更新でよい。
+  // Transition 内の例外は Error Boundary に伝わり、ページ全体がエラー画面になる。検索の失敗で
+  // 地図を壊さないよう、ここで握る（以前は未処理の reject でログに出るだけだった）。
+  const searchShrines = () => {
+    startSearching(async () => {
+      try {
+        await loadShrines();
+      } catch (error) {
+        console.error("[Map] loadShrines error:", error);
+      }
+    });
+  };
+
+  if (location === null) {
     return <MapSkeleton />;
   }
+
+  const center = hasQueryCenter ? { lat, lng } : location;
 
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "end", mb: "0.5rem" }}>
         <Button
           variant="contained"
-          onClick={() => {
-            loadShrines();
-          }}
+          disabled={isSearching}
+          onClick={searchShrines}
         >
           このエリアで探す
         </Button>
       </Box>
+      {/* defaultCenter と defaultZoom は初回のマウント時にしか効かないため、
+          lat/lng が変わったら key で作り直して、中心を合わせ直す */}
       <Map
+        key={`${center.lat},${center.lng},${zoom}`}
         defaultCenter={center}
         defaultZoom={zoom}
         onTilesLoaded={() => {
           /* v8 ignore next */
           if (!completeLoadEvent) {
-            loadShrines();
+            searchShrines();
             setCompleteLoadEvent(true);
           }
         }}
