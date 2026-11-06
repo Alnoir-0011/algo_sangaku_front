@@ -32,7 +32,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { PuzzleBlock } from "@/app/lib/definitions";
 import { createAnswer } from "@/app/lib/actions/answer";
@@ -419,10 +419,7 @@ export default function ReorderPuzzle({
   onSubmit,
   locked = false,
 }: Props) {
-  const blockById = useMemo(
-    () => new Map(blocks.map((block) => [block.id, block])),
-    [blocks],
-  );
+  const blockById = new Map(blocks.map((block) => [block.id, block]));
 
   // 初期値の計算にのみシャッフルを使う（useState の初期化関数は初回レンダーの
   // 1回だけ評価されるため、再レンダーのたびに並びが変わることはない）。
