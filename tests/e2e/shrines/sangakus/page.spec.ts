@@ -1,4 +1,5 @@
 import { setSession } from "../../../__helpers__/signin";
+import { waitForHydration } from "../../../__helpers__/hydration";
 import {
   test,
   expect,
@@ -415,6 +416,32 @@ test.describe("/shrines/[id]/sangakus", () => {
       const savedButton = page.getByRole("button", { name: "保存済み" });
       await expect(savedButton).toBeVisible();
       await expect(savedButton).toBeDisabled();
+    });
+
+    test("should not allow me to copy a sangaku twice when I double-click the copy button", async ({ page, msw }) => {
+      const responseDelayMs = 1500;
+      let saveCount = 0;
+      msw.use(
+        http.post(`${apiUrl}/api/v1/sangakus/1/save`, async () => {
+          saveCount += 1;
+          await new Promise((resolve) => setTimeout(resolve, responseDelayMs));
+          return HttpResponse.json({ data: [] }, { status: 200 });
+        }),
+      );
+      await setSession(page);
+      await page.goto("/shrines/1/sangakus");
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+      const button = page.getByRole("button", { name: "算額を写す" });
+      await waitForHydration(button);
+
+      await button.dblclick();
+
+      const flash = page.getByTestId("flash-message");
+      await expect(flash).toBeVisible({ timeout: 10_000 });
+      await expect(flash).toContainText("算額の写しを作成しました");
+      // 2回目の送信は、1回目の応答のあとに届く。「送られないこと」は待たないと確認できない
+      await page.waitForTimeout(responseDelayMs + 500);
+      expect(saveCount).toBe(1);
     });
 
     test("should allow me to see an already-saved sangaku as disabled with a 保存済み label on initial load", async ({

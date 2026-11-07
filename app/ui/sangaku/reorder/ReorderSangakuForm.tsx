@@ -103,7 +103,7 @@ export default function ReorderSangakuForm({
   const [blocks, setBlocks] = useState(initialBlocks);
   const [checkPageOpen, setCheckPageOpen] = useState(false);
 
-  const [state, formAction] = useActionState(
+  const [state, formAction, isPending] = useActionState(
     (prevState: State, formData: FormData) =>
       action(
         prevState,
@@ -252,6 +252,7 @@ export default function ReorderSangakuForm({
         onClose={() => setCheckPageOpen(false)}
         blocks={blocks}
         formId={FORM_ID}
+        isPending={isPending}
       />
     </form>
   );

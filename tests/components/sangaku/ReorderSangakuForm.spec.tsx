@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import ReorderSangakuForm from "@/app/ui/sangaku/reorder/ReorderSangakuForm";
+import { ReorderSangakuFormWithHeldAction } from "./ReorderSangakuFormStories";
 
 const initialState = {
   values: { title: "test_title", description: "test_description" },
@@ -342,5 +343,38 @@ test.describe("ReorderSangakuForm", () => {
     // 正しく機能していない場合、action が呼び出されず actionCalled が
     // false のままとなり失敗する
     await expect.poll(() => actionCalled).toBe(true);
+  });
+
+  test("should not allow me to submit the form twice when I double-click the save button while the action is running", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const component = await mount(
+      <ReorderSangakuFormWithHeldAction
+        initialState={initialState}
+        initialDescription="test_description"
+        initialDifficulty="normal"
+        initialBlocks={[
+          { content: "puts 1", isDummy: false },
+          { content: "puts 2", isDummy: false },
+        ]}
+      />,
+      { hooksConfig: { actionHold: true } },
+    );
+    await component.getByRole("button", { name: "確認画面へ" }).click();
+    const saveButton = page.getByRole("button", { name: "保存する" });
+
+    // Act
+    await saveButton.dblclick();
+
+    // Assert
+    await expect(saveButton).toBeDisabled();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(saveButton).toBeHidden();
+    const actionCallCount = await page.evaluate(
+      () => window.__actionCalls?.formAction ?? 0,
+    );
+    expect(actionCallCount).toBe(1);
   });
 });

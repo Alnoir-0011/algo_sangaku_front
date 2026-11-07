@@ -110,6 +110,50 @@ test.describe("/sangakus/create", () => {
       await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
+    test("should not allow me to create a sangaku twice when I double-click the save button", async ({ page, msw }) => {
+      const responseDelayMs = 1500;
+      let createCount = 0;
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/code_sangakus`, async () => {
+          createCount += 1;
+          await new Promise((resolve) => setTimeout(resolve, responseDelayMs));
+          return HttpResponse.json(
+            {
+              data: {
+                id: "70",
+                type: "sangaku",
+                attributes: {
+                  title: "test_title",
+                  description: "test_description",
+                  source: 'input = gets.chomp\nputs "test #{input}"',
+                  difficulty: "normal",
+                  inputs: [{ id: 15, content: "example" }],
+                },
+                relationships: { user: { data: { id: "70", type: "user" } } },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      await setSession(page);
+      await page.goto("/sangakus/create?kind=code");
+      await waitForHydration(page.getByLabel("タイトル"));
+      await page.getByLabel("タイトル").fill("test_title");
+      await page.getByLabel("問題文").fill("test_description");
+      await page.getByRole("textbox", { name: "fixedInput-1" }).fill("example");
+      await page.getByRole("button", { name: "確認画面へ" }).click();
+      await expect(page.getByTestId("check-page-modal")).toBeVisible();
+
+      await page.getByRole("button", { name: "保存する" }).dblclick();
+
+      await expect(page).toHaveURL("/user/sangakus");
+      // 2回目の送信は、1回目の応答のあとに届く。「送られないこと」は待たないと確認できない
+      await page.waitForTimeout(responseDelayMs + 500);
+      expect(createCount).toBe(1);
+    });
+
     test("should not allow me to click the generate button when description is empty", async ({
       page,
     }) => {

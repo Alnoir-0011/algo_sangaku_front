@@ -12,6 +12,7 @@ interface Props {
   onClose: () => void;
   blocks: CodeBlockDraft[];
   formId: string;
+  isPending: boolean;
 }
 
 const DUMMY_LABEL = "ダミー";
@@ -47,6 +48,7 @@ export default function ReorderCheckPage({
   onClose,
   blocks,
   formId,
+  isPending,
 }: Props) {
   const labels = buildBlockLabels(blocks);
 
@@ -85,7 +87,12 @@ export default function ReorderCheckPage({
           <Button variant="contained" onClick={onClose}>
             作成画面に戻る
           </Button>
-          <Button variant="contained" type="submit" form={formId}>
+          <Button
+            variant="contained"
+            type="submit"
+            form={formId}
+            disabled={isPending}
+          >
             保存する
           </Button>
         </Box>
