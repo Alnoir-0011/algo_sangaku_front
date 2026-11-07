@@ -37,4 +37,47 @@ test.describe("SangakuSaveButton", () => {
     await expect(savedButton).toBeVisible();
     await expect(savedButton).toBeDisabled();
   });
+
+  test("should not allow me to save twice when I double-click the button while saving", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<SangakuSaveButton id="1" saved={false} />, {
+      hooksConfig: { actionHold: true },
+    });
+    const button = page.getByRole("button", { name: "算額を写す" });
+
+    // Act
+    await button.dblclick();
+
+    // Assert
+    await expect(button).toBeDisabled();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(page.getByRole("button", { name: "保存済み" })).toBeVisible();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.createSangakuSave ?? 0,
+    );
+    expect(calls).toBe(1);
+  });
+
+  test("should allow me to keep the page and click the button again when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+    await mount(<SangakuSaveButton id="1" saved={false} />, {
+      hooksConfig: { actionRejectCount: 1 },
+    });
+    const button = page.getByRole("button", { name: "算額を写す" });
+
+    // Act
+    await button.click();
+
+    // Assert
+    await expect(button).toBeEnabled();
+    expect(pageErrors).toEqual([]);
+  });
 });

@@ -14,6 +14,7 @@ import {
 } from "@/tests/__mocks__/data/sangaku";
 import { runSourceBehavior } from "@/tests/__mocks__/actions/sangaku";
 import { consumeFlashBehavior } from "@/tests/__mocks__/actions/flash";
+import { actionBehavior } from "@/tests/__mocks__/action-behavior";
 import type { Flash } from "@/app/lib/actions/flash";
 
 type HooksConfig = {
@@ -33,6 +34,11 @@ type HooksConfig = {
   // consumeFlash が呼び出し順に返すフラッシュと、先頭から reject する回数。
   consumeFlashQueue?: (Flash | null)[];
   consumeFlashRejectCount?: number;
+  // true のとき、Server Action のモック（createSangakuSave・dedicateSangaku・createAnswer）が、
+  // window.__releaseActions() が呼ばれるまで応答を保留する。
+  actionHold?: boolean;
+  // 先頭から指定回数だけ、同じ Server Action のモックを reject させる（通信失敗の再現）。
+  actionRejectCount?: number;
 };
 
 beforeMount<HooksConfig>(({ App, hooksConfig }) => {
@@ -45,6 +51,8 @@ beforeMount<HooksConfig>(({ App, hooksConfig }) => {
   runSourceBehavior.echoSource = hooksConfig?.runSourceEchoSource ?? false;
   consumeFlashBehavior.queue = [...(hooksConfig?.consumeFlashQueue ?? [])];
   consumeFlashBehavior.rejectCount = hooksConfig?.consumeFlashRejectCount ?? 0;
+  actionBehavior.hold = hooksConfig?.actionHold ?? false;
+  actionBehavior.rejectCount = hooksConfig?.actionRejectCount ?? 0;
   return Promise.resolve(
     <SessionProvider session={hooksConfig?.session ?? undefined}>
       <AppRouterCacheProvider>

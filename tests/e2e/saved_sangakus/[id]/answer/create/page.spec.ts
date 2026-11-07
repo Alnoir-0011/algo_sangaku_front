@@ -1,5 +1,5 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { getMonacoEditorValue, setMonacoEditorValue, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
+import { getMonacoEditorValue, setMonacoEditorValue, waitForHydration, waitForMonacoEditor } from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -243,6 +243,51 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       const output = page.getByTestId("result-1");
       await expect(output).toBeVisible();
       await expect(output).toContainText("test");
+    });
+
+    test("should not allow me to submit an answer twice when I double-click the end-answer button", async ({ page, msw }) => {
+      const responseDelayMs = 1500;
+      let answerCount = 0;
+      msw.use(
+        http.post(`${apiUrl}/api/v1/user/saved_sangakus/1/answer`, async () => {
+          answerCount += 1;
+          await new Promise((resolve) => setTimeout(resolve, responseDelayMs));
+          return HttpResponse.json(
+            {
+              data: {
+                id: "1",
+                type: "answer",
+                attributes: {
+                  source: "input = gets.chomp\nputs input",
+                  status: "correct",
+                },
+                relationships: {
+                  user_sangaku_save: { data: { id: "1", type: "user_sangaku_save" } },
+                  answer_result: { data: [{ id: "1", type: "answer_result" }] },
+                },
+              },
+            },
+            { status: 200 },
+          );
+        }),
+      );
+      await setSession(page);
+      await page.goto("/saved_sangakus/1/answer/create");
+      await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
+      await waitForMonacoEditor(page);
+      await setMonacoEditorValue(page, "input = gets.chomp\n\nputs input");
+      const button = page.getByRole("button", { name: "解答を終了する" });
+      await waitForHydration(button);
+      page.on("dialog", async (dialog) => {
+        await dialog.accept();
+      });
+
+      await button.dblclick();
+
+      await expect(page).toHaveURL("/saved_sangakus/1/answer");
+      // 2回目の送信は、1回目の応答のあとに届く。「送られないこと」は待たないと確認できない
+      await page.waitForTimeout(responseDelayMs + 500);
+      expect(answerCount).toBe(1);
     });
 
     test("should not allow me to end answer when confirm is dismissed", async ({

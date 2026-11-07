@@ -20,7 +20,10 @@ const initialState: State = { errors: {} };
 
 export default function Form({ sangaku }: Props) {
   const [source, setSource] = useState(initialSource);
-  const [state, formAction] = useActionState(postAnswerAction, initialState);
+  const [state, formAction, isPending] = useActionState(
+    postAnswerAction,
+    initialState,
+  );
 
   const handleEditorChange = (value: string | undefined) => {
     if (typeof value === "string") {
@@ -85,7 +88,7 @@ export default function Form({ sangaku }: Props) {
           {/* input output */}
           <SourceExecution source={source} />
           <Box sx={{ display: "flex", justifyContent: "end" }}>
-            <Button variant="contained" type="submit">
+            <Button variant="contained" type="submit" disabled={isPending}>
               解答を終了する
             </Button>
           </Box>

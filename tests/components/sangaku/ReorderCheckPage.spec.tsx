@@ -19,7 +19,7 @@ test.describe("ReorderCheckPage", () => {
 
     // Act
     await mount(
-      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" />,
+      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={false} />,
     );
 
     // Assert
@@ -41,7 +41,7 @@ test.describe("ReorderCheckPage", () => {
 
     // Act
     await mount(
-      <ReorderCheckPage open={false} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" />,
+      <ReorderCheckPage open={false} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={false} />,
     );
 
     // Assert
@@ -64,7 +64,7 @@ test.describe("ReorderCheckPage", () => {
 
     // Act
     await mount(
-      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" />,
+      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={false} />,
     );
 
     // Assert
@@ -92,7 +92,7 @@ test.describe("ReorderCheckPage", () => {
 
     // Act
     await mount(
-      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" />,
+      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={false} />,
     );
 
     // Assert
@@ -119,7 +119,7 @@ test.describe("ReorderCheckPage", () => {
 
     // Act
     await mount(
-      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" />,
+      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={false} />,
     );
 
     // Assert
@@ -152,6 +152,7 @@ test.describe("ReorderCheckPage", () => {
         }}
         blocks={blocks}
         formId="reorder_sangaku_form"
+        isPending={false}
       />,
     );
     // MUI Modal は Portal 描画のため page.getByRole を使う（上記コメント参照）
@@ -176,6 +177,7 @@ test.describe("ReorderCheckPage", () => {
         onClose={() => {}}
         blocks={blocks}
         formId="reorder_sangaku_form"
+        isPending={false}
       />,
     );
 
@@ -184,5 +186,21 @@ test.describe("ReorderCheckPage", () => {
     // 設定されず失敗する
     const saveButton = page.getByRole("button", { name: "保存する" });
     await expect(saveButton).toHaveAttribute("form", "reorder_sangaku_form");
+  });
+
+  test("should not allow me to click the save button when isPending is true", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const blocks: CodeBlockDraft[] = [{ content: "puts 1", isDummy: false }];
+
+    // Act
+    await mount(
+      <ReorderCheckPage open={true} onClose={() => {}} blocks={blocks} formId="reorder_sangaku_form" isPending={true} />,
+    );
+
+    // Assert
+    await expect(page.getByRole("button", { name: "保存する" })).toBeDisabled();
   });
 });

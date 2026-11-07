@@ -1,7 +1,8 @@
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState, useTransition } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
+import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 import type { ReorderDetail } from "@/app/lib/sangaku-detail";
 import DetailFetchError from "@/app/ui/sangaku/DetailFetchError";
 import {
@@ -117,6 +118,13 @@ export default function ConfirmModal({
   // 閉じて別の算額を開いても「奉納しました」の表示が残ってしまう。
   const [dedicatedId, setDedicatedId] = useState<string | null>(null);
   const isDedicated = data !== null && dedicatedId === data.id;
+  const [isPending, startTransition] = useTransition();
+  // 送信中に閉じると、キャンセルしたように見えたまま奉納が完了してしまう。
+  const closeUnlessPending = () => {
+    if (!isPending) {
+      handleClose();
+    }
+  };
   const { id: shrine_id } = useParams<{ id: string }>();
 
   useEffect(() => {
@@ -132,7 +140,7 @@ export default function ConfirmModal({
   }, []);
 
   return (
-    <Modal open={!!data} onClose={handleClose}>
+    <Modal open={!!data} onClose={closeUnlessPending}>
       <Box
         sx={{
           ...style,
@@ -151,13 +159,20 @@ export default function ConfirmModal({
               height: "100%",
               minHeight: 0,
             }}
-            onSubmit={async (e) => {
+            onSubmit={(e) => {
               e.preventDefault();
-              if (
-                await dedicateSangaku(shrine_id, data!.id, currentPosition!)
-              ) {
-                setDedicatedId(data!.id);
+              if (isPending) {
+                return;
               }
+              startTransition(() =>
+                keepScreenOnFailure(async () => {
+                  if (
+                    await dedicateSangaku(shrine_id, data!.id, currentPosition!)
+                  ) {
+                    setDedicatedId(data!.id);
+                  }
+                }),
+              );
             }}
           >
             <Box
@@ -364,10 +379,14 @@ export default function ConfirmModal({
                 flexShrink: 0,
               }}
             >
-              <Button variant="contained" onClick={handleClose}>
+              <Button
+                variant="contained"
+                onClick={closeUnlessPending}
+                disabled={isPending}
+              >
                 戻る
               </Button>
-              <Button variant="contained" type="submit">
+              <Button variant="contained" type="submit" disabled={isPending}>
                 この算額を奉納する
               </Button>
             </Box>

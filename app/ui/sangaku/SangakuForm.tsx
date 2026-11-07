@@ -65,7 +65,7 @@ export default function SangakuForm({
     string | undefined
   >(undefined);
 
-  const [state, formAction] = useActionState(
+  const [state, formAction, isPending] = useActionState(
     (prevState: State, formData: FormData) =>
       action(prevState, formData, source, difficulty, fixedInputs, description),
     initialState,
@@ -283,6 +283,7 @@ export default function SangakuForm({
         onClose={() => setModalOpen(false)}
         source={source}
         fixedInputs={fixedInputs}
+        isPending={isPending}
       />
     </form>
   );

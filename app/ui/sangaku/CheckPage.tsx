@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   source: string | undefined;
   fixedInputs: string[];
+  isPending: boolean;
 }
 
 const style: SxProps = {
@@ -36,6 +37,7 @@ export default function CheckPage({
   onClose,
   source,
   fixedInputs,
+  isPending,
 }: Props) {
   return (
     <Modal disableEnforceFocus open={open}>
@@ -66,7 +68,12 @@ export default function CheckPage({
           <Button variant="contained" onClick={onClose}>
             作成画面に戻る
           </Button>
-          <Button variant="contained" type="submit" form="sangaku_form">
+          <Button
+            variant="contained"
+            type="submit"
+            form="sangaku_form"
+            disabled={isPending}
+          >
             保存する
           </Button>
         </Box>
