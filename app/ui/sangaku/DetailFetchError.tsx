@@ -1,5 +1,5 @@
 import { Box, Button, Typography, type SxProps } from "@mui/material";
-import { SessionExpiredError } from "@/app/lib/sangaku-detail";
+import { SessionExpiredError } from "@/app/lib/sangaku/sangaku-detail";
 
 interface Props {
   error: unknown;

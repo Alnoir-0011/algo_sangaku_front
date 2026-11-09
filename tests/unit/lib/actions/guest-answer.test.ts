@@ -18,7 +18,7 @@ vi.mock("next/navigation", () => ({
   redirect: redirectMock,
 }));
 
-import { submitGuestReorderAnswer } from "@/app/lib/actions/guest_answer";
+import { submitGuestReorderAnswer } from "@/app/lib/actions/guest-answer";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status });

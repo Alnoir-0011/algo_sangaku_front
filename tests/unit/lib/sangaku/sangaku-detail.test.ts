@@ -20,7 +20,7 @@ import {
   fetchReorderDetail,
   fetchSangakuModalDetail,
   SessionExpiredError,
-} from "@/app/lib/sangaku-detail";
+} from "@/app/lib/sangaku/sangaku-detail";
 
 const buildSangaku = (shrineId: string | null): Sangaku => ({
   id: "1",
