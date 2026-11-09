@@ -1,3 +1,5 @@
+import { simulateAction } from "../action-behavior";
+
 // createAnswer の呼び出し引数を記録するための型。
 // ReorderPuzzle.spec.tsx はこの記録を page.evaluate 経由で読み取り、
 // 「解答を終了する」ボタンから block_ids がどう渡されたかを検証する。
@@ -28,5 +30,6 @@ export const createAnswer = async (
 ): Promise<State> => {
   window.__createAnswerCalls = window.__createAnswerCalls ?? [];
   window.__createAnswerCalls.push({ sangakuId, payload });
+  await simulateAction("createAnswer");
   return {};
 };

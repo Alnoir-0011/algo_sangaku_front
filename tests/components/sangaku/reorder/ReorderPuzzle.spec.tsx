@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Locator, Page } from "@playwright/test";
 import { test, expect } from "@/tests/fixtures.ct";
 import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
+import { ReorderPuzzleWithHeldSubmit } from "./ReorderPuzzleStories";
 
 // WebKit では Locator.dragTo(target) がドロップ時に target ロケーターを
 // 再評価するため、ドラッグ中の @dnd-kit のレイアウトアニメーションで
@@ -957,6 +958,150 @@ test.describe("ReorderPuzzle", () => {
       // Assert
       await expect(answerArea.getByText("puts 2")).toBeVisible();
       await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
+    });
+  });
+
+  test.describe("when I double-click the end-answer button while the answer is being sent", () => {
+    test("should not allow me to send the answer twice when createAnswer is slow", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      page.on("dialog", (dialog) => dialog.accept());
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionHold: true } },
+      );
+      await component
+        .getByTestId("unused-blocks-area")
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+      const submitButton = component.getByRole("button", {
+        name: "解答を終了する",
+      });
+
+      // Act
+      await submitButton.dblclick();
+
+      // Assert
+      await expect(submitButton).toBeDisabled();
+      await page.evaluate(() => window.__releaseActions?.());
+      await expect(submitButton).toBeEnabled();
+      const callCount = await page.evaluate(
+        () => window.__createAnswerCalls?.length ?? 0,
+      );
+      expect(callCount).toBe(1);
+    });
+
+    test("should not allow me to call onSubmit twice when onSubmit is slow", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mount(
+        <ReorderPuzzleWithHeldSubmit
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionHold: true } },
+      );
+      await component
+        .getByTestId("unused-blocks-area")
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+      const submitButton = component.getByRole("button", {
+        name: "解答を終了する",
+      });
+
+      // Act
+      await submitButton.dblclick();
+
+      // Assert
+      await expect(submitButton).toBeDisabled();
+      await page.evaluate(() => window.__releaseActions?.());
+      await expect(submitButton).toBeEnabled();
+      const submitCount = await page.evaluate(
+        () => window.__actionCalls?.onSubmit ?? 0,
+      );
+      expect(submitCount).toBe(1);
+    });
+
+    test("should not allow me to move blocks while the answer is being sent", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      page.on("dialog", (dialog) => dialog.accept());
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionHold: true } },
+      );
+      const unusedArea = component.getByTestId("unused-blocks-area");
+      await unusedArea
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+      const submitButton = component.getByRole("button", {
+        name: "解答を終了する",
+      });
+
+      // Act
+      await submitButton.click();
+
+      // Assert
+      await expect(submitButton).toBeDisabled();
+      await expect(
+        unusedArea.getByRole("button", { name: "解答エリアへ移動" }).first(),
+      ).toBeDisabled();
+      await page.evaluate(() => window.__releaseActions?.());
+    });
+
+    test("should allow me to keep the page and send the answer again when the request fails", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const pageErrors: Error[] = [];
+      page.on("pageerror", (error) => pageErrors.push(error));
+      page.on("dialog", (dialog) => dialog.accept());
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionRejectCount: 1 } },
+      );
+      await component
+        .getByTestId("unused-blocks-area")
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+      const submitButton = component.getByRole("button", {
+        name: "解答を終了する",
+      });
+
+      // Act
+      await submitButton.click();
+
+      // Assert
+      await expect(submitButton).toBeEnabled();
+      expect(pageErrors).toEqual([]);
     });
   });
 });

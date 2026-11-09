@@ -32,10 +32,11 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useTransition } from "react";
 
 import { PuzzleBlock } from "@/app/lib/definitions";
 import { createAnswer } from "@/app/lib/actions/answer";
+import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
 // unused-blocks-area / answer-blocks-area の droppable id。
@@ -427,6 +428,9 @@ export default function ReorderPuzzle({
     shuffle(blocks.map((block) => block.id)),
   );
   const [answerBlockIds, setAnswerBlockIds] = useState<number[]>([]);
+  const [isSubmitting, startSubmitting] = useTransition();
+  // 送信中に並べ替えると、送信済みの解答と画面の並びがずれる。
+  const isLocked = locked || isSubmitting;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -493,7 +497,7 @@ export default function ReorderPuzzle({
   // over がコンテナ自体の余白を指している場合（isContainerId が true）は
   // insertBlockIdBefore が targetId を見つけられず末尾へフォールバックする。
   function handleDragOver(event: DragOverEvent) {
-    if (locked) return;
+    if (isLocked) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -528,7 +532,7 @@ export default function ReorderPuzzle({
   // 結果を委ねることになるが、これは偶然の安全性に依存する脆い実装だったため、
   // 意図を明示する形に変更する。
   function handleDragEnd(event: DragEndEvent) {
-    if (locked) return;
+    if (isLocked) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -554,9 +558,16 @@ export default function ReorderPuzzle({
     }
   }
 
-  async function submitAnswer() {
+  function submitAnswer() {
+    if (isSubmitting) {
+      return;
+    }
     if (onSubmit) {
-      await onSubmit(answerBlockIds);
+      startSubmitting(() =>
+        keepScreenOnFailure(async () => {
+          await onSubmit(answerBlockIds);
+        }),
+      );
       return;
     }
     if (window.confirm("解答を終了しますか？")) {
@@ -567,7 +578,11 @@ export default function ReorderPuzzle({
       // setFlash・redirect で完結する。将来 block_ids 用のフィールド
       // エラーを State に追加する場合は、ここでも戻り値を受け取り
       // useActionState 等で表示する対応が必要になる。
-      await createAnswer(sangakuId, { block_ids: answerBlockIds });
+      startSubmitting(() =>
+        keepScreenOnFailure(async () => {
+          await createAnswer(sangakuId, { block_ids: answerBlockIds });
+        }),
+      );
     }
   }
 
@@ -605,18 +620,18 @@ export default function ReorderPuzzle({
             onMoveUp={moveUp}
             onMoveDown={moveDown}
             onReturnToUnused={returnToUnusedArea}
-            locked={locked}
+            locked={isLocked}
           />
           <UnusedBlockArea
             blockIds={unusedBlockIds}
             blockById={blockById}
             onMoveToAnswer={moveToAnswerArea}
-            locked={locked}
+            locked={isLocked}
           />
           <Box sx={{ display: "flex", justifyContent: "end" }}>
             <Button
               variant="contained"
-              disabled={locked || answerBlockIds.length === 0}
+              disabled={isLocked || answerBlockIds.length === 0}
               onClick={submitAnswer}
             >
               解答を終了する

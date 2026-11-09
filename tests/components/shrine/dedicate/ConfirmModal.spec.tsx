@@ -601,3 +601,110 @@ test.describe("when the location permission is denied", () => {
     expect(pageErrors).toEqual([]);
   });
 });
+
+test.describe("when I submit the dedication", () => {
+  test.use({
+    geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
+    permissions: ["geolocation"],
+  });
+
+  test("should not allow me to dedicate twice when I double-click the dedicate button while dedicating", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+      { hooksConfig: { actionHold: true } },
+    );
+    const submitButton = page.getByRole("button", {
+      name: "この算額を奉納する",
+    });
+
+    // Act
+    await submitButton.dblclick();
+
+    // Assert
+    await expect(submitButton).toBeDisabled();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(submitButton).toBeHidden();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.dedicateSangaku ?? 0,
+    );
+    expect(calls).toBe(1);
+  });
+
+  test("should not allow me to dedicate twice when the form is submitted again while dedicating", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+      { hooksConfig: { actionHold: true } },
+    );
+    const submitButton = page.getByRole("button", {
+      name: "この算額を奉納する",
+    });
+    await submitButton.click();
+    await expect(submitButton).toBeDisabled();
+
+    // Act
+    // disabled のボタンを経由せずに、フォームを直接送信する
+    await page.evaluate(() => document.querySelector("form")?.requestSubmit());
+
+    // Assert
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(submitButton).toBeHidden();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.dedicateSangaku ?? 0,
+    );
+    expect(calls).toBe(1);
+  });
+
+  test("should not allow me to close the modal when I click the back button while dedicating", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+      { hooksConfig: { actionHold: true } },
+    );
+    const submitButton = page.getByRole("button", {
+      name: "この算額を奉納する",
+    });
+    await submitButton.click();
+    await expect(submitButton).toBeDisabled();
+
+    // Assert
+    await expect(page.getByRole("button", { name: "戻る" })).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(submitButton).toBeVisible();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(submitButton).toBeHidden();
+  });
+
+  test("should allow me to keep the page and submit again when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+      { hooksConfig: { actionRejectCount: 1 } },
+    );
+    const submitButton = page.getByRole("button", {
+      name: "この算額を奉納する",
+    });
+
+    // Act
+    await submitButton.click();
+
+    // Assert
+    await expect(submitButton).toBeEnabled();
+    expect(pageErrors).toEqual([]);
+  });
+});
