@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { distance } from "@/app/lib/distance";
+import { distance } from "@/app/lib/shrine/distance";
 
 describe("distance", () => {
   test("should return 0 when both positions are identical", () => {

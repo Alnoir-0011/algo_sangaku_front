@@ -9,7 +9,7 @@ import type { Shrine } from "../../lib/definitions";
 import NextLink from "@/app/ui/shared/NextLink";
 import { Box, Typography, Button } from "@mui/material";
 import { activeDistance } from "./Map";
-import { distance } from "@/app/lib/distance";
+import { distance } from "@/app/lib/shrine/distance";
 
 interface Props {
   shrine: Shrine;

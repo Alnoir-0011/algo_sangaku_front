@@ -1,5 +1,5 @@
 import { fetchUserSangaku, fetchGenerateSourceUsage } from "@/app/lib/data/sangaku";
-import { isDedicatedSangaku } from "@/app/lib/is-dedicated-sangaku";
+import { isDedicatedSangaku } from "@/app/lib/sangaku/is-dedicated-sangaku";
 import { notFound } from "next/navigation";
 import Form from "@/app/ui/sangaku/EditForm";
 import EditReorderForm from "@/app/ui/sangaku/reorder/EditReorderForm";

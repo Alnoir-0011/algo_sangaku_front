@@ -8,7 +8,7 @@ import ShrineMarker from "./ShrineMarker";
 import { fetchShrines } from "../../lib/data/shrine";
 import { MapSkeleton } from "../skeletons";
 import { useSearchParams } from "next/navigation";
-import { getCurrentPosition } from "@/app/lib/geolocation";
+import { getCurrentPosition } from "@/app/lib/shrine/geolocation";
 
 export const activeDistance = 0.1;
 const initialLatLng = { lat: 35.6809591, lng: 139.7673068 }; // 東京駅

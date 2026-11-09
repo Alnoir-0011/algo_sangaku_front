@@ -2,7 +2,7 @@
 
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
-import { validateBlockIds } from "@/app/lib/validate-answer-payload";
+import { validateBlockIds } from "@/app/lib/answer/validate-answer-payload";
 
 const apiUrl = process.env.API_URL!;
 

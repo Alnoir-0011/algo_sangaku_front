@@ -12,7 +12,7 @@ import { isValidId } from "@/app/lib/validate-id";
 import {
   validateAnswerPayload,
   type AnswerPayload,
-} from "@/app/lib/validate-answer-payload";
+} from "@/app/lib/answer/validate-answer-payload";
 
 const apiUrl = process.env.API_URL!;
 
