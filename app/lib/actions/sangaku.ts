@@ -14,7 +14,7 @@ import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
 import { isValidId } from "@/app/lib/validate-id";
-import { isValidCodeBlocks } from "@/app/lib/validate-reorder-code-blocks";
+import { isValidCodeBlocks } from "@/app/lib/sangaku/validate-reorder-code-blocks";
 import { checkRunSourceRateLimit } from "@/app/lib/rate-limit/run-source";
 
 const apiUrl = process.env.API_URL!;

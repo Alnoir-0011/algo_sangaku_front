@@ -8,7 +8,7 @@ import Grid from "@mui/material/Grid";
 import Pagination from "@/app/ui/Pagination";
 import Modal from "./Modal";
 import { difficultyTranslation } from "../utility";
-import { fetchSangakuModalDetail } from "@/app/lib/sangaku-detail";
+import { fetchSangakuModalDetail } from "@/app/lib/sangaku/sangaku-detail";
 import { useSelectedSangaku } from "./useSelectedSangaku";
 
 interface Props {

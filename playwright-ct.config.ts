@@ -131,10 +131,10 @@ export default defineConfig({
             ),
           },
           {
-            find: "@/app/lib/actions/guest_answer",
+            find: "@/app/lib/actions/guest-answer",
             replacement: path.join(
               __dirname,
-              "./tests/__mocks__/actions/guest_answer.ts",
+              "./tests/__mocks__/actions/guest-answer.ts",
             ),
           },
           {

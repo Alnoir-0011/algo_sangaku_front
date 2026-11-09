@@ -3,7 +3,7 @@ import ConfirmModal from "@/app/ui/shrine/dedicate/ConfirmModal";
 import {
   fetchReorderDetail,
   type ReorderDetail,
-} from "@/app/lib/sangaku-detail";
+} from "@/app/lib/sangaku/sangaku-detail";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
 
 // Playwright CT は Promise を props として渡せないため、ブラウザ側で Promise を

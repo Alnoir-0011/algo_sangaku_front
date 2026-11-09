@@ -1,7 +1,7 @@
 "use server";
 
 import { setFlash } from "../actions/flash";
-import { handleApiError } from "../handle_api_error";
+import { handleApiError } from "../handle-api-error";
 import { Shrine } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";

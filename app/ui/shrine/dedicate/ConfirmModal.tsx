@@ -3,7 +3,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
 import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
-import type { ReorderDetail } from "@/app/lib/sangaku-detail";
+import type { ReorderDetail } from "@/app/lib/sangaku/sangaku-detail";
 import DetailFetchError from "@/app/ui/sangaku/DetailFetchError";
 import {
   Modal,

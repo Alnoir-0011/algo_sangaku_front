@@ -10,7 +10,7 @@ import { useState } from "react";
 import {
   GuestAnswerResult,
   submitGuestReorderAnswer,
-} from "@/app/lib/actions/guest_answer";
+} from "@/app/lib/actions/guest-answer";
 import { PuzzleBlock } from "@/app/lib/definitions";
 import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
 import { shrineSangakusPath, signinPath } from "@/routes";

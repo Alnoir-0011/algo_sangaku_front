@@ -1,7 +1,7 @@
 import { Suspense, use } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import type { Sangaku } from "@/app/lib/definitions";
-import type { SangakuModalDetail } from "@/app/lib/sangaku-detail";
+import type { SangakuModalDetail } from "@/app/lib/sangaku/sangaku-detail";
 import {
   Modal,
   Box,

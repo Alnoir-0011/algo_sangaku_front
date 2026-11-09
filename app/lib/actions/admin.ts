@@ -7,7 +7,7 @@ import { setFlash } from "@/app/lib/actions/flash";
 import { customSignOut } from "@/app/lib/actions/auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
-import { isValidCodeBlocks } from "@/app/lib/validate-reorder-code-blocks";
+import { isValidCodeBlocks } from "@/app/lib/sangaku/validate-reorder-code-blocks";
 import type { ReorderCodeBlockInput } from "@/app/lib/definitions";
 
 const apiUrl = process.env.API_URL!;
