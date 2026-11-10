@@ -1,8 +1,13 @@
+import { simulateAction } from "../action-behavior";
+
 export const updateUserRole = async (
   _id: string,
   _role: "general" | "admin",
 ): Promise<void> => {};
-export const updateUser = async (): Promise<void> => {};
+export const updateUser = async (): Promise<boolean> => {
+  await simulateAction("updateUser");
+  return true;
+};
 export const deleteSangaku = async (_id: string): Promise<void> => {};
 
 // updateSangaku の呼び出し引数を記録するための型。
@@ -31,9 +36,16 @@ export const updateSangaku = async (
     formData: Object.fromEntries(formData.entries()),
     codeBlocks,
   });
+  await simulateAction("updateSangaku");
   return true;
 };
 
-export const createShrine = async (): Promise<void> => {};
-export const updateShrine = async (): Promise<void> => {};
+export const createShrine = async (): Promise<boolean> => {
+  await simulateAction("createShrine");
+  return true;
+};
+export const updateShrine = async (): Promise<boolean> => {
+  await simulateAction("updateShrine");
+  return true;
+};
 export const deleteShrine = async (_id: string): Promise<void> => {};

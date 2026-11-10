@@ -5,3 +5,8 @@
 // isLoading 等の状態が固まり続けないようにするためのデフォルトタイムアウト。
 // OpenAI呼び出しのように10秒を超えうる処理は、呼び出し側で個別に上書きする。
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10_000;
+
+// 401 のときに画面へ出す文言。data 層（返り値の message）と詳細取得のエラー表示で
+// 同じ文言になるよう、ここに一本化する。
+export const SESSION_EXPIRED_MESSAGE =
+  "セッションの有効期限が切れています。再度サインインしてください。";

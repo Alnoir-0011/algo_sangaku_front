@@ -11,6 +11,7 @@ import type {
 import { isKind } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 import { isValidId } from "@/app/lib/validate-id";
 
 // kind は Search.tsx の Select が選択肢を絞っているため通常は不正な値が来ないが、
@@ -60,8 +61,7 @@ export async function fetchUserSangakus(
         return {
           sangakus: [],
           totalPage: 0,
-          message:
-            "セッションの有効期限が切れています。再度サインインしてください。 ",
+          message: SESSION_EXPIRED_MESSAGE,
         };
       default:
         return {
@@ -287,8 +287,7 @@ export async function fetchSavedSangakus(
         return {
           sangakus: [] as Sangaku[],
           totalPage: 0,
-          message:
-            "セッションの有効期限が切れています。再度サインインしてください。",
+          message: SESSION_EXPIRED_MESSAGE,
         };
       default:
         return {

@@ -13,6 +13,7 @@ import {
   validateAnswerPayload,
   type AnswerPayload,
 } from "@/app/lib/answer/validate-answer-payload";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 const apiUrl = process.env.API_URL!;
 
@@ -57,8 +58,7 @@ export const createAnswer = async (
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         break;

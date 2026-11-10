@@ -232,6 +232,7 @@ describe("fetchUserSangakus", () => {
 
   test("should return an unexpected error message when the session cannot be read", async () => {
     // Arrange
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const sessionError = new Error("session decode failed");
     vi.mocked(auth).mockRejectedValueOnce(sessionError);
     const consoleErrorSpy = vi
@@ -247,7 +248,7 @@ describe("fetchUserSangakus", () => {
       totalPage: 0,
       message: "予期せぬエラーが発生しました",
     });
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining("fetchUserSangakus"),
       sessionError,

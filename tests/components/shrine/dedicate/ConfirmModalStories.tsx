@@ -32,10 +32,9 @@ export function ConfirmModalWithReorderDetail({
 
   return (
     <ConfirmModal
-      data={data}
+      selected={{ sangaku: data, detail: reorderDetail }}
       shrine={shrine}
       handleClose={() => {}}
-      reorderDetail={reorderDetail}
       onRetryReorder={() => setReorderDetail(fetchReorderDetail(data.id))}
     />
   );

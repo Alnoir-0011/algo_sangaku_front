@@ -635,8 +635,12 @@ test.describe("ReorderPuzzle", () => {
         description={description}
       />);
     const unusedArea = component.getByTestId("unused-blocks-area");
-    // unused エリアの初期表示順は front 側でシャッフルされる（quick-review 対応）ため、
-    // ブロック内容を決め打ちせず、DOM 上の並びから先頭・末尾を動的に取得する。
+    // allTextContents() は要素の描画を待たず、描画前だと空配列を返す
+    await expect(unusedArea.getByTestId("block-item")).toHaveCount(
+      blocks.length,
+    );
+    // ReorderPuzzle は渡された blocks の順で描画する（シャッフルは toPuzzleBlocks 側）。
+    // 先頭・末尾のブロックを決め打ちしないため、DOM 上の並びから動的に取得する。
     const initialTexts = await unusedArea
       .getByTestId("block-item")
       .allTextContents();

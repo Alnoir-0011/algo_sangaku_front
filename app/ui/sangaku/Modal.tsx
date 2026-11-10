@@ -2,6 +2,7 @@ import { Suspense, use } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import type { Sangaku } from "@/app/lib/definitions";
 import type { SangakuModalDetail } from "@/app/lib/sangaku/sangaku-detail";
+import type { SelectedSangaku } from "./useSelectedSangaku";
 import {
   Modal,
   Box,
@@ -16,8 +17,7 @@ import Ema from "@/app/ui/Ema";
 import DetailFetchError from "./DetailFetchError";
 
 interface Props {
-  data: Sangaku | null;
-  detail: Promise<SangakuModalDetail> | null;
+  selected: SelectedSangaku<Promise<SangakuModalDetail>> | null;
   onRetry: () => void;
   handleClose: () => void;
 }
@@ -144,20 +144,19 @@ function SangakuModalContent({
 }
 
 export default function ModalComponent({
-  data,
-  detail,
+  selected,
   onRetry,
   handleClose,
 }: Props) {
   return (
-    <Modal open={!!data} onClose={handleClose}>
+    <Modal open={!!selected} onClose={handleClose}>
       <Box
         sx={{ ...style, width: { xs: 380, sm: 600, md: 800 } }}
         role="dialog"
       >
-        {data && detail && (
+        {selected && (
           <ErrorBoundary
-            resetKeys={[detail]}
+            resetKeys={[selected.detail]}
             onError={(error) =>
               console.error("[sangaku/Modal] fetch detail error:", error)
             }
@@ -184,7 +183,10 @@ export default function ModalComponent({
                 </Box>
               }
             >
-              <SangakuModalContent data={data} detail={detail} />
+              <SangakuModalContent
+                data={selected.sangaku}
+                detail={selected.detail}
+              />
             </Suspense>
           </ErrorBoundary>
         )}

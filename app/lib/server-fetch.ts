@@ -1,3 +1,4 @@
+import "server-only";
 import { buildHeaders } from "@/app/lib/client-headers";
 import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
 

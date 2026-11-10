@@ -67,8 +67,8 @@ test.describe("DedicatedSangakuList", () => {
       <DedicatedSangakuListWithPromise sangakus={sangakus} totalPage={3} />,
     );
 
-    await expect(component.getByRole("button", { name: "page 2" })).toBeVisible();
-    await expect(component.getByRole("button", { name: "page 3" })).toBeVisible();
+    await expect(component.getByRole("button", { name: "2ページ目" })).toBeVisible();
+    await expect(component.getByRole("button", { name: "3ページ目" })).toBeVisible();
   });
 
   test("should not allow me to see the shrine modal before I select a sangaku", async ({
@@ -132,6 +132,23 @@ test.describe("DedicatedSangakuList", () => {
     await expect(
       page.getByText("算額の情報の取得に失敗しました"),
     ).toHaveCount(0);
+  });
+
+  test("should allow me to close the shrine modal with the Escape key right after retrying", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <DedicatedSangakuListWithPromise sangakus={sangakus} totalPage={1} />,
+      { hooksConfig: { fetchUserSangakuResultRejectCount: 1 } },
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await page.getByRole("button", { name: "再試行" }).click();
+    await expect(page.getByText(/算額が写された数/)).toContainText("5");
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("should allow me to keep seeing the shrine modal when the selected sangaku is removed from the list", async ({

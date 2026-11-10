@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 const apiUrl = process.env.API_URL!;
 
@@ -42,8 +43,7 @@ export async function dedicateSangaku(
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -92,8 +92,7 @@ export async function createSangakuSave(
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;

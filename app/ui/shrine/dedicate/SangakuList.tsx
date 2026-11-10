@@ -115,8 +115,7 @@ export default function SangakuList({ sangakusPromise, shrine }: Props) {
           </div>
         ))}
         <ConfirmModal
-          data={selected?.sangaku ?? null}
-          reorderDetail={selected?.detail ?? null}
+          selected={selected}
           onRetryReorder={retry}
           handleClose={close}
           shrine={shrine}

@@ -16,6 +16,7 @@ import { parseApiErrors } from "@/app/lib/parse-api-errors";
 import { isValidId } from "@/app/lib/validate-id";
 import { isValidCodeBlocks } from "@/app/lib/sangaku/validate-reorder-code-blocks";
 import { checkRunSourceRateLimit } from "@/app/lib/rate-limit/run-source";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 const apiUrl = process.env.API_URL!;
 
@@ -99,8 +100,7 @@ export const createSangaku = async (
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return {} as State;
@@ -200,8 +200,7 @@ export const createReorderSangaku = async (
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return {} as State;
@@ -278,8 +277,7 @@ export const updateSangaku = async (
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return {} as State;
@@ -372,8 +370,7 @@ export const updateReorderSangaku = async (
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return {} as State;
@@ -440,8 +437,7 @@ export const deleteSangaku = async (id: string) => {
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         break;

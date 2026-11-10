@@ -1,9 +1,17 @@
-import { Suspense, use, useEffect, useState, useTransition } from "react";
+import {
+  Suspense,
+  use,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
-import type { Sangaku, Shrine } from "@/app/lib/definitions";
+import type { Shrine } from "@/app/lib/definitions";
 import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 import type { ReorderDetail } from "@/app/lib/sangaku/sangaku-detail";
+import type { SelectedSangaku } from "@/app/ui/sangaku/useSelectedSangaku";
 import DetailFetchError from "@/app/ui/sangaku/DetailFetchError";
 import {
   Modal,
@@ -24,10 +32,9 @@ import Ema from "@/app/ui/Ema";
 import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
 interface Props {
-  data: Sangaku | null;
+  selected: SelectedSangaku<Promise<ReorderDetail> | null> | null;
   shrine: Shrine;
   handleClose: () => void;
-  reorderDetail: Promise<ReorderDetail> | null;
   onRetryReorder: () => void;
 }
 
@@ -104,16 +111,18 @@ function ReorderCodeBlocks({ detail }: { detail: Promise<ReorderDetail> }) {
 }
 
 export default function ConfirmModal({
-  data,
+  selected,
   shrine,
   handleClose,
-  reorderDetail,
   onRetryReorder,
 }: Props) {
+  const data = selected?.sangaku ?? null;
+  const reorderDetail = selected?.detail ?? null;
   const [currentPosition, setCurrentPosition] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
+  const [locationFailed, setLocationFailed] = useState(false);
   // 奉納済みかどうかは、奉納した算額の id から導出する。真偽値で持つと、
   // 閉じて別の算額を開いても「奉納しました」の表示が残ってしまう。
   const [dedicatedId, setDedicatedId] = useState<string | null>(null);
@@ -126,6 +135,13 @@ export default function ConfirmModal({
     }
   };
   const { id: shrine_id } = useParams<{ id: string }>();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // 再試行ボタンは取得をやり直すと消え、フォーカスが body に落ちて Escape が
+  // Modal に届かなくなる。ボタンが消える前にダイアログ自体へフォーカスを移す。
+  const retryReorder = () => {
+    dialogRef.current?.focus({ preventScroll: true });
+    onRetryReorder();
+  };
 
   useEffect(() => {
     (async () => {
@@ -135,6 +151,7 @@ export default function ConfirmModal({
       } catch (error) {
         // 位置情報の許可が拒否されると reject される。捕まえないと未処理の reject になる
         console.error("[ConfirmModal] getLocation error:", error);
+        setLocationFailed(true);
       }
     })();
   }, []);
@@ -150,6 +167,7 @@ export default function ConfirmModal({
             : { height: "85vh", display: "flex", flexDirection: "column" }),
         }}
         role="dialog"
+        ref={dialogRef}
       >
         {isDedicated || (
           <form
@@ -161,15 +179,15 @@ export default function ConfirmModal({
             }}
             onSubmit={(e) => {
               e.preventDefault();
-              if (isPending) {
+              if (isPending || !data || !currentPosition) {
                 return;
               }
               startTransition(() =>
                 keepScreenOnFailure(async () => {
                   if (
-                    await dedicateSangaku(shrine_id, data!.id, currentPosition!)
+                    await dedicateSangaku(shrine_id, data.id, currentPosition)
                   ) {
-                    setDedicatedId(data!.id);
+                    setDedicatedId(data.id);
                   }
                 }),
               );
@@ -270,7 +288,7 @@ export default function ConfirmModal({
                           <DetailFetchError
                             error={error}
                             failedMessage="コードブロックの取得に失敗しました"
-                            onRetry={onRetryReorder}
+                            onRetry={retryReorder}
                             variant="body2"
                           />
                         )}
@@ -372,6 +390,17 @@ export default function ConfirmModal({
                 </Grid>
               )}
             </Box>
+            {!currentPosition && (
+              <Typography
+                role={locationFailed ? "alert" : "status"}
+                color={locationFailed ? "error" : "text.secondary"}
+                sx={{ mb: 1, flexShrink: 0, textAlign: "center" }}
+              >
+                {locationFailed
+                  ? "位置情報を取得できないため奉納できません。ブラウザの位置情報の許可を確認してください"
+                  : "位置情報を取得しています"}
+              </Typography>
+            )}
             <Box
               sx={{
                 display: "flex",
@@ -386,14 +415,26 @@ export default function ConfirmModal({
               >
                 戻る
               </Button>
-              <Button variant="contained" type="submit" disabled={isPending}>
+              <Button
+                variant="contained"
+                type="submit"
+                disabled={isPending || !currentPosition}
+              >
                 この算額を奉納する
               </Button>
             </Box>
           </form>
         )}
         {isDedicated && data && (
-          <Box>
+          // 押した奉納ボタンが form ごと消えてフォーカスが body に落ち、Escape が
+          // Modal に届かなくなるため、完了画面へフォーカスを移す。
+          <Box
+            tabIndex={-1}
+            ref={(element: HTMLElement | null) =>
+              element?.focus({ preventScroll: true })
+            }
+            sx={{ outline: "none" }}
+          >
             <Typography variant="h4" sx={{ mb: 2 }}>
               算額を奉納しました
             </Typography>
@@ -474,19 +515,20 @@ export default function ConfirmModal({
 
 async function getLocation() {
   return new Promise<{ lat: number; lng: number }>((resolve, rejects) => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        /* v8 ignore next */
-        (e) => rejects(e),
-      );
+    if (!("geolocation" in navigator)) {
+      // 解決も reject もしないと、奉納ボタンが無効のまま理由が表示されない
+      rejects(new Error("geolocation is not supported"));
+      return;
     }
-  }).then((position) => {
-    return position;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      /* v8 ignore next */
+      (e) => rejects(e),
+    );
   });
 }

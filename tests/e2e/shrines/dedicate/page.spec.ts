@@ -1,5 +1,9 @@
 import { setSession } from "../../../__helpers__/signin";
 import { waitForHydration } from "../../../__helpers__/hydration";
+import {
+  pagedSangakusHandler,
+  sangakuOf,
+} from "../../../__helpers__/sangaku-list";
 
 import {
   test,
@@ -10,33 +14,6 @@ import {
 } from "@/tests/e2e/fixtures.msw";
 
 const apiUrl = process.env.API_URL;
-
-const sangakuOf = (title: string, id = title) => ({
-  id,
-  type: "sangaku",
-  attributes: {
-    title,
-    description: "test_description",
-    source: "puts 'Hello world'",
-    difficulty: "easy",
-    inputs: [],
-  },
-  relationships: {
-    user: { data: { id: "1", type: "user" } },
-    shrine: { data: null },
-  },
-});
-
-// page クエリで中身が変わる2ページ分の一覧を返す
-const pagedSangakusHandler = () =>
-  http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
-    const currentPage = new URL(request.url).searchParams.get("page");
-    const title = currentPage === "2" ? "second_page" : "first_page";
-    return HttpResponse.json(
-      { data: [sangakuOf(title)] },
-      { status: 200, headers: { "total-pages": "2" } },
-    );
-  });
 
 test.describe("/shrines/[id]/dedicate", () => {
   test.use({
@@ -238,7 +215,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       page,
       msw,
     }) => {
-      msw.use(pagedSangakusHandler());
+      msw.use(pagedSangakusHandler(apiUrl));
       await setSession(page);
 
       await page.goto("/shrines/1/dedicate");
@@ -246,7 +223,7 @@ test.describe("/shrines/[id]/dedicate", () => {
         page.getByRole("heading", { name: "first_page" }),
       ).toBeVisible();
 
-      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      const nextPageButton = page.getByRole("button", { name: "2ページ目へ移動" });
       await waitForHydration(nextPageButton);
       await nextPageButton.click();
 
@@ -263,10 +240,10 @@ test.describe("/shrines/[id]/dedicate", () => {
       page,
       msw,
     }) => {
-      msw.use(pagedSangakusHandler());
+      msw.use(pagedSangakusHandler(apiUrl));
       await setSession(page);
       await page.goto("/shrines/1/dedicate");
-      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      const nextPageButton = page.getByRole("button", { name: "2ページ目へ移動" });
       await waitForHydration(nextPageButton);
       await nextPageButton.click();
       const secondPageSangaku = page.getByRole("heading", {
@@ -292,14 +269,18 @@ test.describe("/shrines/[id]/dedicate", () => {
       msw.use(
         http.get(`${apiUrl}/api/v1/user/sangakus`, () => {
           return HttpResponse.json(
-            { data: dedicated ? [] : [sangakuOf("before_dedicate", "1")] },
+            {
+              data: dedicated
+                ? []
+                : [sangakuOf("before_dedicate", { id: "1" })],
+            },
             { status: 200 },
           );
         }),
         http.post(`${apiUrl}/api/v1/user/sangakus/1/dedicate`, () => {
           dedicated = true;
           return HttpResponse.json({
-            data: sangakuOf("before_dedicate", "1"),
+            data: sangakuOf("before_dedicate", { id: "1" }),
           });
         }),
       );
@@ -314,8 +295,6 @@ test.describe("/shrines/[id]/dedicate", () => {
         timeout: 10_000,
       });
 
-      // 奉納で押したボタンが消えてフォーカスがモーダルの外に出るため、戻してから閉じる
-      await modal.getByRole("heading", { name: "算額を奉納しました" }).click();
       await page.keyboard.press("Escape");
 
       await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -401,9 +380,9 @@ test.describe("/shrines/[id]/dedicate", () => {
       msw,
     }) => {
       const reorderSangaku = {
-        ...sangakuOf("reorder_before_dedicate", "5"),
+        ...sangakuOf("reorder_before_dedicate", { id: "5" }),
         attributes: {
-          ...sangakuOf("reorder_before_dedicate", "5").attributes,
+          ...sangakuOf("reorder_before_dedicate", { id: "5" }).attributes,
           kind: "reorder",
           source: null,
         },
@@ -438,6 +417,7 @@ test.describe("/shrines/[id]/dedicate", () => {
 
       await page.goto("/shrines/1/dedicate");
       const sangaku = page.getByRole("heading", { name: "before_dedicate" });
+      await waitForHydration(sangaku);
       await sangaku.click();
       const modal = page.getByRole("dialog");
       const heading = modal.getByRole("heading", { name: "before_dedicate" });
@@ -460,6 +440,7 @@ test.describe("/shrines/[id]/dedicate", () => {
 
       await page.goto("/shrines/1/dedicate");
       const sangaku = page.getByRole("heading", { name: "before_dedicate" });
+      await waitForHydration(sangaku);
       await sangaku.click();
       const modal = page.getByRole("dialog");
       const heading = modal.getByRole("heading", { name: "before_dedicate" });

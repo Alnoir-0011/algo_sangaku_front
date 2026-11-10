@@ -56,6 +56,12 @@ const sangakus = [
 ];
 
 test.describe("SangakuList", () => {
+  // 位置情報が取れるまで奉納ボタンは押せない
+  test.use({
+    geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
+    permissions: ["geolocation"],
+  });
+
   test("should allow me to see the title and description of each sangaku", async ({
     mount,
   }) => {
@@ -87,8 +93,8 @@ test.describe("SangakuList", () => {
       <SangakuListWithPromise sangakus={sangakus} totalPage={3} shrine={shrine} />,
     );
 
-    await expect(component.getByRole("button", { name: "page 2" })).toBeVisible();
-    await expect(component.getByRole("button", { name: "page 3" })).toBeVisible();
+    await expect(component.getByRole("button", { name: "2ページ目" })).toBeVisible();
+    await expect(component.getByRole("button", { name: "3ページ目" })).toBeVisible();
   });
 
   test("should not allow me to see the confirm modal before I select a sangaku", async ({
@@ -187,10 +193,38 @@ test.describe("SangakuList", () => {
       page.getByTestId("confirm-modal-code-blocks-loading"),
     ).toBeVisible();
 
-    // 再試行で押したボタンが消えてフォーカスが外れるため、背景のクリックで閉じる
-    await page.mouse.click(5, 5);
+    await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.waitForTimeout(1_500);
+
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
+  test("should allow me to close the confirm modal with the Escape key right after retrying", async ({
+    mount,
+    page,
+  }) => {
+    const reorderSangaku = buildReorderSangaku();
+    const component = await mount(
+      <SangakuListWithPromise
+        sangakus={[reorderSangaku]}
+        totalPage={1}
+        shrine={shrine}
+      />,
+      {
+        hooksConfig: {
+          fetchUserSangakuRejectCount: 1,
+          fetchUserSangakuDelayMs: 1_000,
+        },
+      },
+    );
+    await component.getByRole("button", { name: /title_3/ }).click();
+    await page.getByRole("button", { name: "再試行" }).click();
+    await expect(
+      page.getByTestId("confirm-modal-code-blocks-loading"),
+    ).toBeVisible();
+
+    await page.keyboard.press("Escape");
 
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
@@ -205,9 +239,7 @@ test.describe("SangakuList", () => {
     await component.getByRole("button", { name: /title_1/ }).click();
     await page.getByRole("button", { name: "この算額を奉納する" }).click();
     await expect(page.getByText("算額を奉納しました")).toBeVisible();
-    // 完了画面には閉じるボタンがなく、送信ボタンが消えてフォーカスも外れるため、
-    // Escape ではなくモーダルの外（背景）のクリックで閉じる。
-    await page.mouse.click(5, 5);
+    await page.keyboard.press("Escape");
     await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
 
     await component.getByRole("button", { name: /title_2/ }).click();
@@ -268,5 +300,21 @@ test.describe("SangakuList", () => {
     await page.keyboard.press("Escape");
 
     await expect(page.getByTestId("monaco-editor")).toHaveCount(0);
+  });
+
+  test("should allow me to close the dedicated screen with the Escape key right after dedicating", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(
+      <SangakuListWithPromise sangakus={sangakus} totalPage={1} shrine={shrine} />,
+    );
+    await component.getByRole("button", { name: /title_1/ }).click();
+    await page.getByRole("button", { name: "この算額を奉納する" }).click();
+    await expect(page.getByText("算額を奉納しました")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
   });
 });

@@ -1,8 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-const { authMock, setFlashMock } = vi.hoisted(() => ({
+const { authMock, setFlashMock, customSignOutMock } = vi.hoisted(() => ({
   authMock: vi.fn(),
   setFlashMock: vi.fn(),
+  customSignOutMock: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -13,7 +14,12 @@ vi.mock("@/app/lib/actions/flash", () => ({
   setFlash: setFlashMock,
 }));
 
+vi.mock("@/app/lib/actions/auth", () => ({
+  customSignOut: customSignOutMock,
+}));
+
 import { createAnswer } from "@/app/lib/actions/answer";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 function mockValidationErrorResponse() {
   return new Response(JSON.stringify({ errors: [] }), { status: 400 });
@@ -23,7 +29,24 @@ describe("createAnswer", () => {
   beforeEach(() => {
     authMock.mockReset();
     setFlashMock.mockReset();
+    customSignOutMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
+  });
+
+  test("should show the shared session-expired message when the API responds with 401", async () => {
+    // Arrange
+    authMock.mockResolvedValue({ accessToken: "token" });
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+
+    // Act
+    await createAnswer("1", { source: "puts 1" });
+
+    // Assert
+    expect(setFlashMock).toHaveBeenCalledWith({
+      type: "error",
+      message: SESSION_EXPIRED_MESSAGE,
+    });
   });
 
   test("should send a POST request to /api/v1/user/saved_sangakus/:id/answer when called with a source payload", async () => {

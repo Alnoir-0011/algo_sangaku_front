@@ -602,6 +602,57 @@ test.describe("when the location permission is denied", () => {
   });
 });
 
+test.describe("when the location is not available", () => {
+  test.use({ permissions: [] });
+
+  test("should not allow me to dedicate when the location permission is denied", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+    );
+
+    // Assert
+    await expect(
+      page.getByText(
+        "位置情報を取得できないため奉納できません。ブラウザの位置情報の許可を確認してください",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "この算額を奉納する" }),
+    ).toBeDisabled();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.dedicateSangaku ?? 0,
+    );
+    expect(calls).toBe(0);
+  });
+});
+
+test.describe("when the location is being fetched", () => {
+  test.use({
+    geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
+    permissions: ["geolocation"],
+  });
+
+  test("should allow me to dedicate after the location is obtained", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+    );
+
+    // Assert
+    await expect(
+      page.getByRole("button", { name: "この算額を奉納する" }),
+    ).toBeEnabled();
+    await expect(page.getByText("位置情報を取得できないため")).toHaveCount(0);
+  });
+});
+
 test.describe("when I submit the dedication", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },

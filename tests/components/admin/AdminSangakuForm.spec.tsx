@@ -192,4 +192,27 @@ test.describe("AdminSangakuForm", () => {
     const lastCall = calls?.[calls.length - 1];
     expect(lastCall?.codeBlocks).toBeUndefined();
   });
+
+  test("should not allow me to submit twice when I double-click the 更新 button while sending", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<AdminSangakuForm sangaku={sangaku} />, {
+      hooksConfig: { actionHold: true },
+    });
+    const button = page.getByRole("button", { name: "更新" });
+
+    // Act
+    await button.dblclick();
+
+    // Assert
+    await expect(button).toBeDisabled();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(button).toBeEnabled();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.updateSangaku ?? 0,
+    );
+    expect(calls).toBe(1);
+  });
 });
