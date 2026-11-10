@@ -1,5 +1,5 @@
 import { setSession } from "../__helpers__/signin";
-import { waitForMonacoEditor } from "../__helpers__/hydration";
+import { waitForHydration, waitForMonacoEditor } from "../__helpers__/hydration";
 import type { Page, Locator } from "@playwright/test";
 
 import {
@@ -825,6 +825,11 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(title).toBeVisible();
     const unusedBlocksArea = page.getByTestId("unused-blocks-area");
     const answerBlocksArea = page.getByTestId("answer-blocks-area");
+    // SSR 済みの HTML は見えていても、dnd-kit のハンドラは hydration 後でないと付かず、
+    // それより前にドラッグしても何も起きない
+    await waitForHydration(
+      unusedBlocksArea.getByText("block3").getByTestId("drag-handle"),
+    );
 
     // Act: block3 をドラッグして解答エリア（空の余白）へ移動する
     // （unused → answer のコンテナ間移動。ReorderPuzzle.tsx の
