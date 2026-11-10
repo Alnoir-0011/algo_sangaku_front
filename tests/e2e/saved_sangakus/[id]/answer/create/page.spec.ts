@@ -470,6 +470,31 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         await expect(moveToAnswerButton).toBeVisible();
       });
 
+      // toPuzzleBlocks は、入力が昇順のとき昇順のまま返さない。ページが呼び忘れると、
+      // API が返した昇順のまま表示されるため、確率に頼らずに検知できる。
+      test("should not allow me to see the blocks in the order returned by the API", async ({
+        page,
+      }) => {
+        await setSession(page);
+        await page.goto("/saved_sangakus/2/answer/create");
+        const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+        await expect(unusedBlocksArea.getByTestId("block-item")).toHaveCount(6);
+
+        const displayed = await unusedBlocksArea
+          .getByText(/^block\d$/)
+          .allTextContents();
+
+        expect(displayed).toHaveLength(6);
+        expect(displayed).not.toEqual([
+          "block1",
+          "block2",
+          "block3",
+          "block4",
+          "block5",
+          "block6",
+        ]);
+      });
+
       test("should not allow me to see a hydration error when I open the reorder puzzle", async ({
         page,
       }) => {

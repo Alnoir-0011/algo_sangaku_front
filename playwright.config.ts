@@ -27,6 +27,9 @@ fs.mkdirSync(logsDir, { recursive: true });
  */
 export default defineConfig({
   testDir: "./tests/e2e",
+  // Node 上のテストが app/ のモジュールを直接 import するとき、server-only が例外を投げる。
+  // tsconfig.json の paths に足すと本番ビルドにも効いて意味を失うため、テスト専用に分ける。
+  tsconfig: "./tsconfig.playwright.json",
   testMatch: "tests/**/*.spec.ts",
   /* Run tests in files in parallel */
   fullyParallel: true,
