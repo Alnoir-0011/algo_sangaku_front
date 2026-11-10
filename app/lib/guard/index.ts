@@ -1,3 +1,4 @@
+import "server-only";
 import { classifyBot } from "./bot";
 import { getClientIp } from "./ip";
 import {

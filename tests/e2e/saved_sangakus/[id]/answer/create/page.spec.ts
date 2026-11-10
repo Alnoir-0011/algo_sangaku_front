@@ -416,6 +416,10 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
                       code_blocks: [
                         { id: 1, content: "block1" },
                         { id: 2, content: "block2" },
+                        { id: 3, content: "block3" },
+                        { id: 4, content: "block4" },
+                        { id: 5, content: "block5" },
+                        { id: 6, content: "block6" },
                       ],
                     },
                     relationships: {
@@ -464,6 +468,53 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
           .getByRole("button", { name: "解答エリアへ移動" })
           .first();
         await expect(moveToAnswerButton).toBeVisible();
+      });
+
+      // toPuzzleBlocks は、入力が昇順のとき昇順のまま返さない。ページが呼び忘れると、
+      // API が返した昇順のまま表示されるため、確率に頼らずに検知できる。
+      test("should not allow me to see the blocks in the order returned by the API", async ({
+        page,
+      }) => {
+        await setSession(page);
+        await page.goto("/saved_sangakus/2/answer/create");
+        const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+        await expect(unusedBlocksArea.getByTestId("block-item")).toHaveCount(6);
+
+        const displayed = await unusedBlocksArea
+          .getByText(/^block\d$/)
+          .allTextContents();
+
+        expect(displayed).toHaveLength(6);
+        expect(displayed).not.toEqual([
+          "block1",
+          "block2",
+          "block3",
+          "block4",
+          "block5",
+          "block6",
+        ]);
+      });
+
+      test("should not allow me to see a hydration error when I open the reorder puzzle", async ({
+        page,
+      }) => {
+        const hydrationErrors: string[] = [];
+        const collect = (message: string) => {
+          if (/hydrat|Minified React error #(418|423|425)/i.test(message)) {
+            hydrationErrors.push(message);
+          }
+        };
+        page.on("console", (message) => {
+          if (message.type() === "error") collect(message.text());
+        });
+        page.on("pageerror", (error) => collect(error.message));
+        await setSession(page);
+
+        await page.goto("/saved_sangakus/2/answer/create");
+        await waitForHydration(page.getByTestId("unused-blocks-area"));
+        await expect(page.getByTestId("block-item")).toHaveCount(6);
+
+        expect(hydrationErrors).toEqual([]);
       });
     });
   });

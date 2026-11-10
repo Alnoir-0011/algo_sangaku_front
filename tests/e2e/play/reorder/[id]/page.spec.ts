@@ -100,6 +100,23 @@ test.describe("/play/reorder/[id]", () => {
       ).toHaveCount(0);
     });
 
+    // toPuzzleBlocks は、入力が昇順のとき昇順のまま返さない。ページが呼び忘れると、
+    // API が返した昇順のまま表示されるため、確率に頼らずに検知できる。
+    test("should not allow me to see the blocks in the order returned by the API", async ({
+      page,
+    }) => {
+      await page.goto("/play/reorder/1");
+      const unusedBlocksArea = page.getByTestId("unused-blocks-area");
+      await expect(unusedBlocksArea.getByTestId("block-item")).toHaveCount(3);
+
+      const displayed = await unusedBlocksArea
+        .getByText(/^puts \d$/)
+        .allTextContents();
+
+      expect(displayed).toHaveLength(3);
+      expect(displayed).not.toEqual(["puts 1", "puts 2", "puts 3"]);
+    });
+
     test("should allow me to see the correct result and the signin link on the same page when submitting an answer without signing in", async ({
       page,
     }) => {

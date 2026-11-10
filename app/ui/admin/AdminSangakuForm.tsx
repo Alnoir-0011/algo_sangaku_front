@@ -10,13 +10,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type {
   AdminSangaku,
   CodeBlock,
   ReorderCodeBlockInput,
 } from "@/app/lib/definitions";
 import { updateSangaku } from "@/app/lib/actions/admin";
+import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 import CodeBlockEditor, {
   type CodeBlockDraft,
 } from "@/app/ui/sangaku/reorder/CodeBlockEditor";
@@ -52,6 +53,7 @@ function toAdminCodeBlockInputs(
 export default function AdminSangakuForm({ sangaku }: Props) {
   const { id, attributes } = sangaku;
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const isReorderKind = attributes.kind === "reorder";
   const [blocks, setBlocks] = useState<CodeBlockDraft[]>(
     toCodeBlockDrafts(attributes.code_blocks ?? []),
@@ -67,13 +69,17 @@ export default function AdminSangakuForm({ sangaku }: Props) {
   const canSubmitReorderBlocks =
     !isReorderKind || (hasEnoughCorrectBlocks && !hasEmptyBlock);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const success = isReorderKind
-      ? await updateSangaku(id, formData, toAdminCodeBlockInputs(blocks))
-      : await updateSangaku(id, formData);
-    if (success) router.refresh();
+    startTransition(() =>
+      keepScreenOnFailure(async () => {
+        const success = isReorderKind
+          ? await updateSangaku(id, formData, toAdminCodeBlockInputs(blocks))
+          : await updateSangaku(id, formData);
+        if (success) router.refresh();
+      }),
+    );
   };
 
   return (
@@ -136,7 +142,7 @@ export default function AdminSangakuForm({ sangaku }: Props) {
       <Button
         type="submit"
         variant="contained"
-        disabled={!canSubmitReorderBlocks}
+        disabled={!canSubmitReorderBlocks || isPending}
       >
         更新
       </Button>

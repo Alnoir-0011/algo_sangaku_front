@@ -1,4 +1,5 @@
 import { Box, Button, Typography, type SxProps } from "@mui/material";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 import { SessionExpiredError } from "@/app/lib/sangaku/sangaku-detail";
 
 interface Props {
@@ -20,7 +21,7 @@ export default function DetailFetchError({
     return (
       <Box role="alert" sx={sx}>
         <Typography variant={variant} color="error">
-          セッションの有効期限が切れています。再度サインインしてください。
+          {SESSION_EXPIRED_MESSAGE}
         </Typography>
       </Box>
     );

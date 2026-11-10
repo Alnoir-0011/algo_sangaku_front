@@ -9,8 +9,10 @@ import {
   TextField,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import type { AdminUser } from "@/app/lib/definitions";
 import { updateUser } from "@/app/lib/actions/admin";
+import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 
 interface Props {
   user: AdminUser;
@@ -19,12 +21,17 @@ interface Props {
 export default function AdminUserForm({ user }: Props) {
   const { id, attributes } = user;
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const success = await updateUser(id, formData);
-    if (success) router.refresh();
+    startTransition(() =>
+      keepScreenOnFailure(async () => {
+        const success = await updateUser(id, formData);
+        if (success) router.refresh();
+      }),
+    );
   };
 
   return (
@@ -58,7 +65,7 @@ export default function AdminUserForm({ user }: Props) {
           <option value="admin">admin</option>
         </Select>
       </FormControl>
-      <Button type="submit" variant="contained">
+      <Button type="submit" variant="contained" disabled={isPending}>
         更新
       </Button>
     </Box>

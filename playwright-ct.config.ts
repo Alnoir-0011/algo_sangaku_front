@@ -13,6 +13,9 @@ dotenv.config({
 
 export default defineConfig({
   testDir: "./tests/components",
+  // Node 上のテストが app/ のモジュールを直接 import するとき、server-only が例外を投げる。
+  // tsconfig.json の paths に足すと本番ビルドにも効いて意味を失うため、テスト専用に分ける。
+  tsconfig: "./tsconfig.playwright.json",
   /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
   snapshotDir: "./__snapshots__",
   /* Maximum time one test can run for. */
@@ -39,6 +42,15 @@ export default defineConfig({
       plugins: [reactCompiler()],
       resolve: {
         alias: [
+          // CT の Vite には "use server" の変換が無く、モックしていない Server Function
+          // の実体ごと server-fetch を取り込むため、server-only が例外を投げる。
+          {
+            find: "server-only",
+            replacement: path.join(
+              __dirname,
+              "./tests/__mocks__/server-only.ts",
+            ),
+          },
           {
             find: "next/navigation",
             replacement: path.join(

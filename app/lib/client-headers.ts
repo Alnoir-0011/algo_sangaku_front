@@ -1,3 +1,5 @@
+import "server-only";
+
 export function buildHeaders(accessToken?: string | null): Record<string, string> {
   const clientSecret = process.env.CLIENT_SECRET ?? null;
 

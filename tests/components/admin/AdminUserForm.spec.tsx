@@ -35,4 +35,27 @@ test.describe("AdminUserForm", () => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByRole("button", { name: "更新" })).toBeVisible();
   });
+
+  test("should not allow me to submit twice when I double-click the 更新 button while sending", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<AdminUserForm user={user} />, {
+      hooksConfig: { actionHold: true },
+    });
+    const button = page.getByRole("button", { name: "更新" });
+
+    // Act
+    await button.dblclick();
+
+    // Assert
+    await expect(button).toBeDisabled();
+    await page.evaluate(() => window.__releaseActions?.());
+    await expect(button).toBeEnabled();
+    const calls = await page.evaluate(
+      () => window.__actionCalls?.updateUser ?? 0,
+    );
+    expect(calls).toBe(1);
+  });
 });

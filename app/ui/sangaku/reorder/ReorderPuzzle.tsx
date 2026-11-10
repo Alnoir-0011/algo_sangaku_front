@@ -398,20 +398,6 @@ function AnswerBlockArea({
   );
 }
 
-// 配列をシャッフルした新しい配列を返す（Fisher-Yates）。back
-// （PublicSangakuDetailSerializer）が毎回シャッフルして code_blocks を返す契約だが、
-// それだけに全面的に依存すると、万一 back のシャッフルが機能しない場合に正解順
-// （id 昇順）のまま出題されてしまう。front 側でも独立してシャッフルすることで
-// 多層防御にする（quick-review 指摘）。
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
 export default function ReorderPuzzle({
   sangakuId,
   blocks,
@@ -422,10 +408,9 @@ export default function ReorderPuzzle({
 }: Props) {
   const blockById = new Map(blocks.map((block) => [block.id, block]));
 
-  // 初期値の計算にのみシャッフルを使う（useState の初期化関数は初回レンダーの
-  // 1回だけ評価されるため、再レンダーのたびに並びが変わることはない）。
+  // 初期の並びは渡された blocks の順（シャッフルは toPuzzleBlocks 側で済んでいる）。
   const [unusedBlockIds, setUnusedBlockIds] = useState<number[]>(() =>
-    shuffle(blocks.map((block) => block.id)),
+    blocks.map((block) => block.id),
   );
   const [answerBlockIds, setAnswerBlockIds] = useState<number[]>([]);
   const [isSubmitting, startSubmitting] = useTransition();

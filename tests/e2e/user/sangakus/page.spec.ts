@@ -1,5 +1,12 @@
 import { setSession } from "@/tests/__helpers__/signin";
-import { waitForHydration, waitForInteractive } from "@/tests/__helpers__/hydration";
+import {
+  pagedSangakusHandler,
+  sangakuOf,
+} from "@/tests/__helpers__/sangaku-list";
+import {
+  waitForHydration,
+  waitForInteractive,
+} from "@/tests/__helpers__/hydration";
 import {
   test,
   expect,
@@ -9,22 +16,6 @@ import {
 } from "@/tests/e2e/fixtures.msw";
 
 const apiUrl = process.env.API_URL;
-
-const dedicatedSangakuOf = (title: string) => ({
-  id: title,
-  type: "sangaku",
-  attributes: {
-    title,
-    description: "test_description",
-    source: "puts 'Hello world'",
-    difficulty: "easy",
-    inputs: [],
-  },
-  relationships: {
-    user: { data: { id: "1", type: "user" } },
-    shrine: { data: { id: "1", type: "shrine" } },
-  },
-});
 
 const beforeDedicateSangakus = {
   data: [
@@ -360,20 +351,13 @@ test.describe("/user/sangakus", () => {
 
     test("should allow me to see the dedicated sangakus of the next page when clicking the pagination", async ({ page, msw }) => {
       msw.use(
-        http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
-          const currentPage = new URL(request.url).searchParams.get("page");
-          const title = currentPage === "2" ? "second_page" : "first_page";
-          return HttpResponse.json(
-            { data: [dedicatedSangakuOf(title)] },
-            { status: 200, headers: { "total-pages": "2" } },
-          );
-        }),
+        pagedSangakusHandler(apiUrl, { shrineId: "1" }),
       );
       await setSession(page);
       await page.goto("/user/sangakus?tab=already_dedicate");
       await expect(page.getByRole("heading", { name: "first_page" })).toBeVisible();
 
-      const nextPageButton = page.getByRole("button", { name: "Go to page 2" });
+      const nextPageButton = page.getByRole("button", { name: "2ページ目へ移動" });
       await waitForHydration(nextPageButton);
       await nextPageButton.click();
 
@@ -389,7 +373,7 @@ test.describe("/user/sangakus", () => {
           const title = new URL(request.url).searchParams.get("title");
           const sangaku = title === "foo" ? "matched_foo" : "all_sangaku";
           return HttpResponse.json(
-            { data: [dedicatedSangakuOf(sangaku)] },
+            { data: [sangakuOf(sangaku, { shrineId: "1" })] },
             { status: 200, headers: { "total-pages": "1" } },
           );
         }),
@@ -413,7 +397,7 @@ test.describe("/user/sangakus", () => {
           const kind = new URL(request.url).searchParams.get("kind");
           const sangaku = kind === "reorder" ? "reorder_sangaku" : "all_sangaku";
           return HttpResponse.json(
-            { data: [dedicatedSangakuOf(sangaku)] },
+            { data: [sangakuOf(sangaku, { shrineId: "1" })] },
             { status: 200, headers: { "total-pages": "1" } },
           );
         }),

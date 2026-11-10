@@ -122,8 +122,7 @@ export default function SangakuList({ sangakusPromise }: Props) {
           </div>
         ))}
         <Modal
-          data={selected?.sangaku ?? null}
-          detail={selected?.detail ?? null}
+          selected={selected}
           onRetry={retry}
           handleClose={close}
         />

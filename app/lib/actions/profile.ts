@@ -9,6 +9,7 @@ import { customSignOut } from "./auth";
 import { User } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 const apiUrl = process.env.API_URL!;
 
@@ -55,8 +56,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
       case 401:
         await setFlash({
           type: "error",
-          message:
-            "セッションの有効期限が切れています。\n再度サインインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return {} as State;

@@ -9,6 +9,7 @@ import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
 import { isValidCodeBlocks } from "@/app/lib/sangaku/validate-reorder-code-blocks";
 import type { ReorderCodeBlockInput } from "@/app/lib/definitions";
+import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 
 const apiUrl = process.env.API_URL!;
 
@@ -45,7 +46,7 @@ export async function updateUserRole(
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -103,7 +104,7 @@ export async function updateUser(
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -144,7 +145,7 @@ export async function deleteSangaku(id: string): Promise<boolean> {
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -219,7 +220,7 @@ export async function updateSangaku(
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -281,7 +282,7 @@ export async function createShrine(formData: FormData): Promise<boolean> {
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -332,7 +333,7 @@ export async function updateShrine(
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;
@@ -373,7 +374,7 @@ export async function deleteShrine(id: string): Promise<boolean> {
       case 401:
         await setFlash({
           type: "error",
-          message: "セッションの有効期限が切れています。\n再度ログインしてください",
+          message: SESSION_EXPIRED_MESSAGE,
         });
         await customSignOut();
         return false;

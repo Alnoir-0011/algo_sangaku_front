@@ -73,6 +73,8 @@ test.describe("SourceResult", () => {
         hooksConfig: { runSourceEchoSource: true, runSourceDelaysMs: [1_500, 0] },
       },
     );
+    // a の実行が始まる前に update すると、delay の割り当てがずれて a が先に終わる
+    await expect(component.getByRole("progressbar")).toBeVisible();
 
     await component.update(
       <SourceResult source="b" fixedInputs={fixedInputs} />,

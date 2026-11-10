@@ -2,8 +2,10 @@
 
 import { Box, Button, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import type { AdminShrine } from "@/app/lib/definitions";
 import { createShrine, updateShrine } from "@/app/lib/actions/admin";
+import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 
 interface Props {
   shrine?: AdminShrine;
@@ -12,14 +14,19 @@ interface Props {
 export default function AdminShrineForm({ shrine }: Props) {
   const isEdit = !!shrine;
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const success = isEdit
-      ? await updateShrine(shrine.id, formData)
-      : await createShrine(formData);
-    if (success) router.refresh();
+    startTransition(() =>
+      keepScreenOnFailure(async () => {
+        const success = isEdit
+          ? await updateShrine(shrine.id, formData)
+          : await createShrine(formData);
+        if (success) router.refresh();
+      }),
+    );
   };
 
   return (
@@ -54,7 +61,7 @@ export default function AdminShrineForm({ shrine }: Props) {
           <TextField label="Place ID" name="place_id" required />
         </>
       )}
-      <Button type="submit" variant="contained">
+      <Button type="submit" variant="contained" disabled={isPending}>
         {isEdit ? "更新" : "作成"}
       </Button>
     </Box>

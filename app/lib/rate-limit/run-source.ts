@@ -1,3 +1,4 @@
+import "server-only";
 import { hashIdentifier } from "@/app/lib/guard";
 import { checkLimit, createLimiter, type Limiter } from "@/app/lib/guard/ratelimit";
 
