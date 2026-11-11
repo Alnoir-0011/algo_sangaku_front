@@ -16,6 +16,7 @@ import { runSourceBehavior } from "@/tests/__mocks__/actions/sangaku";
 import { consumeFlashBehavior } from "@/tests/__mocks__/actions/flash";
 import { actionBehavior } from "@/tests/__mocks__/action-behavior";
 import type { Flash } from "@/app/lib/actions/flash";
+import { SubmitFailureNoticeProvider } from "@/app/ui/flash/SubmitFailureNotice";
 
 type HooksConfig = {
   session?: Session | null;
@@ -58,7 +59,9 @@ beforeMount<HooksConfig>(({ App, hooksConfig }) => {
       <AppRouterCacheProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <App />
+          <SubmitFailureNoticeProvider>
+            <App />
+          </SubmitFailureNoticeProvider>
         </ThemeProvider>
       </AppRouterCacheProvider>
     </SessionProvider>,

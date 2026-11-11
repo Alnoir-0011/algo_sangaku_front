@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { AdminShrine } from "@/app/lib/definitions";
 import { createShrine, updateShrine } from "@/app/lib/actions/admin";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 
 interface Props {
   shrine?: AdminShrine;
@@ -15,6 +15,7 @@ export default function AdminShrineForm({ shrine }: Props) {
   const isEdit = !!shrine;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

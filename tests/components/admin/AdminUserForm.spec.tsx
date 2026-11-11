@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import AdminUserForm from "@/app/ui/admin/AdminUserForm";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 const user = {
   id: "1",
@@ -57,5 +58,23 @@ test.describe("AdminUserForm", () => {
       () => window.__actionCalls?.updateUser ?? 0,
     );
     expect(calls).toBe(1);
+  });
+
+  test("should allow me to see the failure message when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<AdminUserForm user={user} />, {
+      hooksConfig: { actionRejectCount: 1 },
+    });
+
+    // Act
+    await page.getByRole("button", { name: "更新" }).click();
+
+    // Assert
+    await expect(page.getByTestId("flash-message")).toHaveText(
+      SUBMIT_FAILURE_MESSAGE_TEXT,
+    );
   });
 });

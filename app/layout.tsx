@@ -7,6 +7,7 @@ import { CssBaseline } from "@mui/material";
 import "@fontsource-variable/noto-serif-jp";
 import { SessionProvider } from "next-auth/react";
 import FlashMessage from "@/app/ui/flash/FlashMessageContainer";
+import { SubmitFailureNoticeProvider } from "@/app/ui/flash/SubmitFailureNotice";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 const roboto = Roboto({
@@ -49,7 +50,7 @@ export default function RootLayout({
               {/* Server Component はクライアントの再レンダリングで再実行されないため、毎回異なる値が必要。サーバー描画のたびに flash を再取得させるのが目的で、固定値だと Server Action 後の flash が表示されない */}
               {/* eslint-disable-next-line react-hooks/purity */}
               <FlashMessage refreshKey={Date.now()} />
-              {children}
+              <SubmitFailureNoticeProvider>{children}</SubmitFailureNoticeProvider>
             </ThemeProvider>
           </AppRouterCacheProvider>
         </body>

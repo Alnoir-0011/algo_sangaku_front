@@ -17,7 +17,7 @@ import type {
   ReorderCodeBlockInput,
 } from "@/app/lib/definitions";
 import { updateSangaku } from "@/app/lib/actions/admin";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 import CodeBlockEditor, {
   type CodeBlockDraft,
 } from "@/app/ui/sangaku/reorder/CodeBlockEditor";
@@ -54,6 +54,7 @@ export default function AdminSangakuForm({ sangaku }: Props) {
   const { id, attributes } = sangaku;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
   const isReorderKind = attributes.kind === "reorder";
   const [blocks, setBlocks] = useState<CodeBlockDraft[]>(
     toCodeBlockDrafts(attributes.code_blocks ?? []),
