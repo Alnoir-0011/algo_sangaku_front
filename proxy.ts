@@ -8,7 +8,7 @@ import {
   adminRoutePrefix,
   DEFAULT_LOGIN_REDIRECT,
 } from "@/routes";
-import { setFlash } from "./app/lib/actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import {
   runGuard,
   resolveGuardMode,

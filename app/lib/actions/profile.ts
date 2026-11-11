@@ -4,7 +4,7 @@ import { auth, unstable_update } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { setFlash } from "@/app/lib/actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { customSignOut } from "./auth";
 import { User } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";

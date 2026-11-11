@@ -4,7 +4,7 @@ import type { Provider } from "next-auth/providers";
 // テスト用
 import Credentials from "next-auth/providers/credentials";
 
-import { setFlash } from "@/app/lib/actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { buildHeaders } from "@/app/lib/client-headers";
 
 const apiUrl = process.env.API_URL;

@@ -9,7 +9,7 @@ vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
-vi.mock("@/app/lib/actions/flash", () => ({
+vi.mock("@/app/lib/set-flash", () => ({
   setFlash: setFlashMock,
 }));
 

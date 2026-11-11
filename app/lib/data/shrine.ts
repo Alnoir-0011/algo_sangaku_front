@@ -1,6 +1,6 @@
 "use server";
 
-import { setFlash } from "../actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { handleApiError } from "../handle-api-error";
 import { Shrine } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";

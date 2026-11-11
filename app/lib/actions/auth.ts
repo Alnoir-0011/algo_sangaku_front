@@ -2,7 +2,7 @@
 
 import { auth, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { setFlash } from "./flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { serverFetch } from "@/app/lib/server-fetch";
 
 const apiUrl = process.env.API_URL!;

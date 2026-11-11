@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
-import { setFlash } from "@/app/lib/actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import {
   Difficulty,
   GenerateSourceUsage,
