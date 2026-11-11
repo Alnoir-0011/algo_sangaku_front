@@ -13,6 +13,11 @@ allowBuilds:
   sharp: true
 overrides:
   '@types/google.maps': 3.66.0
+  '@babel/core@<7.29.6': ^7.29.6
+  browserslist@<4.28.7: ^4.28.7
+  nodemailer@<10.1.4: ^10.1.4
+  source-map-js@<1.2.2: ^1.2.2
+  yaml@<1.10.3: ^1.10.3
 # Next 16 では new Headers(await headers()) が空の Headers になり、next-auth の signIn / signOut / update が
 # cookie を見失う（サインアウトしても session-token が消えない）。beta.32 が最新で上流に修正版が無いため patch で回避している。
 # 修正版が出たら patch を外すこと
