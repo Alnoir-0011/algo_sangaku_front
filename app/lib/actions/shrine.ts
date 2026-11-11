@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { setFlash } from "./flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { revalidatePath } from "next/cache";
 import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";

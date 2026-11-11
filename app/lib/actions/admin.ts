@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
-import { setFlash } from "@/app/lib/actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 import { customSignOut } from "@/app/lib/actions/auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";

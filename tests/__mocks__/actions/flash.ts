@@ -12,7 +12,6 @@ export const consumeFlashBehavior: {
   rejectCount: number;
 } = { queue: [], rejectCount: 0 };
 
-export const setFlash = async () => {};
 export const consumeFlash = async (): Promise<Flash | null> => {
   if (consumeFlashBehavior.rejectCount > 0) {
     consumeFlashBehavior.rejectCount -= 1;

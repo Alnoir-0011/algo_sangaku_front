@@ -1,4 +1,4 @@
-import { setFlash } from "./actions/flash";
+import { setFlash } from "@/app/lib/set-flash";
 
 /**
  * data/ ・ actions/ の fetch レスポンスに対する共通エラーハンドラ。
