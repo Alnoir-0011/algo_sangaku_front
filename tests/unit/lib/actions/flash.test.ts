@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import * as flashActions from "@/app/lib/actions/flash";
 
 describe("actions/flash", () => {
-  test("should expose only consumeFlash as a Server Action so that setFlash cannot be called from the client", () => {
+  test("should export only consumeFlash so that no other function becomes a Server Action", () => {
     // Act
     const exportedNames = Object.keys(flashActions);
 
