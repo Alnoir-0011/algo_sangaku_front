@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { createSangakuSave } from "@/app/lib/actions/shrine";
 import { Button } from "@mui/material";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 
 interface Props {
   id: string;
@@ -13,6 +13,7 @@ interface Props {
 export function SangakuSaveButton({ id, saved }: Props) {
   const [isSaved, setIsSaved] = useState(saved);
   const [isPending, startTransition] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
 
   return (
     <Button

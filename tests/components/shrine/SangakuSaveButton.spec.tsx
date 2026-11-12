@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import { SangakuSaveButton } from "@/app/ui/shrine/sangakus/SangakuSaveButton";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 test.describe("SangakuSaveButton", () => {
   test("should allow me to see an enabled 算額を写す button when saved is false", async ({
@@ -79,5 +80,23 @@ test.describe("SangakuSaveButton", () => {
     // Assert
     await expect(button).toBeEnabled();
     expect(pageErrors).toEqual([]);
+  });
+
+  test("should allow me to see the failure message when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<SangakuSaveButton id="1" saved={false} />, {
+      hooksConfig: { actionRejectCount: 1 },
+    });
+
+    // Act
+    await page.getByRole("button", { name: "算額を写す" }).click();
+
+    // Assert
+    await expect(page.getByTestId("flash-message")).toHaveText(
+      SUBMIT_FAILURE_MESSAGE_TEXT,
+    );
   });
 });

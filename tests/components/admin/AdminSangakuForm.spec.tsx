@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import AdminSangakuForm from "@/app/ui/admin/AdminSangakuForm";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 const sangaku = {
   id: "1",
@@ -214,5 +215,23 @@ test.describe("AdminSangakuForm", () => {
       () => window.__actionCalls?.updateSangaku ?? 0,
     );
     expect(calls).toBe(1);
+  });
+
+  test("should allow me to see the failure message when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<AdminSangakuForm sangaku={sangaku} />, {
+      hooksConfig: { actionRejectCount: 1 },
+    });
+
+    // Act
+    await page.getByRole("button", { name: "更新" }).click();
+
+    // Assert
+    await expect(page.getByTestId("flash-message")).toHaveText(
+      SUBMIT_FAILURE_MESSAGE_TEXT,
+    );
   });
 });

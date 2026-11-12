@@ -9,7 +9,7 @@ import {
 import { ErrorBoundary } from "react-error-boundary";
 import { useParams } from "next/navigation";
 import type { Shrine } from "@/app/lib/definitions";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 import type { ReorderDetail } from "@/app/lib/sangaku/sangaku-detail";
 import type { SelectedSangaku } from "@/app/ui/sangaku/useSelectedSangaku";
 import DetailFetchError from "@/app/ui/sangaku/DetailFetchError";
@@ -128,6 +128,7 @@ export default function ConfirmModal({
   const [dedicatedId, setDedicatedId] = useState<string | null>(null);
   const isDedicated = data !== null && dedicatedId === data.id;
   const [isPending, startTransition] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
   // 送信中に閉じると、キャンセルしたように見えたまま奉納が完了してしまう。
   const closeUnlessPending = () => {
     if (!isPending) {

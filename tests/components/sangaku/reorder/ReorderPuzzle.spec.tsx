@@ -3,6 +3,7 @@ import { Locator, Page } from "@playwright/test";
 import { test, expect } from "@/tests/fixtures.ct";
 import ReorderPuzzle from "@/app/ui/sangaku/reorder/ReorderPuzzle";
 import { ReorderPuzzleWithHeldSubmit } from "./ReorderPuzzleStories";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 // WebKit では Locator.dragTo(target) がドロップ時に target ロケーターを
 // 再評価するため、ドラッグ中の @dnd-kit のレイアウトアニメーションで
@@ -1106,6 +1107,65 @@ test.describe("ReorderPuzzle", () => {
       // Assert
       await expect(submitButton).toBeEnabled();
       expect(pageErrors).toEqual([]);
+    });
+
+    test("should allow me to see the failure message when sending the answer fails", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      page.on("dialog", (dialog) => dialog.accept());
+      const component = await mount(
+        <ReorderPuzzle
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionRejectCount: 1 } },
+      );
+      await component
+        .getByTestId("unused-blocks-area")
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+
+      // Assert
+      await expect(page.getByTestId("flash-message")).toHaveText(
+        SUBMIT_FAILURE_MESSAGE_TEXT,
+      );
+    });
+
+    test("should allow me to see the failure message when onSubmit fails", async ({
+      mount,
+      page,
+    }) => {
+      // Arrange
+      const component = await mount(
+        <ReorderPuzzleWithHeldSubmit
+          sangakuId="1"
+          blocks={blocks}
+          title={title}
+          description={description}
+        />,
+        { hooksConfig: { actionRejectCount: 1 } },
+      );
+      await component
+        .getByTestId("unused-blocks-area")
+        .getByText("puts 2")
+        .getByRole("button", { name: "解答エリアへ移動" })
+        .click();
+
+      // Act
+      await component.getByRole("button", { name: "解答を終了する" }).click();
+
+      // Assert
+      await expect(page.getByTestId("flash-message")).toHaveText(
+        SUBMIT_FAILURE_MESSAGE_TEXT,
+      );
     });
   });
 });

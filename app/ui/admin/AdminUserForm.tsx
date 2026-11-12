@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { AdminUser } from "@/app/lib/definitions";
 import { updateUser } from "@/app/lib/actions/admin";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 
 interface Props {
   user: AdminUser;
@@ -22,6 +22,7 @@ export default function AdminUserForm({ user }: Props) {
   const { id, attributes } = user;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -10,3 +10,7 @@ export const DEFAULT_NETWORK_TIMEOUT_MS = 10_000;
 // 同じ文言になるよう、ここに一本化する。
 export const SESSION_EXPIRED_MESSAGE =
   "セッションの有効期限が切れています。再度サインインしてください。";
+
+// error.message をそのまま出さず固定文言にするのは、URL やパスなどの内部情報を画面に出さないため。
+export const SUBMIT_FAILURE_MESSAGE =
+  "送信に失敗しました。通信状況を確認して、もう一度お試しください";

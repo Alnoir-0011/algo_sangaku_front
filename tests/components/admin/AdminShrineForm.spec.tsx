@@ -1,5 +1,6 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import AdminShrineForm from "@/app/ui/admin/AdminShrineForm";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 test.describe("AdminShrineForm (create mode)", () => {
   test("should have name input", async ({ mount }) => {
@@ -77,5 +78,23 @@ test.describe("AdminShrineForm (edit mode)", () => {
       () => window.__actionCalls?.updateShrine ?? 0,
     );
     expect(calls).toBe(1);
+  });
+
+  test("should allow me to see the failure message when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(<AdminShrineForm shrine={shrine} />, {
+      hooksConfig: { actionRejectCount: 1 },
+    });
+
+    // Act
+    await page.getByRole("button", { name: "更新" }).click();
+
+    // Assert
+    await expect(page.getByTestId("flash-message")).toHaveText(
+      SUBMIT_FAILURE_MESSAGE_TEXT,
+    );
   });
 });

@@ -36,7 +36,7 @@ import { ReactNode, useState, useTransition } from "react";
 
 import { PuzzleBlock } from "@/app/lib/definitions";
 import { createAnswer } from "@/app/lib/actions/answer";
-import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
+import { useKeepScreenOnFailure } from "@/app/ui/flash/SubmitFailureNotice";
 import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
 // unused-blocks-area / answer-blocks-area の droppable id。
@@ -414,6 +414,7 @@ export default function ReorderPuzzle({
   );
   const [answerBlockIds, setAnswerBlockIds] = useState<number[]>([]);
   const [isSubmitting, startSubmitting] = useTransition();
+  const keepScreenOnFailure = useKeepScreenOnFailure();
   // 送信中に並べ替えると、送信済みの解答と画面の並びがずれる。
   const isLocked = locked || isSubmitting;
 

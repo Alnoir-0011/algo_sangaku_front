@@ -1,6 +1,7 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import { ConfirmModalWithReorderDetail } from "./ConfirmModalStories";
 import type { Sangaku, Shrine } from "@/app/lib/definitions";
+import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
 // kind: "code" のとき、既存どおりソースコード（Monaco）と解答チェック用入力を
 // 表示することを固定化する回帰防止テスト（reorder kind の表示は次サイクルの対象）。
@@ -757,5 +758,28 @@ test.describe("when I submit the dedication", () => {
     // Assert
     await expect(submitButton).toBeEnabled();
     expect(pageErrors).toEqual([]);
+  });
+
+  test("should allow me to see the failure message above the modal when the request fails", async ({
+    mount,
+    page,
+  }) => {
+    // Arrange
+    await mount(
+      <ConfirmModalWithReorderDetail data={codeSangaku} shrine={shrine} />,
+      { hooksConfig: { actionRejectCount: 1 } },
+    );
+
+    // Act
+    await page.getByRole("button", { name: "この算額を奉納する" }).click();
+
+    // Assert
+    const notice = page.getByTestId("flash-message");
+    await expect(notice).toHaveText(SUBMIT_FAILURE_MESSAGE_TEXT);
+    // モーダルの背後に隠れていれば、click はモーダルに遮られて失敗する。
+    // getByRole を使わないのは、モーダルが開いている間、通知を含むルートコンテナに
+    // aria-hidden が付き、getByRole では見つからないため。
+    await notice.getByLabel("Close").click();
+    await expect(notice).toHaveCount(0);
   });
 });
