@@ -7,6 +7,7 @@ import {
 import { useState } from "react";
 import type { Shrine } from "../../lib/definitions";
 import NextLink from "@/app/ui/shared/NextLink";
+import ProtectedLink from "@/app/ui/shared/ProtectedLink";
 import { Box, Typography, Button } from "@mui/material";
 import { activeDistance } from "./Map";
 import { distance } from "@/app/lib/shrine/distance";
@@ -63,7 +64,7 @@ export default function ShrineMarker({ shrine, currentPosition }: Props) {
               </Button>
               <Button
                 variant="contained"
-                LinkComponent={NextLink}
+                LinkComponent={ProtectedLink}
                 href={`/shrines/${shrine.id}/dedicate`}
               >
                 算額を奉納する

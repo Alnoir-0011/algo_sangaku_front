@@ -1,6 +1,8 @@
 import { Box, Link, Typography, Grid } from "@mui/material";
 import Ema from "@/app/ui/Ema";
 import NextLink from "@/app/ui/shared/NextLink";
+import ProtectedLink from "@/app/ui/shared/ProtectedLink";
+import { isPublicPath } from "@/routes";
 
 const linkContent = [
   { name: "算額を作る", href: "/sangakus/create" },
@@ -50,7 +52,11 @@ export default function Home() {
             key={name}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <Link component={NextLink} href={href} sx={{ mb: 2 }}>
+            <Link
+              component={isPublicPath(href) ? NextLink : ProtectedLink}
+              href={href}
+              sx={{ mb: 2 }}
+            >
               <Ema width={10}>
                 <Box
                   sx={{

@@ -5,7 +5,6 @@ import {
   HttpResponse,
 } from "@/tests/e2e/fixtures.msw";
 import { setSession } from "../__helpers__/signin";
-import { waitForQuietRequests } from "../__helpers__/network";
 
 const apiUrl = process.env.API_URL;
 
@@ -99,11 +98,6 @@ test.describe("TopPage", () => {
         );
         await setSession(page);
         await page.goto("/");
-        // consumeFlash が引き起こす RSC のプリフェッチの応答は、セッション cookie を再発行する。
-        // サインアウトの削除より後に届くと打ち消されて /signin へ進めない（#163）。
-        // プロダクト側の修正は #163 で扱うため、ここではバーストが収まるのを待つ。
-        // 個々のリクエストを待つ方法は、プリフェッチの本数やタイミングに依存して壊れやすい。
-        await waitForQuietRequests(page);
 
         // window.confirm を true で上書きしてサインアウト確認OKをシミュレート
         await page.evaluate(() => {
