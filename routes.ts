@@ -8,6 +8,11 @@ export const publicRoutes: (string | RegExp)[] = [
   "/terms_of_use",
 ];
 
+export const isPublicPath = (pathname: string): boolean =>
+  publicRoutes.some((route) =>
+    typeof route === "string" ? route === pathname : route.test(pathname),
+  );
+
 export const authRoutes: string[] = ["/signin"];
 
 export const signinPath: string = "/signin";

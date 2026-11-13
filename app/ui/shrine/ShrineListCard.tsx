@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import Image from "next/image";
 import NextLink from "@/app/ui/shared/NextLink";
+import ProtectedLink from "@/app/ui/shared/ProtectedLink";
 import type { Shrine } from "@/app/lib/definitions";
 
 interface Props {
@@ -57,7 +58,7 @@ export default function ShrineListCard({ shrine, isNearby }: Props) {
             color="secondary"
             fullWidth
             sx={{ color: "white" }}
-            LinkComponent={NextLink}
+            LinkComponent={ProtectedLink}
             href={`/shrines/${shrine.id}/dedicate`}
           >
             算額を奉納する

@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
 import { auth } from "@/auth";
 import {
   authRoutes,
-  publicRoutes,
+  isPublicPath,
   apiAuthPrefix,
   adminRoutePrefix,
   DEFAULT_LOGIN_REDIRECT,
 } from "@/routes";
 import { setFlash } from "@/app/lib/set-flash";
+import { stripSessionCookieReissue } from "@/app/lib/session-cookie";
 import {
   runGuard,
   resolveGuardMode,
@@ -72,7 +74,7 @@ function applyDebugHeaders(
   }
 }
 
-export default auth(async (req) => {
+const authProxy = auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
@@ -105,11 +107,7 @@ export default auth(async (req) => {
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   // const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    typeof route === "string"
-      ? route === nextUrl.pathname
-      : route.test(nextUrl.pathname),
-  );
+  const isPublicRoute = isPublicPath(nextUrl.pathname);
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
@@ -151,6 +149,24 @@ export default auth(async (req) => {
   applyDebugHeaders(response, req, decision);
   return response;
 });
+
+type ProxyHandler = (
+  request: NextRequest,
+  event: NextFetchEvent,
+) => Promise<Response | undefined>;
+
+// auth() の callback の中では除去できない。ラッパーが callback の後にセッションの
+// Set-Cookie を付けるため、外側で包む。
+// auth(callback) の戻り値の型は Route Handler 用の引数を要求し proxy の引数と合わないため、
+// 実行時の形（NextFetchEvent を受ける）に合わせて型を付けている
+export default async function proxy(
+  request: NextRequest,
+  event: NextFetchEvent,
+) {
+  const response = await (authProxy as unknown as ProxyHandler)(request, event);
+  if (response) stripSessionCookieReissue(response);
+  return response;
+}
 
 export const config = {
   // 拡張子による除外は「トップレベルの 1 セグメント」に限定する。
