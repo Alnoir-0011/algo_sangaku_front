@@ -1,21 +1,18 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-const { authMock, setFlashMock, customSignOutMock } = vi.hoisted(() => ({
+const { authMock, setFlashMock, signOutMock } = vi.hoisted(() => ({
   authMock: vi.fn(),
   setFlashMock: vi.fn(),
-  customSignOutMock: vi.fn(),
+  signOutMock: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
   auth: authMock,
+  signOut: signOutMock,
 }));
 
 vi.mock("@/app/lib/set-flash", () => ({
   setFlash: setFlashMock,
-}));
-
-vi.mock("@/app/lib/actions/auth", () => ({
-  customSignOut: customSignOutMock,
 }));
 
 import { createAnswer } from "@/app/lib/actions/answer";
@@ -29,7 +26,7 @@ describe("createAnswer", () => {
   beforeEach(() => {
     authMock.mockReset();
     setFlashMock.mockReset();
-    customSignOutMock.mockReset();
+    signOutMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -47,6 +44,20 @@ describe("createAnswer", () => {
       type: "error",
       message: SESSION_EXPIRED_MESSAGE,
     });
+  });
+
+  test("should sign me out without calling the backend sign-out when the API responds with 401", async () => {
+    // Arrange
+    authMock.mockResolvedValue({ accessToken: "token" });
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+
+    // Act
+    await createAnswer("1", { source: "puts 1" });
+
+    // Assert
+    expect(signOutMock).toHaveBeenCalledWith({ redirectTo: "/signin" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   test("should send a POST request to /api/v1/user/saved_sangakus/:id/answer when called with a source payload", async () => {

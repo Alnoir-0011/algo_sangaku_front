@@ -57,7 +57,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   session: {
     strategy: "jwt",
     maxAge: SESSION_MAX_AGE,
-    updateAge: SESSION_MAX_AGE, // maxAge と同値にしてローリングを無効化（案A）
+    // updateAge を指定しない理由は app/lib/session-cookie.ts を参照
   },
   providers,
   callbacks: {
@@ -104,7 +104,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.nickname = user?.nickname;
         token.role = user?.role;
       }
-      if (trigger === "update") {
+      if (trigger === "update" && typeof session?.user?.nickname === "string") {
         token.nickname = session.user.nickname;
       }
 

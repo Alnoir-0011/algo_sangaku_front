@@ -56,6 +56,24 @@ test.describe("Session cookie", () => {
       expect(sessionCookieReissues(response)).toEqual([]);
     });
 
+    test("should not allow my access token to be exposed to the browser by the session check", async ({
+      page,
+    }) => {
+      const response = await page.request.get("/api/auth/session");
+
+      const session = await response.json();
+      expect(session.user).toBeTruthy();
+      expect(session).not.toHaveProperty("accessToken");
+    });
+
+    test("should not allow me to update my session through the API", async ({
+      page,
+    }) => {
+      const response = await page.request.post("/api/auth/session");
+
+      expect(response.status()).toBe(405);
+    });
+
     test("should allow me to stay signed in for up to 7 days after I signed in", async ({
       context,
     }) => {

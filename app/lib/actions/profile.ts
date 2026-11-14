@@ -1,11 +1,11 @@
 "use server";
 
-import { auth, unstable_update } from "@/auth";
+import { auth, unstable_update, signOut } from "@/auth";
+import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { setFlash } from "@/app/lib/set-flash";
-import { customSignOut } from "./auth";
 import { User } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
@@ -58,7 +58,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -101,7 +101,11 @@ export const updateShowAnswerCount = async (
       return { success: true };
     }
     if (res.status === 401) {
-      await customSignOut();
+      await setFlash({
+        type: "error",
+        message: SESSION_EXPIRED_MESSAGE,
+      });
+      await signOut({ redirectTo: signinPath });
     }
     await setFlash({ type: "error", message: "設定の更新に失敗しました" });
     return { success: false };

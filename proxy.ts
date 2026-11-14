@@ -111,16 +111,15 @@ const authProxy = auth(async (req) => {
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  const isPrefetch = req.headers.get("Next-Router-Prefetch") === "1";
-
   const isAdminRoute = nextUrl.pathname.startsWith(adminRoutePrefix);
 
+  // proxy では next/link のプリフェッチを判別できない（Next が rsc / next-router-prefetch を
+  // proxy の前に削除する）ため、プリフェッチかどうかで flash を出し分けられない。
+  // プリフェッチの抑止はリンク側（ProtectedLink）で行う
   if (!isApiAuthRoute) {
     if (isAdminRoute) {
       if (!isLoggedIn) {
-        if (!isPrefetch) {
-          await setFlash({ type: "warning", message: "サインインしてください" });
-        }
+        await setFlash({ type: "warning", message: "サインインしてください" });
         return Response.redirect(new URL("/signin", nextUrl));
       }
       if (req.auth?.role !== "admin") {
@@ -128,9 +127,7 @@ const authProxy = auth(async (req) => {
       }
     } else if (!isAuthRoute) {
       if (!isLoggedIn && !isPublicRoute) {
-        if (!isPrefetch) {
-          await setFlash({ type: "warning", message: "サインインしてください" });
-        }
+        await setFlash({ type: "warning", message: "サインインしてください" });
         return Response.redirect(new URL("/signin", nextUrl));
       }
     } else {

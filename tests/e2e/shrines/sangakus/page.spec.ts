@@ -491,16 +491,13 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
-    test("should not allow me to see a generic error message alongside the session-expired message when saving fails with 401", async ({
+    test("should allow me to be signed out with the session-expired message when saving fails with 401", async ({
       page,
       msw,
     }) => {
       msw.use(
         http.post(`${apiUrl}/api/v1/sangakus/1/save`, () => {
           return HttpResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }),
-        http.delete(`${apiUrl}/api/v1/authenticate`, () => {
-          return HttpResponse.error();
         }),
       );
       await setSession(page);
@@ -512,15 +509,11 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(heading).toBeVisible();
       const button = page.getByRole("button", { name: "算額を写す" });
       await button.click();
+      await expect(page).toHaveURL("/signin", { timeout: 10_000 });
       const flash = page.getByTestId('flash-message');
       await expect(flash).toBeVisible({ timeout: 10_000 });
-      await expect(flash).toContainText(
-        "セッションの有効期限が切れています",
-      );
+      await expect(flash).toContainText("セッションの有効期限が切れています");
       await expect(flash).not.toContainText("リクエストに失敗しました");
-      await expect(
-        page.getByRole("button", { name: "算額を写す" }),
-      ).toBeVisible();
     });
   });
 });

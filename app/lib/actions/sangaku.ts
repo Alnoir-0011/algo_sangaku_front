@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+import { signinPath } from "@/routes";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
@@ -10,7 +11,6 @@ import {
   GenerateSourceUsage,
   ReorderCodeBlockInput,
 } from "../definitions";
-import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
 import { isValidId } from "@/app/lib/validate-id";
@@ -102,7 +102,7 @@ export const createSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -202,7 +202,7 @@ export const createReorderSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -279,7 +279,7 @@ export const updateSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -372,7 +372,7 @@ export const updateReorderSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -439,7 +439,7 @@ export const deleteSangaku = async (id: string) => {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         break;
       // 奉納済み（back issue #365: forbid_dedicated_destroy）
       case 403: {
@@ -637,7 +637,11 @@ export const generateSource = async (
         return { source: data.source as string, usage: data.usage as GenerateSourceUsage };
       }
       case 401:
-        await customSignOut();
+        await setFlash({
+          type: "error",
+          message: SESSION_EXPIRED_MESSAGE,
+        });
+        await signOut({ redirectTo: signinPath });
         return {};
       case 429:
         return {

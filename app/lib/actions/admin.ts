@@ -1,10 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
 import { setFlash } from "@/app/lib/set-flash";
-import { customSignOut } from "@/app/lib/actions/auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
 import { isValidCodeBlocks } from "@/app/lib/sangaku/validate-reorder-code-blocks";
@@ -48,7 +48,7 @@ export async function updateUserRole(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -106,7 +106,7 @@ export async function updateUser(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -147,7 +147,7 @@ export async function deleteSangaku(id: string): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -222,7 +222,7 @@ export async function updateSangaku(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -284,7 +284,7 @@ export async function createShrine(formData: FormData): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -335,7 +335,7 @@ export async function updateShrine(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -376,7 +376,7 @@ export async function deleteShrine(id: string): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });

@@ -107,6 +107,26 @@ test.describe("TopPage", () => {
         await expect(page).toHaveURL("/signin", { timeout: 10_000 });
       });
 
+      for (const { reason, respond } of [
+        { reason: "responds with an error", respond: () => HttpResponse.json({}, { status: 500 }) },
+        { reason: "cannot be reached", respond: () => HttpResponse.error() },
+      ]) {
+        test(`should allow me to sign out even when the backend ${reason}`, async ({
+          page,
+          msw,
+        }) => {
+          msw.use(http.delete(`${apiUrl}/api/v1/authenticate`, respond));
+          await setSession(page);
+          await page.goto("/");
+
+          await page.evaluate(() => {
+            window.confirm = () => true;
+          });
+          await page.getByRole("button", { name: "サインアウト" }).click();
+          await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+        });
+      }
+
       test("should not allow me to sign out when dismissed", async ({
         page,
       }) => {
