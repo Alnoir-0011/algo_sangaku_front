@@ -1,10 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+import { signinPath } from "@/routes";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/set-flash";
-import { customSignOut } from "./auth";
 import { redirect } from "next/navigation";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { parseApiErrors } from "@/app/lib/parse-api-errors";
@@ -60,7 +60,7 @@ export const createAnswer = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         break;
       case 400:
         const data = await res.json();

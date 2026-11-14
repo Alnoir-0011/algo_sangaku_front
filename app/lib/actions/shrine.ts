@@ -1,10 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/set-flash";
 import { revalidatePath } from "next/cache";
-import { customSignOut } from "./auth";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isValidId } from "@/app/lib/validate-id";
 import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
@@ -45,7 +45,7 @@ export async function dedicateSangaku(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -94,7 +94,7 @@ export async function createSangakuSave(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await customSignOut();
+        await signOut({ redirectTo: signinPath });
         return false;
       case 409:
         await setFlash({
