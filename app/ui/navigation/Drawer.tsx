@@ -11,6 +11,7 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import NextLink from "@/app/ui/shared/NextLink";
 import { customSignOut } from "@/app/lib/actions/auth";
+import { isPublicPath } from "@/routes";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -146,9 +147,15 @@ export default function ResponsiveDrawer({
         <List>
           {drawerContent.map(({ text, href }) => (
             <ListItem key={text} disablePadding>
+              {/* ProtectedLink は使わない。サーバー側でサインアウトしても useSession の状態は
+                  古いまま残り、/signin でも保護ルートを先読みして、proxy が付ける flash が
+                  期限切れの案内を上書きするため、状態に頼らず常に止める。
+                  この項目だけ LinkComponent でなく component を使うのは、ListItemButton の型が
+                  LinkComponent と併用した prefetch を受け付けない（TS2769）ため */}
               <ListItemButton
-                LinkComponent={NextLink}
+                component={NextLink}
                 href={href}
+                prefetch={isPublicPath(href) ? undefined : false}
                 sx={{ pl: "1.5rem" }}
               >
                 <ListItemText
