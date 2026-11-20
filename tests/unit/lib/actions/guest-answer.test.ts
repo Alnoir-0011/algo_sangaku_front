@@ -1,13 +1,13 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-const { authMock, setFlashMock, redirectMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
+const { getSessionMock, setFlashMock, redirectMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
   setFlashMock: vi.fn(),
   redirectMock: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({
-  auth: authMock,
+vi.mock("@/app/lib/session", () => ({
+  getSession: getSessionMock,
 }));
 
 vi.mock("@/app/lib/set-flash", () => ({
@@ -30,7 +30,7 @@ function getFetchMock() {
 
 describe("submitGuestReorderAnswer", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    getSessionMock.mockReset();
     setFlashMock.mockReset();
     redirectMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
@@ -209,7 +209,7 @@ describe("submitGuestReorderAnswer", () => {
     await submitGuestReorderAnswer("1", [1, 2, 3]);
 
     // Assert
-    expect(authMock).not.toHaveBeenCalled();
+    expect(getSessionMock).not.toHaveBeenCalled();
     expect(setFlashMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
   });

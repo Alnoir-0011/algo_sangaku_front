@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { Avatar, Box, Divider, Paper, Typography } from "@mui/material";
 import { Metadata } from "next";
 import { fetchMyProfile } from "@/app/lib/data/profile";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const [session, profile, usage] = await Promise.all([
-    auth(),
+    getSession(),
     fetchMyProfile(),
     fetchGenerateSourceUsage(),
   ]);

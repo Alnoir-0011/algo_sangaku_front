@@ -1,5 +1,8 @@
 import { Page, test } from "@playwright/test";
-import type { Session } from "next-auth";
+import { toBetterAuthSession, type TestSession } from "./session";
+
+// E2E のサインインは、APP_ENV=test のときだけサインイン画面に出る form
+// （Email / Password / "Sign in with Credentials"。app/lib/actions/test-sign-in.ts）を使う
 
 /**
  * テストごとに一意のメールアドレスでログインする。
@@ -31,9 +34,12 @@ export const setAdminSession = async (page: Page) => {
   await page.waitForURL("/", { timeout: 15_000 });
 };
 
-// Note: コンポーネントテスト用
-export const mockClientSession = async (page: Page, json: Session | null) => {
-  await page.route("http://localhost:3100/api/auth/session", async (route) => {
-    await route.fulfill({ json });
+// Note: コンポーネントテスト用。クライアントの useSession が叩く get-session の応答を差し替える
+export const mockClientSession = async (
+  page: Page,
+  session: TestSession | null,
+) => {
+  await page.route("**/api/auth/get-session", async (route) => {
+    await route.fulfill({ json: toBetterAuthSession(session) });
   });
 };

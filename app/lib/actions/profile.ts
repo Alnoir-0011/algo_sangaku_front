@@ -1,6 +1,10 @@
 "use server";
 
-import { auth, unstable_update, signOut } from "@/auth";
+import {
+  getSession,
+  signOutAndRedirect,
+  updateSessionNickname,
+} from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
@@ -24,8 +28,7 @@ export type State = {
 };
 
 export const updateProfile = async (_prevState: State, formData: FormData) => {
-  const session = await auth();
-  const user = session?.user;
+  const session = await getSession();
 
   const raw = formData.get("nickname");
   const nickname = typeof raw === "string" ? raw : undefined;
@@ -45,7 +48,13 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
       case 200: {
         const userData = (await res.json()).data as User;
         const newNickname = userData.attributes.nickname;
-        await unstable_update({ user: { ...user, nickname: newNickname } });
+        // Rails では、すでに更新済み。ここで失敗しても、cookie の nickname が古いだけで、
+        // 再サインインで直る。「更新できなかった」と表示すると、再送信しても変わらない更新になる
+        try {
+          await updateSessionNickname(newNickname);
+        } catch (error) {
+          console.error("[profile] failed to update the session:", error);
+        }
         await setFlash({
           type: "success",
           message: "プロフィールを更新しました",
@@ -58,7 +67,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -87,7 +96,7 @@ export const updateProfile = async (_prevState: State, formData: FormData) => {
 export const updateShowAnswerCount = async (
   showAnswerCount: boolean,
 ): Promise<{ success: boolean }> => {
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(`${apiUrl}/api/v1/user/profile`, {
@@ -105,7 +114,7 @@ export const updateShowAnswerCount = async (
         type: "error",
         message: SESSION_EXPIRED_MESSAGE,
       });
-      await signOut({ redirectTo: signinPath });
+      await signOutAndRedirect(signinPath, { revokeApiKey: false });
     }
     await setFlash({ type: "error", message: "設定の更新に失敗しました" });
     return { success: false };

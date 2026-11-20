@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { getSession, signOutAndRedirect } from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { setFlash } from "@/app/lib/set-flash";
@@ -16,7 +16,7 @@ export async function dedicateSangaku(
   sangaku_id: string,
   location: { lat: number; lng: number },
 ) {
-  const session = await auth();
+  const session = await getSession();
 
   if (!isValidId(sangaku_id)) {
     await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -45,7 +45,7 @@ export async function dedicateSangaku(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       default:
         await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -63,7 +63,7 @@ export async function dedicateSangaku(
 export async function createSangakuSave(
   sangaku_id: string,
 ): Promise<boolean> {
-  const session = await auth();
+  const session = await getSession();
   if (!session) {
     await setFlash({ type: "error", message: "サインインしてください" });
     return false;
@@ -94,7 +94,7 @@ export async function createSangakuSave(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 409:
         await setFlash({

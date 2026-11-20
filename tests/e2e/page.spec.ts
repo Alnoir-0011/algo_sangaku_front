@@ -107,6 +107,34 @@ test.describe("TopPage", () => {
         await expect(page).toHaveURL("/signin", { timeout: 10_000 });
       });
 
+      test("should allow me to see the sign-in menu right after I sign out", async ({
+        page,
+        msw,
+      }) => {
+        msw.use(
+          http.delete(`${apiUrl}/api/v1/authenticate`, () => {
+            return HttpResponse.json({}, { status: 200 });
+          }),
+        );
+        await setSession(page);
+        await page.goto("/");
+
+        await page.evaluate(() => {
+          window.confirm = () => true;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+
+        // Server Action のサインアウトは、クライアントの useSession に伝わらない。
+        // 遷移時の再取得（SessionSync）で、ログイン中のメニューが残らないことを確認する
+        await expect(
+          page.getByRole("button", { name: "サインイン", exact: true }),
+        ).toBeVisible({ timeout: 5_000 });
+        await expect(
+          page.getByRole("button", { name: "サインアウト" }),
+        ).not.toBeVisible();
+      });
+
       for (const { reason, respond } of [
         { reason: "responds with an error", respond: () => HttpResponse.json({}, { status: 500 }) },
         { reason: "cannot be reached", respond: () => HttpResponse.error() },

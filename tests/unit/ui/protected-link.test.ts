@@ -6,8 +6,13 @@ const sessionState = vi.hoisted(() => ({
   status: "unauthenticated" as "loading" | "authenticated" | "unauthenticated",
 }));
 
-vi.mock("next-auth/react", () => ({
-  useSession: () => ({ status: sessionState.status }),
+vi.mock("@/app/lib/auth-client", () => ({
+  authClient: {
+    useSession: () => ({
+      data: sessionState.status === "authenticated" ? { user: {} } : null,
+      isPending: sessionState.status === "loading",
+    }),
+  },
 }));
 
 vi.mock("@/app/ui/shared/NextLink", () => ({

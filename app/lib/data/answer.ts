@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import type { Answer } from "../definitions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { serverFetch } from "@/app/lib/server-fetch";
@@ -12,7 +12,7 @@ export const fetchUserAnswer = async (id: string) => {
     return null;
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(
@@ -48,7 +48,7 @@ export const fetchUserAnswerWithSangakuId = async (sangakuId: string) => {
     return null;
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(

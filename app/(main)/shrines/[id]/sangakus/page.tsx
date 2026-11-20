@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import SangakuList from "@/app/ui/shrine/sangakus/SangakuList";
 import { Suspense } from "react";
 import { SangakuWithButtonListSkeleton } from "@/app/ui/skeletons";
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import Search from "@/app/ui/Search";
 import { Metadata } from "next";
 
@@ -47,7 +47,7 @@ export default async function Page(props: Props) {
 
   // ゲスト解放中の代表算額は、未ログインのゲストが1ページ目を絞り込みなしで
   // 開いたときだけ一覧の先頭に並べる（2ページ目や検索結果に毎回混ざらないようにする）
-  const session = await auth();
+  const session = await getSession();
   const showGuestSangaku =
     !session && page === "1" && !query && !difficulty && !kind;
 

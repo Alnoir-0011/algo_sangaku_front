@@ -87,4 +87,26 @@ test.describe("FlashMessageContainer", () => {
 
     await expect(page.getByTestId("flash-message")).toContainText("同じ文言");
   });
+
+  // consumeFlash は cookie を消す破壊的な読み出しで、結果を捨てると二度と取り戻せない。
+  // 応答が届く前に refreshKey が変わっても（Server Action が cookie を消すと、サーバー描画が
+  // やり直されて Date.now() が変わる）、先に消費されたフラッシュは表示される。
+  test("should allow me to see the flash message that was consumed before the refresh key changed", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(<FlashMessageContainer refreshKey={1} />, {
+      hooksConfig: {
+        consumeFlashQueue: [{ type: "success", message: "サインインしました" }],
+        consumeFlashDelaysMs: [300],
+      },
+    });
+
+    // 1 回目の応答を待たずに、2 回目の取得（応答はすぐ返り、中身は空）を起こす
+    await component.update(<FlashMessageContainer refreshKey={2} />);
+
+    await expect(page.getByTestId("flash-message")).toContainText(
+      "サインインしました",
+    );
+  });
 });

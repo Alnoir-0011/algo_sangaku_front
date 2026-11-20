@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { MyProfile, PublicProfile } from "../definitions";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
@@ -6,7 +6,7 @@ import { apiUrl } from "@/app/lib/config";
 import { isValidId } from "@/app/lib/validate-id";
 
 export async function fetchMyProfile(): Promise<MyProfile | undefined> {
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(`${apiUrl}/api/v1/user/profile`, {

@@ -1,13 +1,13 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
-// fetchShrineSangakus 自体は auth() を呼ばないが、同一モジュール内の他関数が
-// トップレベルで "@/auth" を import しており、実体（next-auth）を読み込むと
-// vitest の node 環境で next/server の解決に失敗するためモックする
-vi.mock("@/auth", () => ({
-  auth: vi.fn(),
+// fetchShrineSangakus 自体は getSession() を呼ばないが、同一モジュール内の他関数が
+// トップレベルで "@/app/lib/session" を import しており、実体（Better Auth と next/headers）を
+// 読み込むと vitest の node 環境で解決に失敗するためモックする
+vi.mock("@/app/lib/session", () => ({
+  getSession: vi.fn(),
 }));
 
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import {
   fetchShrineSangakus,
   fetchUserSangakus,
@@ -234,7 +234,7 @@ describe("fetchUserSangakus", () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const sessionError = new Error("session decode failed");
-    vi.mocked(auth).mockRejectedValueOnce(sessionError);
+    vi.mocked(getSession).mockRejectedValueOnce(sessionError);
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});

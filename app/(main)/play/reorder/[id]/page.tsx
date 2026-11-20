@@ -2,7 +2,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { fetchPublicReorderSangaku } from "@/app/lib/data/sangaku";
 import GuestReorderPuzzle from "@/app/ui/play/GuestReorderPuzzle";
@@ -47,7 +47,7 @@ export async function generateMetadata(
 export default async function Page(props: Props) {
   const { id } = await props.params;
   const sangaku = await getSangaku(id);
-  const session = await auth();
+  const session = await getSession();
 
   if (!sangaku) {
     if (!session) {

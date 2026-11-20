@@ -1,4 +1,5 @@
 import "server-only";
+import { resolveAuthSecret } from "@/app/lib/auth-secret";
 import { classifyBot } from "./bot";
 import { getClientIp } from "./ip";
 import {
@@ -172,13 +173,15 @@ export async function buildRateLimitKey(
  *
  * 素の SHA-256 では守れない。メールアドレスは列挙可能な空間なので、
  * Redis の内容やログが漏れた時点で総当たりで元の値を特定できてしまう。
- * AUTH_SECRET を鍵にした HMAC にすることで、鍵を知らない相手には
- * 逆引きできないようにしている。
+ * 認証と同じシークレット（BETTER_AUTH_SECRET、なければ AUTH_SECRET）を鍵にした HMAC に
+ * することで、鍵を知らない相手には逆引きできないようにしている。
  */
 export async function hashIdentifier(value: string): Promise<string> {
-  const secret = process.env.AUTH_SECRET;
+  const secret = resolveAuthSecret();
   if (!secret) {
-    throw new Error("AUTH_SECRET is required to derive the rate limit key");
+    throw new Error(
+      "BETTER_AUTH_SECRET or AUTH_SECRET is required to derive the rate limit key",
+    );
   }
 
   const key = await crypto.subtle.importKey(

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { NextRequest } from "next/server";
 import { apiUrl } from "@/app/lib/config";
@@ -13,7 +13,7 @@ export async function GET(
     return Response.json(null, { status: 400 });
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.accessToken) {
     return Response.json(null, { status: 401 });

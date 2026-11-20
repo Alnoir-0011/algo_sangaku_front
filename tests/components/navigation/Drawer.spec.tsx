@@ -1,8 +1,8 @@
 import { test, expect } from "@/tests/fixtures.ct";
-import type { Session } from "next-auth";
+import type { TestSession } from "@/tests/__helpers__/session";
 import Drawer from "@/app/ui/navigation/Drawer";
 
-const mockSession: Session = {
+const mockSession: TestSession = {
   user: {
     name: "testuser",
     email: "test_user@example.com",
