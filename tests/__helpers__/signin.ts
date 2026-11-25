@@ -1,8 +1,42 @@
-import { Page, test } from "@playwright/test";
-import { toBetterAuthSession, type TestSession } from "./session";
+import { Page, expect, test } from "@playwright/test";
+import { createSessionCookies } from "./test-auth";
 
-// E2E のサインインは、APP_ENV=test のときだけサインイン画面に出る form
-// （Email / Password / "Sign in with Credentials"。app/lib/actions/test-sign-in.ts）を使う
+// Better Auth には、Auth.js のような既定のサインインページが無い。フォームを自前で作ると、
+// 本番のコードに、テスト用のサインインの入口が残る。そのため、フォームを通らず、
+// テスト側で作った cookie をブラウザへ渡す（tests/__helpers__/test-auth.ts）
+
+// 鍵・cookie の名前・baseURL がサーバーと食い違うと、サーバーは cookie を拒み、未ログインのまま
+// テストが続く。「トークンが出ない」「再発行されない」といったテストは、未ログインでも通るため、
+// 誤った安心を生む。サーバーがログインを認めたことを、ここで確かめる。
+// 全テストで確かめると、get-session のレート制限（同じ IP から 10 秒に 300 件。E2E は 3 つの
+// ブラウザが同じ IP から並列に動く）に当たり、429 で落ちる。食い違いは、全テストで同じように
+// 起きるので、ワーカーごと・役割ごとの最初の 1 回で足りる
+const verifiedRoles = new Set<string>();
+
+const signInWithCookies = async (
+  page: Page,
+  email: string,
+  role: "general" | "admin",
+) => {
+  await page.context().addCookies(await createSessionCookies({ email, role }));
+  await page.goto("/");
+  if (verifiedRoles.has(role)) return;
+
+  const response = await page.request.get("/api/auth/get-session");
+  const body = await response.text();
+  const signedInEmail = (() => {
+    try {
+      return JSON.parse(body)?.user?.email as string | undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+  expect(
+    signedInEmail?.toLowerCase(),
+    `サーバーが、テスト用の cookie を認めなかった（status ${response.status()}、本文の先頭: ${body.slice(0, 80)}）。鍵と BETTER_AUTH_URL を、サーバーとテストで同じにする（playwright.config.ts）`,
+  ).toBe(email.toLowerCase());
+  verifiedRoles.add(role);
+};
 
 /**
  * テストごとに一意のメールアドレスでログインする。
@@ -17,29 +51,9 @@ export const setSession = async (
   page: Page,
   email = `${test.info().testId}@example.com`,
 ) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "サインイン" }).click();
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password");
-  await page.getByRole("button", { name: "Sign in with Credentials" }).click();
-  await page.waitForURL("/", { timeout: 15_000 });
+  await signInWithCookies(page, email, "general");
 };
 
 export const setAdminSession = async (page: Page) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "サインイン" }).click();
-  await page.getByLabel("Email").fill("admin_user@example.com");
-  await page.getByLabel("Password").fill("password");
-  await page.getByRole("button", { name: "Sign in with Credentials" }).click();
-  await page.waitForURL("/", { timeout: 15_000 });
-};
-
-// Note: コンポーネントテスト用。クライアントの useSession が叩く get-session の応答を差し替える
-export const mockClientSession = async (
-  page: Page,
-  session: TestSession | null,
-) => {
-  await page.route("**/api/auth/get-session", async (route) => {
-    await route.fulfill({ json: toBetterAuthSession(session) });
-  });
+  await signInWithCookies(page, "admin_user@example.com", "admin");
 };

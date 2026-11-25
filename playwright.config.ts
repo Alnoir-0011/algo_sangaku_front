@@ -3,6 +3,7 @@ import { defineConfig, devices } from "next/experimental/testmode/playwright";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import { randomBytes } from "crypto";
 
 /**
  * Read environment variables from file.
@@ -12,6 +13,16 @@ dotenv.config({
   path: path.resolve(__dirname, ".env"),
   quiet: true,
 });
+
+// E2E のログインは、テスト側で作った cookie をサーバーに渡す（tests/__helpers__/test-auth.ts）。
+// サーバーとテストが、必ず同じ鍵と baseURL を見るよう、ここで決める。
+// 鍵は、実行ごとの使い捨てにする。.env の鍵（開発用の本物かもしれない）で、有効な cookie を作る
+// 道具を動かさず、失敗時の trace に残る cookie も、実行後は無効になる。Next は .env.local も
+// 読むが、すでに設定された環境変数は上書きしないので、.env.local の鍵との食い違いも防げる。
+// Playwright は、ワーカーと webServer に、この環境変数を引き継ぐ
+process.env.E2E_AUTH_SECRET ??= randomBytes(32).toString("base64");
+process.env.BETTER_AUTH_SECRET = process.env.E2E_AUTH_SECRET;
+process.env.BETTER_AUTH_URL ||= "http://localhost:4020";
 
 /**
  * webServer の出力先ログディレクトリ。

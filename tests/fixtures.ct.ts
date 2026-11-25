@@ -3,7 +3,7 @@ import {
   expect,
 } from "@playwright/experimental-ct-react";
 import { runWithAutoCoverage } from "./__helpers__/auto-coverage-fixture";
-import { mockClientSession } from "./__helpers__/signin";
+import { mockClientSession } from "./__helpers__/client-session";
 import type { TestSession } from "./__helpers__/session";
 
 const test = ctBase.extend<{ autoTestCoverage: void }>({
@@ -13,10 +13,9 @@ const test = ctBase.extend<{ autoTestCoverage: void }>({
     },
     { scope: "test", auto: true },
   ],
-  // hooksConfig.session を、マウント前に get-session の応答として差し替える。
-  // 以前は SessionProvider に渡していたが、Better Auth の useSession は Provider を使わず、
-  // サーバーへ取りに行く。各テストを変えずに、同じ書き方（hooksConfig.session）を保つため、
-  // フィクスチャで一括して差し替える
+  // Better Auth の useSession は、Provider に渡す値ではなく、サーバーの get-session を読む。
+  // 各テストで差し替えると、書き方が散らばるため、hooksConfig.session を、フィクスチャが
+  // マウント前に、get-session の応答として、一括して差し替える
   mount: async ({ mount, page }, use) => {
     const mountWithSession = (async (component, options) => {
       const { session } = (

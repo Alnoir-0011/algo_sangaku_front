@@ -147,7 +147,7 @@ test.describe("Proxy guard (enforce)", () => {
 
     const responses = await Promise.all(
       Array.from({ length: 15 }, () =>
-        request.post("/api/auth/callback/credentials", { headers }),
+        request.post("/api/auth/callback/google", { headers }),
       ),
     );
     const throttled = responses.filter((response) => response.status() === 429);

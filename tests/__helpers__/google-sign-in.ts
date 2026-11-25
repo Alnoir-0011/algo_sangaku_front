@@ -63,7 +63,11 @@ export function mergeCookies(cookie: string, response: Response) {
 
 // 実際の流れ（サインインの開始 → state cookie → Google からのコールバック）を通して、
 // サインイン後の cookie を得る。Google のトークンは stubGoogleTokenEndpoint で用意する
-export async function signInWithGoogle(auth: typeof Auth, cookie = "") {
+export async function signInWithGoogle(
+  auth: typeof Auth,
+  cookie = "",
+  origin = ORIGIN,
+) {
   const start = await auth.api.signInSocial({
     body: { provider: "google", callbackURL: "/" },
     asResponse: true,
@@ -74,7 +78,7 @@ export async function signInWithGoogle(auth: typeof Auth, cookie = "") {
 
   const response = await auth.handler(
     new Request(
-      `${ORIGIN}/api/auth/callback/google?code=code&state=${state}`,
+      `${origin}/api/auth/callback/google?code=code&state=${state}`,
       { headers: { cookie: withState } },
     ),
   );

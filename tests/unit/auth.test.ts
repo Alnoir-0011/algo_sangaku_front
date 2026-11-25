@@ -249,6 +249,39 @@ describe("cookies after signing in", () => {
       .map((setCookie) => setCookie.split("=")[0]);
     expect(names.some((name) => name.endsWith("account_data"))).toBe(false);
   });
+
+  const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60;
+
+  const setCookieOf = (response: Response, name: string) =>
+    response.headers
+      .getSetCookie()
+      .find((setCookie) => setCookie.startsWith(`better-auth.${name}=`));
+
+  test.each(["session_token", "session_data"])(
+    "should not allow scripts or other sites to use my cookie (%s)",
+    async (name) => {
+      const { response } = await signIn("my-token");
+
+      const setCookie = setCookieOf(response, name);
+
+      expect(setCookie).toMatch(/;\s*HttpOnly/i);
+      expect(setCookie).toMatch(/;\s*SameSite=Lax/i);
+    },
+  );
+
+  test.each(["session_token", "session_data"])(
+    "should allow my cookie (%s) to last for 7 days and no longer",
+    async (name) => {
+      const { response } = await signIn("my-token");
+
+      const maxAge = Number(
+        setCookieOf(response, name)?.match(/Max-Age=(\d+)/i)?.[1],
+      );
+
+      expect(maxAge).toBeLessThanOrEqual(SEVEN_DAYS_SECONDS);
+      expect(maxAge).toBeGreaterThan(SEVEN_DAYS_SECONDS - 60);
+    },
+  );
 });
 
 describe("session data for the browser", () => {

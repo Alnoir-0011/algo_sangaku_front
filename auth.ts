@@ -15,8 +15,11 @@ import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
 import { revokeRailsApiKey, withTimeout } from "@/app/lib/rails-api-key";
 import { railsUserOf, toRailsUser } from "@/app/lib/rails-user";
 import { resolveAuthSecret } from "@/app/lib/auth-secret";
-
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+import {
+  cookieAuthOptions,
+  sessionAdditionalFields,
+  userAdditionalFields,
+} from "@/app/lib/auth-config";
 
 // ブラウザから /api/auth/* 経由で呼ばせるのは、使うエンドポイントだけにする。
 // 標準では update-user（name・image の書き換え）、revoke-*、link-social なども
@@ -38,18 +41,12 @@ const BROWSER_AUTH_PATHS = new Set([
 // id_token がそのままサインインに使える。サインイン画面は Server Action から
 // auth.api.signInSocial を呼ぶだけなので、HTTP 経由（ctx.request あり）では閉じる
 //
-// テスト環境（APP_ENV=test）だけは、E2E 用のサインイン（app/lib/actions/test-sign-in.ts）が
-// メールとパスワードで Better Auth のセッションを作るため、その 2 つも足す。
-// main の Auth.js も、同じ条件で Credentials プロバイダーを足していた
-const isTestEnv = process.env.APP_ENV === "test";
-
+// E2E のために、メールとパスワードの認証や、テスト用の許可を足さない。本番に、テスト用の
+// サインインの入口が残るため。E2E は、テスト側で作った cookie を渡す
+// （tests/__helpers__/test-auth.ts）
 // /update-user は nickname の更新（app/lib/session.ts の updateSessionNickname）に使う。
 // ブラウザから呼べると、user の項目に載せた role や ApiKey を書き換えられる
-const SERVER_ONLY_AUTH_PATHS = new Set([
-  "/sign-in/social",
-  "/update-user",
-  ...(isTestEnv ? ["/sign-in/email", "/sign-up/email"] : []),
-]);
+const SERVER_ONLY_AUTH_PATHS = new Set(["/sign-in/social", "/update-user"]);
 
 // バックエンドが 401 を返したあとのサインアウトでは、失効済みの ApiKey に DELETE を送らない。
 // サーバーからの呼び出し（ctx.request なし）のときだけ有効にする。ブラウザが付けても、
@@ -70,42 +67,9 @@ const decodeClaims = (idToken: string): GoogleProfile =>
 // before フックで読んだ、サインイン前の ApiKey を、after フックへ渡す
 const previousApiKeys = new WeakMap<object, string>();
 
-// Rails の nickname・role は利用者の記録（同じメールの端末で共有される）に、ApiKey は
-// 端末ごとの session の記録に置く。ApiKey を user に置くと、別の端末のサインインや
-// updateUser の戻り値（共有の記録）で、cookie のトークンが別の端末のものに入れ替わる。
-// user の railsAccessToken は、サインイン時に getUserInfo から session へ渡す運び役だけで、
-// returned: false にして、cookie にも HTTP 応答にも出さない。input は true のまま
-// （false だと、getUserInfo が返した値が無視される。db/schema.mjs の
-// parseAdditionalUserInputFromProviderProfile）。ブラウザから update-user で書き換えられない
-// のは、許可リストで HTTP 経由を拒否しているため
-const userAdditionalFields = {
-  railsAccessToken: { type: "string", required: false, returned: false },
-  nickname: { type: "string", required: false },
-  role: { type: "string", required: false },
-} as const;
-
-// session の項目は、cookie cache（JWE）に入る。サーバーだけが書くので input: false
-const sessionAdditionalFields = {
-  railsAccessToken: { type: "string", required: false, input: false },
-} as const;
-
 export const auth = betterAuth({
   // database を渡さない。ステートレス（署名・暗号化した cookie のみ）で動く
   secret: resolveAuthSecret(),
-  session: {
-    expiresIn: SESSION_MAX_AGE_SECONDS,
-    // cookie cache を使えない経路（memory adapter を引く経路）でも、updateAge を超えたときに
-    // 有効期限を延ばして cookie を再発行しない。ApiKey はログインから 7 日で失効するため
-    disableSessionRefresh: true,
-    additionalFields: sessionAdditionalFields,
-    cookieCache: {
-      enabled: true,
-      maxAge: SESSION_MAX_AGE_SECONDS,
-      strategy: "jwe",
-      // 延長しない。ログインから 7 日で ApiKey も失効するため、セッションだけ延びると食い違う
-      refreshCache: false,
-    },
-  },
   // Better Auth のレート制限は、本番で既定が有効（同じ IP・同じパスで 10 秒あたり 100 件）。
   // get-session は、SessionSync・refetchInterval・フォーカス復帰で、同じ IP（学校やオフィスの
   // NAT など）から多数届く。cookie の復号だけで DB を引かない軽い処理だが、未認証でも叩ける
@@ -118,11 +82,10 @@ export const auth = betterAuth({
   // （約 2.9KB）に 7 日間残すのが既定になる。トークンを後から使う機能は無く、cookie が
   // 大きくなるだけなので、保存しない。storeStateStrategy は、DB なしの既定を保つために明記する
   account: { storeStateStrategy: "cookie", storeAccountCookie: false },
-  user: { additionalFields: userAdditionalFields },
+  ...cookieAuthOptions,
   // サインインの失敗は、state の不一致などでも、英語の既定のエラーページではなく、
   // サインイン画面の通知（?error=）に集める
   onAPIError: { errorURL: "/signin" },
-  emailAndPassword: { enabled: isTestEnv },
   databaseHooks: {
     session: {
       create: {

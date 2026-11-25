@@ -109,7 +109,7 @@ test.describe("classifyRoute", () => {
 
   test("should not allow me to see a sign-in get counted as a sign-in attempt", () => {
     // Act
-    const group = classifyRoute("GET", "/api/auth/session");
+    const group = classifyRoute("GET", "/api/auth/get-session");
 
     // Assert
     expect(group).toBe("public-get");
@@ -151,7 +151,7 @@ test.describe("classifyRoute", () => {
     // signin（10/分）が server-action（20/分）へ格上げされてしまう
 
     // Act
-    const group = classifyRoute("POST", "/api/auth/callback/credentials");
+    const group = classifyRoute("POST", "/api/auth/callback/google");
 
     // Assert
     expect(group).toBe("signin");

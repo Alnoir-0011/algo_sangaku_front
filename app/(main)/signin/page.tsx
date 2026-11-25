@@ -3,15 +3,7 @@ import { auth } from "@/auth";
 import { requestHeaders } from "@/app/lib/session";
 import { safeCallbackPath } from "@/app/lib/safe-callback-path";
 import { signinPath } from "@/routes";
-import { testSignIn } from "@/app/lib/actions/test-sign-in";
-import {
-  Alert,
-  Box,
-  Button,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Metadata } from "next";
 
@@ -83,23 +75,6 @@ export default async function Signin(props: Props) {
             <span>Googleでサインイン</span>
           </Button>
         </form>
-        {process.env.APP_ENV === "test" && (
-          <form
-            action={testSignIn}
-            style={{ display: "grid", gap: 8, marginTop: 16 }}
-          >
-            <TextField label="Email" name="email" type="email" required />
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              required
-            />
-            <Button variant="outlined" type="submit">
-              Sign in with Credentials
-            </Button>
-          </form>
-        )}
       </Paper>
     </Box>
   );

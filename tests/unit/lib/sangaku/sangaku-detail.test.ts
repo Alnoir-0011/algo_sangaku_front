@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import type { Sangaku, SangakuResult, Shrine } from "@/app/lib/definitions";
 
-// 取得関数は "use server" ファイルの Server Action で、実体を読み込むと next-auth を
+// 取得関数は "use server" ファイルの Server Action で、実体を読み込むと認証（@/auth）まで
 // 読み込んでしまうため、差し替える。
 vi.mock("@/app/lib/data/sangaku", () => ({
   fetchUserSangaku: vi.fn(),

@@ -61,14 +61,14 @@ test.describe("TopPage", () => {
 
   test.describe("Drawer", () => {
     test.describe("before login", () => {
-      test("should allow me to see sign in dialog when clicking the sign in button", async ({ page }) => {
+      test("should allow me to see the Google sign-in button on the sign-in page when I press the sign in button", async ({ page }) => {
         await page.goto("/");
         const button = page.getByRole("button", { name: "サインイン" });
         await button.click();
-        const signinButton = page.getByRole("button", {
-          name: "Sign in with Credentials",
-        });
-        await expect(signinButton).toBeVisible();
+        await expect(page).toHaveURL(/\/signin/);
+        await expect(
+          page.getByRole("button", { name: "Googleでサインイン" }),
+        ).toBeVisible();
       });
     });
 
