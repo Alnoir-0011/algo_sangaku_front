@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from "vitest";
 
-// auth.ts は読み込み時に、環境変数から設定を作る。import より前に用意する
+// beforeEach では設定しない。auth.ts は import の時点で、環境変数から設定を作るため
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret-for-test-auth-0123456789abcd";
   process.env.BETTER_AUTH_URL = "http://localhost:4020";
@@ -107,7 +107,7 @@ describe("cookies that the test helper creates", () => {
 
 describe("the auth for tests and the auth of the server", () => {
   test.each(["sessionToken", "sessionData"] as const)(
-    "should allow both of them to name and attribute the cookie of %s the same",
+    "should allow the cookie of %s from the helper to be accepted by the server",
     async (key) => {
       const [testContext, serverContext] = await Promise.all([
         getTestAuth().$context,
@@ -119,9 +119,11 @@ describe("the auth for tests and the auth of the server", () => {
   );
 
   test("should not allow the test utilities to be part of the auth of the server", () => {
-    const ids = auth.options.plugins?.map((plugin) => plugin.id) ?? [];
+    const idsOf = (instance: { options: { plugins?: { id: string }[] } }) =>
+      instance.options.plugins?.map((plugin) => plugin.id) ?? [];
 
-    expect(ids).not.toContain("test-utils");
+    expect(idsOf(getTestAuth())).toContain("test-utils");
+    expect(idsOf(auth)).not.toContain("test-utils");
   });
 });
 
@@ -131,7 +133,8 @@ describe("the settings of the auth for tests", () => {
     vi.resetModules();
   });
 
-  test("should not allow importing the helper to fail without the settings", async () => {
+  // 設定の無い環境でも、テストの一覧を出せるよう、読み込みの時点では設定を読まない
+  test("should allow me to list the tests without the settings", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     vi.stubEnv("AUTH_SECRET", "");
     vi.stubEnv("BETTER_AUTH_URL", "");
@@ -139,7 +142,7 @@ describe("the settings of the auth for tests", () => {
 
     await expect(
       import("@/tests/__helpers__/test-auth"),
-    ).resolves.toBeDefined();
+    ).resolves.toHaveProperty("createSessionCookies");
   });
 
   test.each([

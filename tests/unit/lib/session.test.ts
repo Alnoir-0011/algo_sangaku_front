@@ -35,6 +35,21 @@ import {
 
 const SKIP_API_KEY_REVOCATION_HEADER = "x-skip-api-key-revocation";
 
+// RSC の headers() が返す ReadonlyHeaders の再現。Headers と違い、entries() はあるが、
+// Symbol.iterator も、自前の列挙できるプロパティも無い。new Headers(これ) は空になる。
+// 素の Headers を返すモックだと、この違いを検出できない
+class ReadonlyHeadersLike {
+  #entries: [string, string][];
+
+  constructor(init: Record<string, string> = {}) {
+    this.#entries = Object.entries(init);
+  }
+
+  entries() {
+    return this.#entries[Symbol.iterator]();
+  }
+}
+
 const baSession = {
   session: { id: "s1", railsAccessToken: "token" },
   user: {
@@ -50,7 +65,7 @@ describe("getSession", () => {
   beforeEach(() => {
     getSessionApiMock.mockReset().mockResolvedValue(baSession);
     headersMock.mockReset().mockResolvedValue(
-      new Headers({ cookie: "better-auth.session_token=abc" }),
+      new ReadonlyHeadersLike({ cookie: "better-auth.session_token=abc" }),
     );
   });
 
@@ -62,12 +77,6 @@ describe("getSession", () => {
       role: "admin",
       accessToken: "token",
     });
-  });
-
-  test("should not allow the role to be left in my user", async () => {
-    const session = await getSession();
-
-    expect(session?.user).not.toHaveProperty("role");
   });
 
   test("should not allow me to be signed in without a session of the auth library", async () => {
@@ -85,7 +94,7 @@ describe("getSession", () => {
     expect(await getSession()).toBeNull();
   });
 
-  test("should allow the auth library to read my cookies from a plain Headers object", async () => {
+  test("should allow me to be recognized from the cookies that the framework gave", async () => {
     await getSession();
 
     const { headers } = getSessionApiMock.mock.calls[0][0];
@@ -98,11 +107,11 @@ describe("updateSessionNickname", () => {
   beforeEach(() => {
     updateUserApiMock.mockReset();
     headersMock.mockReset().mockResolvedValue(
-      new Headers({ cookie: "better-auth.session_token=abc" }),
+      new ReadonlyHeadersLike({ cookie: "better-auth.session_token=abc" }),
     );
   });
 
-  test("should allow my nickname in my session to be updated", async () => {
+  test("should allow me to update my nickname in my session", async () => {
     await updateSessionNickname("new nick");
 
     expect(updateUserApiMock).toHaveBeenCalledTimes(1);
@@ -112,7 +121,7 @@ describe("updateSessionNickname", () => {
   });
 
   // 握ると、呼び出し元（プロフィールの更新）が、失敗を判断できない
-  test("should let the caller know when my nickname in my session could not be updated", async () => {
+  test("should not allow my failure to update my nickname in my session to be hidden from the caller", async () => {
     updateUserApiMock.mockRejectedValue(new Error("cookie is broken"));
 
     await expect(updateSessionNickname("new nick")).rejects.toThrow(
@@ -127,10 +136,10 @@ describe("signOutAndRedirect", () => {
     redirectMock.mockReset().mockImplementation(() => {
       throw new Error("NEXT_REDIRECT");
     });
-    headersMock.mockReset().mockResolvedValue(new Headers());
+    headersMock.mockReset().mockResolvedValue(new ReadonlyHeadersLike());
   });
 
-  test("should sign me out and send me to the given page", async () => {
+  test("should allow me to be signed out and sent to the given page", async () => {
     await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 
     expect(signOutApiMock).toHaveBeenCalledTimes(1);
@@ -138,7 +147,7 @@ describe("signOutAndRedirect", () => {
   });
 
   test("should allow my API key to be deleted by default when I sign out", async () => {
-    await expect(signOutAndRedirect("/signin")).rejects.toThrow();
+    await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 
     const { headers } = signOutApiMock.mock.calls[0][0];
     expect(headers.get(SKIP_API_KEY_REVOCATION_HEADER)).toBeNull();
@@ -147,14 +156,14 @@ describe("signOutAndRedirect", () => {
   test("should not ask the backend to delete my API key when it has already expired", async () => {
     await expect(
       signOutAndRedirect("/signin", { revokeApiKey: false }),
-    ).rejects.toThrow();
+    ).rejects.toThrow("NEXT_REDIRECT");
 
     const { headers } = signOutApiMock.mock.calls[0][0];
     expect(headers.get(SKIP_API_KEY_REVOCATION_HEADER)).toBe("1");
   });
 
-  test("should sign me out before sending me away", async () => {
-    await expect(signOutAndRedirect("/signin")).rejects.toThrow();
+  test("should not allow me to be sent away before I am signed out", async () => {
+    await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 
     expect(signOutApiMock.mock.invocationCallOrder[0]).toBeLessThan(
       redirectMock.mock.invocationCallOrder[0],

@@ -88,7 +88,24 @@ describe("fetchShrineSangakus", () => {
 
 describe("fetchUserSangaku", () => {
   beforeEach(() => {
+    vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
+  });
+
+  test("should allow the backend to know who I am with the access token of my session", async () => {
+    // Arrange
+    vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(mockSuccessResponse());
+
+    // Act
+    await fetchUserSangaku("1");
+
+    // Assert
+    const options = fetchMock.mock.calls[0][1] as {
+      headers: Record<string, string>;
+    };
+    expect(options.headers["Authorization"]).toBe("Bearer my-token");
   });
 
   test("should call fetch with the expected URL when id is a valid id", async () => {
@@ -436,6 +453,7 @@ describe("fetchSavedSangakus", () => {
 
 describe("fetchPublicReorderSangaku", () => {
   beforeEach(() => {
+    vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -513,8 +531,10 @@ describe("fetchPublicReorderSangaku", () => {
     expect(calledUrl.endsWith("/api/v1/public/reorder_sangakus/1")).toBe(true);
   });
 
-  test("should not send an Authorization header when fetching", async () => {
+  // サインイン中でも、公開 API には ApiKey を送らない。session が token を持つ状態で確かめる
+  test("should not send an Authorization header when fetching even if I am signed in", async () => {
     // Arrange
+    vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ data: {} }), { status: 200 }),
@@ -533,6 +553,7 @@ describe("fetchPublicReorderSangaku", () => {
 
 describe("fetchRepresentativeReorderSangaku", () => {
   beforeEach(() => {
+    vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -618,8 +639,10 @@ describe("fetchRepresentativeReorderSangaku", () => {
     ).toBe(true);
   });
 
-  test("should not send an Authorization header when fetching", async () => {
+  // サインイン中でも、公開 API には ApiKey を送らない。session が token を持つ状態で確かめる
+  test("should not send an Authorization header when fetching even if I am signed in", async () => {
     // Arrange
+    vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ data: {} }), { status: 200 }),

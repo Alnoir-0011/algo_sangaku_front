@@ -1,7 +1,7 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 
-// auth.ts は読み込み時に、環境変数から設定を作る。https の公開 URL（本番相当）で、
-// import より前に用意する
+// beforeEach では設定しない。auth.ts は import の時点で、環境変数から設定を作る。
+// https の公開 URL（本番相当）で用意する
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret-for-cookie-attributes-01234";
   process.env.BETTER_AUTH_URL = "https://app.example.com";
@@ -16,38 +16,17 @@ vi.mock("@/app/lib/server-fetch", () => ({ serverFetch: serverFetchMock }));
 vi.mock("@/app/lib/set-flash", () => ({ setFlash: vi.fn() }));
 
 import { auth } from "@/auth";
-import {
-  idTokenOf,
-  signInWithGoogle,
-  stubGoogleTokenEndpoint,
-} from "@/tests/__helpers__/google-sign-in";
+import { createAuthKit } from "@/tests/unit/auth/support";
 
-const ORIGIN = "https://app.example.com";
+const { signIn } = createAuthKit(auth, serverFetchMock, "https://app.example.com");
+
 const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60;
 
-// 実際にサインインして、応答の Set-Cookie を確かめる。設定値（authCookies）を見るだけだと、
-// 発行の経路（setSessionCookie の overrides など）で属性が変わっても、気づけない
+// 設定値（authCookies）を見るだけだと、発行の経路（setSessionCookie の overrides など）で
+// 属性が変わっても、気づけない。実際にサインインして、応答の Set-Cookie を確かめる
 describe("cookies of the auth library on https", () => {
-  beforeEach(() => {
-    serverFetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          data: { attributes: { nickname: "nick", role: "general" } },
-        }),
-        { status: 200, headers: { accesstoken: "my-token" } },
-      ),
-    );
-    stubGoogleTokenEndpoint(
-      idTokenOf({ sub: "google-sub", email: "me@example.com", name: "Me" }),
-    );
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   const setCookieOf = async (name: string) => {
-    const { response } = await signInWithGoogle(auth, "", ORIGIN);
+    const { response } = await signIn("my-token");
     return response.headers
       .getSetCookie()
       .find((setCookie) => setCookie.startsWith(`__Secure-better-auth.${name}=`));

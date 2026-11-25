@@ -5,11 +5,7 @@ const { serverFetchMock } = vi.hoisted(() => ({ serverFetchMock: vi.fn() }));
 vi.mock("@/app/lib/server-fetch", () => ({ serverFetch: serverFetchMock }));
 vi.mock("@/app/lib/config", () => ({ apiUrl: "http://api.test" }));
 
-import {
-  BACKEND_SIGN_OUT_TIMEOUT_MS,
-  revokeRailsApiKey,
-  withTimeout,
-} from "@/app/lib/rails-api-key";
+import { revokeRailsApiKey, withTimeout } from "@/app/lib/rails-api-key";
 
 describe("revokeRailsApiKey", () => {
   beforeEach(() => {
@@ -33,7 +29,7 @@ describe("revokeRailsApiKey", () => {
     );
   });
 
-  test("should not keep the connection to the backend busy with the body that is not used", async () => {
+  test("should not allow the response body that is not used to keep the connection to the backend busy", async () => {
     const response = new Response("{}", { status: 200 });
     const cancel = vi.spyOn(response.body!, "cancel");
     serverFetchMock.mockResolvedValue(response);
@@ -47,7 +43,10 @@ describe("revokeRailsApiKey", () => {
     serverFetchMock.mockResolvedValue(new Response("{}", { status: 500 }));
 
     await expect(revokeRailsApiKey("token")).resolves.toBeUndefined();
-    expect(console.error).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      "[auth] backend sign-out failed:",
+      500,
+    );
   });
 
   test("should not allow an already invalid API key to be reported as a failure", async () => {
@@ -59,10 +58,14 @@ describe("revokeRailsApiKey", () => {
   });
 
   test("should allow me to sign out even when the backend cannot be reached", async () => {
-    serverFetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    const error = new TypeError("fetch failed");
+    serverFetchMock.mockRejectedValue(error);
 
     await expect(revokeRailsApiKey("token")).resolves.toBeUndefined();
-    expect(console.error).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      "[auth] backend sign-out failed:",
+      error,
+    );
   });
 
   test("should not allow the backend to keep me waiting for long when signing out", async () => {
@@ -77,11 +80,15 @@ describe("revokeRailsApiKey", () => {
         }),
     );
 
+    // 定数そのものでなく、固定の長さで進める。定数が長くなったときに、気づけるようにする
     const pending = revokeRailsApiKey("token");
-    await vi.advanceTimersByTimeAsync(BACKEND_SIGN_OUT_TIMEOUT_MS);
+    await vi.advanceTimersByTimeAsync(5_000);
 
     await expect(pending).resolves.toBeUndefined();
-    expect(console.error).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      "[auth] backend sign-out failed:",
+      expect.any(Error),
+    );
   });
 });
 
@@ -112,7 +119,7 @@ describe("withTimeout", () => {
       });
       return new Promise<never>(() => {});
     });
-    // 結果を使わないため、中断後も未解決のままの Promise を捨てる
+    // await しない。中断後も未解決のままの Promise を待つと、このテストが終わらない
     void pending;
     await vi.advanceTimersByTimeAsync(1_000);
 

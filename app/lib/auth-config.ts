@@ -39,7 +39,7 @@ export const sessionOptions = {
 } as const;
 
 // cookie の中身と検証に関わる設定は、すべてここに置く。auth.ts にだけ足すと、テストの cookie が
-// 古い形のまま残る（tests/unit/test-auth.test.ts が、両方の cookie の名前と属性の一致を確かめる）
+// 古い形のまま残る（tests/unit/auth/test-helper.test.ts が、両方の cookie の名前と属性の一致を確かめる）
 export const cookieAuthOptions = {
   session: sessionOptions,
   user: { additionalFields: userAdditionalFields },

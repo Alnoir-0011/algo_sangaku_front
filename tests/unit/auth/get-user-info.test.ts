@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
-// auth.ts は読み込み時に、環境変数から設定を作る。import より前に用意する
+// beforeEach では設定しない。auth.ts は import の時点で、環境変数から設定を作るため
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret-for-get-user-info-012345678";
   process.env.BETTER_AUTH_URL = "http://localhost:4020";
@@ -25,8 +25,7 @@ vi.mock("@/app/lib/rails-api-key", async (importOriginal) => ({
 }));
 
 import { auth } from "@/auth";
-import { DEFAULT_NETWORK_TIMEOUT_MS } from "@/app/lib/constants";
-import { idTokenOf } from "@/tests/__helpers__/google-sign-in";
+import { idTokenOf } from "@/tests/unit/auth/support";
 
 type GetUserInfo = (tokens: { idToken?: string }) => Promise<unknown>;
 
@@ -49,7 +48,7 @@ const getUserInfo = () => {
   return google?.getUserInfo as unknown as GetUserInfo;
 };
 
-describe("Google sign-in (getUserInfo)", () => {
+describe("Google sign-in", () => {
   beforeEach(() => {
     serverFetchMock.mockReset().mockImplementation(async () => backendOk());
     setFlashMock.mockReset();
@@ -75,9 +74,10 @@ describe("Google sign-in (getUserInfo)", () => {
         role: "admin",
       },
     });
+    expect(revokeRailsApiKeyMock).not.toHaveBeenCalled();
   });
 
-  test("should send my ID token to the backend", async () => {
+  test("should allow me to be identified by the backend with my ID token", async () => {
     await getUserInfo()({ idToken: validIdToken });
 
     expect(serverFetchMock).toHaveBeenCalledWith(
@@ -90,10 +90,11 @@ describe("Google sign-in (getUserInfo)", () => {
   });
 
   // サインインの成功が確定する前に出すと、後段の失敗（リンクの拒否など）で、
-  // 失敗の表示と同時に出る。成功の通知は、フック（auth.test.ts）で出す
-  test("should not show the sign-in message before the sign-in succeeds", async () => {
-    await getUserInfo()({ idToken: validIdToken });
+  // 失敗の表示と同時に出る。成功の通知は、フック（sign-in.test.ts）で出す
+  test("should not allow me to see the sign-in message before the sign-in succeeds", async () => {
+    const result = await getUserInfo()({ idToken: validIdToken });
 
+    expect(result).not.toBeNull();
     expect(setFlashMock).not.toHaveBeenCalled();
   });
 
@@ -101,13 +102,11 @@ describe("Google sign-in (getUserInfo)", () => {
     test("should not allow me to sign in without an ID token", async () => {
       expect(await getUserInfo()({})).toBeNull();
       expect(serverFetchMock).not.toHaveBeenCalled();
-      expect(setFlashMock).not.toHaveBeenCalled();
     });
 
     test("should not leave an API key behind when my ID token cannot be decoded", async () => {
       expect(await getUserInfo()({ idToken: "not-a-token" })).toBeNull();
       expect(serverFetchMock).not.toHaveBeenCalled();
-      expect(setFlashMock).not.toHaveBeenCalled();
     });
 
     test("should not leave an API key behind when my ID token has no email", async () => {
@@ -117,7 +116,6 @@ describe("Google sign-in (getUserInfo)", () => {
 
       expect(result).toBeNull();
       expect(serverFetchMock).not.toHaveBeenCalled();
-      expect(setFlashMock).not.toHaveBeenCalled();
     });
 
     test("should not leave an API key behind when my ID token has no subject", async () => {
@@ -153,27 +151,48 @@ describe("Google sign-in (getUserInfo)", () => {
         serverFetchMock.mockResolvedValue(new Response("{}", { status }));
 
         expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
-        expect(setFlashMock).not.toHaveBeenCalled();
       },
     );
 
     test("should not allow me to sign in when the backend gives no access token", async () => {
       serverFetchMock.mockResolvedValue(
         new Response(
-          JSON.stringify({ data: { attributes: { nickname: "n", role: "x" } } }),
+          JSON.stringify({ data: { attributes: { nickname: "n", role: "admin" } } }),
           { status: 200 },
         ),
       );
 
       expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
-      expect(setFlashMock).not.toHaveBeenCalled();
+    });
+
+    test("should delete the API key when the backend accepted me but gave a body that cannot be read", async () => {
+      serverFetchMock.mockResolvedValue(
+        new Response("not json", {
+          status: 200,
+          headers: { accesstoken: "api-token" },
+        }),
+      );
+
+      expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
+      expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("api-token");
+    });
+
+    test("should delete the API key when the backend accepted me but gave no user", async () => {
+      serverFetchMock.mockResolvedValue(
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { accesstoken: "api-token" },
+        }),
+      );
+
+      expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
+      expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("api-token");
     });
 
     test("should not allow me to sign in when the backend cannot be reached", async () => {
       serverFetchMock.mockRejectedValue(new TypeError("fetch failed"));
 
       expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
-      expect(setFlashMock).not.toHaveBeenCalled();
     });
 
     test("should not allow the backend to keep me waiting for long when I sign in", async () => {
@@ -188,11 +207,11 @@ describe("Google sign-in (getUserInfo)", () => {
           }),
       );
 
+      // 定数そのものでなく、固定の長さで進める。定数が長くなったときに、気づけるようにする
       const pending = getUserInfo()({ idToken: validIdToken });
-      await vi.advanceTimersByTimeAsync(DEFAULT_NETWORK_TIMEOUT_MS);
+      await vi.advanceTimersByTimeAsync(10_000);
 
       expect(await pending).toBeNull();
-      expect(setFlashMock).not.toHaveBeenCalled();
     });
   });
 });

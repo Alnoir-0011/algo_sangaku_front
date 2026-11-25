@@ -1,15 +1,16 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-const { getSessionApiMock, setFlashMock } = vi.hoisted(() => ({
+const { getSessionApiMock, setFlashMock, runGuardMock } = vi.hoisted(() => ({
   getSessionApiMock: vi.fn(),
   setFlashMock: vi.fn(),
+  runGuardMock: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: { api: { getSession: getSessionApiMock } } }));
 vi.mock("@/app/lib/set-flash", () => ({ setFlash: setFlashMock }));
 vi.mock("@/app/lib/guard", () => ({
-  runGuard: vi.fn().mockResolvedValue({ action: "allow" }),
+  runGuard: runGuardMock,
   resolveGuardMode: vi.fn().mockReturnValue("off"),
   getDefaultLimiter: vi.fn(),
 }));
@@ -34,6 +35,7 @@ describe("proxy", () => {
   beforeEach(() => {
     getSessionApiMock.mockReset().mockResolvedValue(null);
     setFlashMock.mockReset();
+    runGuardMock.mockReset().mockResolvedValue({ action: "allow" });
   });
 
   describe("when I am signed out", () => {
@@ -41,7 +43,7 @@ describe("proxy", () => {
       expect(redirectedTo(await run("/user/profile"))).toBe("/signin");
     });
 
-    test("should tell me to sign in when I am sent to the sign-in page", async () => {
+    test("should allow me to see the sign-in notice when I am sent to the sign-in page", async () => {
       await run("/user/profile");
 
       expect(setFlashMock).toHaveBeenCalledWith({
@@ -51,24 +53,41 @@ describe("proxy", () => {
     });
 
     test("should allow me to open a public page", async () => {
-      expect(redirectedTo(await run("/shrines"))).toBeNull();
+      expect(await run("/shrines")).toBeUndefined();
     });
 
     test("should allow me to open the sign-in page", async () => {
-      expect(redirectedTo(await run("/signin"))).toBeNull();
+      expect(await run("/signin")).toBeUndefined();
     });
 
     test("should not allow me to open the admin page", async () => {
       expect(redirectedTo(await run("/admin"))).toBe("/signin");
     });
 
-    test("should leave requests to the auth API alone", async () => {
-      expect(redirectedTo(await run("/api/auth/get-session"))).toBeNull();
+    test("should allow me to request the auth API without being redirected", async () => {
+      expect(await run("/api/auth/get-session")).toBeUndefined();
       expect(setFlashMock).not.toHaveBeenCalled();
     });
 
-    test("should not leave requests to a route that only starts with the path of the auth API alone", async () => {
+    test("should not allow me to open a route that only starts with the path of the auth API without signing in", async () => {
       expect(redirectedTo(await run("/api/authors"))).toBe("/signin");
+    });
+  });
+
+  describe("when the rate limit is told who I am", () => {
+    const emailPassedToGuard = async (path: string) => {
+      await run(path);
+      return runGuardMock.mock.calls[0][1].email;
+    };
+
+    test("should allow my email to be used for the rate limit when I am signed in", async () => {
+      signedInAs("me@example.com");
+
+      expect(await emailPassedToGuard("/shrines")).toBe("me@example.com");
+    });
+
+    test("should not allow an email to be used for the rate limit when I am signed out", async () => {
+      expect(await emailPassedToGuard("/shrines")).toBeNull();
     });
   });
 
@@ -79,15 +98,22 @@ describe("proxy", () => {
     });
 
     test("should allow me to open a public page", async () => {
-      expect(redirectedTo(await run("/shrines"))).toBeNull();
+      expect(await run("/shrines")).toBeUndefined();
     });
 
     test("should allow me to open the sign-in page", async () => {
-      expect(redirectedTo(await run("/signin"))).toBeNull();
+      expect(await run("/signin")).toBeUndefined();
     });
 
     test("should not allow me to open a page that needs sign-in", async () => {
       expect(redirectedTo(await run("/user/profile"))).toBe("/signin");
+    });
+
+    test("should not allow the rate limit to be skipped", async () => {
+      await run("/shrines");
+
+      expect(runGuardMock).toHaveBeenCalledTimes(1);
+      expect(runGuardMock.mock.calls[0][1].email).toBeNull();
     });
   });
 
@@ -95,7 +121,7 @@ describe("proxy", () => {
     test("should allow me to open a page that needs sign-in", async () => {
       signedInAs("me@example.com");
 
-      expect(redirectedTo(await run("/user/profile"))).toBeNull();
+      expect(await run("/user/profile")).toBeUndefined();
     });
 
     test("should not allow me to open the sign-in page", async () => {
@@ -113,7 +139,7 @@ describe("proxy", () => {
     test("should allow an admin to open the admin page", async () => {
       signedInAs("me@example.com", "admin");
 
-      expect(redirectedTo(await run("/admin"))).toBeNull();
+      expect(await run("/admin")).toBeUndefined();
     });
   });
 

@@ -1,6 +1,7 @@
 import { test, expect } from "@/tests/e2e/fixtures";
 import type { APIResponse } from "@playwright/test";
 import { setSession } from "../__helpers__/signin";
+import { DEFAULT_ACCESS_TOKEN } from "../__helpers__/test-auth";
 
 const AUTH_COOKIE_NAME = /^(__Secure-)?better-auth\./;
 
@@ -16,10 +17,22 @@ const authCookieReissues = (response: APIResponse) =>
     )
     .map(([cookieName]) => cookieName);
 
+const NOT_FOUND = { message: "Not found" };
+
 test.describe("Session cookie", () => {
   test.describe("when signed in", () => {
     test.beforeEach(async ({ page }) => {
       await setSession(page);
+    });
+
+    test("should allow me to be recognized as signed in", async ({ page }) => {
+      const response = await page.request.get("/api/auth/get-session");
+
+      expect(response.status()).toBe(200);
+      expect((await response.json()).user).toMatchObject({
+        nickname: "test_nickname",
+        role: "general",
+      });
     });
 
     test("should not allow me to have my session cookie re-issued by a page response", async ({
@@ -27,6 +40,7 @@ test.describe("Session cookie", () => {
     }) => {
       const response = await page.request.get("/");
 
+      expect(response.status()).toBe(200);
       expect(authCookieReissues(response)).toEqual([]);
     });
 
@@ -37,6 +51,7 @@ test.describe("Session cookie", () => {
         headers: { RSC: "1" },
       });
 
+      expect(response.status()).toBe(200);
       expect(authCookieReissues(response)).toEqual([]);
     });
 
@@ -45,6 +60,7 @@ test.describe("Session cookie", () => {
     }) => {
       const response = await page.request.get("/api/auth/get-session");
 
+      expect(response.status()).toBe(200);
       expect(authCookieReissues(response)).toEqual([]);
     });
 
@@ -54,7 +70,7 @@ test.describe("Session cookie", () => {
       const response = await page.request.get("/api/auth/get-session");
 
       expect(response.status()).toBe(200);
-      expect(await response.text()).not.toContain("dummy_token");
+      expect(await response.text()).not.toContain(DEFAULT_ACCESS_TOKEN);
     });
 
     test("should not allow my access token to be exposed to the browser by a page", async ({
@@ -62,31 +78,55 @@ test.describe("Session cookie", () => {
     }) => {
       const response = await page.request.get("/");
 
-      expect(await response.text()).not.toContain("dummy_token");
+      expect(response.status()).toBe(200);
+      expect(await response.text()).not.toContain(DEFAULT_ACCESS_TOKEN);
     });
 
     test("should not allow me to update my session through the API", async ({
       page,
       baseURL,
     }) => {
+      const before = await (await page.request.get("/api/auth/get-session")).json();
+
       const response = await page.request.post("/api/auth/update-user", {
         data: { name: "changed" },
         headers: { origin: baseURL! },
       });
 
       expect(response.status()).toBe(404);
+      expect(await response.json()).toMatchObject(NOT_FOUND);
+      const after = await (await page.request.get("/api/auth/get-session")).json();
+      expect(after.user.name).toBe(before.user.name);
+    });
+  });
+
+  // 攻撃者は、通常、サインインしていない
+  test.describe("when signed out", () => {
+    test("should not allow me to update a session through the API", async ({
+      request,
+      baseURL,
+    }) => {
+      const response = await request.post("/api/auth/update-user", {
+        data: { name: "changed" },
+        headers: { origin: baseURL! },
+      });
+
+      expect(response.status()).toBe(404);
+      expect(await response.json()).toMatchObject(NOT_FOUND);
     });
 
     test("should not allow me to sign in with an ID token that skips the OAuth state", async ({
-      page,
+      request,
       baseURL,
     }) => {
-      const response = await page.request.post("/api/auth/sign-in/social", {
+      const response = await request.post("/api/auth/sign-in/social", {
         data: { provider: "google", idToken: { token: "leaked-token" } },
         headers: { origin: baseURL! },
       });
 
       expect(response.status()).toBe(404);
+      expect(await response.json()).toMatchObject(NOT_FOUND);
+      expect(authCookieReissues(response)).toEqual([]);
     });
   });
 });

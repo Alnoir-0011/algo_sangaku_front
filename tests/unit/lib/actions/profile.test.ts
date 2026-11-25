@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 const {
   getSessionMock,
@@ -29,7 +29,10 @@ vi.mock("next/dist/client/components/redirect-error", () => ({
     error instanceof Error && error.message === "NEXT_REDIRECT",
 }));
 
-import { updateProfile } from "@/app/lib/actions/profile";
+import {
+  updateProfile,
+  updateShowAnswerCount,
+} from "@/app/lib/actions/profile";
 
 const formOf = (nickname: string) => {
   const form = new FormData();
@@ -56,20 +59,34 @@ describe("updateProfile", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  test("should allow my nickname in my session to follow the nickname the backend accepted", async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  // フォームの値と、バックエンドが受理した値を変えて、どちらが session に渡るかを確かめる
+  test("should allow me to see the nickname the backend accepted in my session", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(profileResponse("new"));
+    vi.stubGlobal("fetch", fetchMock);
+
     await expect(
-      updateProfile({}, formOf("new")),
+      updateProfile({}, formOf(" new ")),
     ).rejects.toThrow("NEXT_REDIRECT");
 
+    expect(fetchMock.mock.calls[0][1].body).toBe(
+      JSON.stringify({ user: { nickname: " new " } }),
+    );
     expect(updateSessionNicknameMock).toHaveBeenCalledWith("new");
     expect(setFlashMock).toHaveBeenCalledWith({
       type: "success",
       message: "プロフィールを更新しました",
     });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/user/profile");
+    expect(redirectMock).toHaveBeenCalledWith("/user/profile");
   });
 
   // Rails では更新済みなので、失敗として表示すると、再送信しても変わらない更新になる
-  test("should show that my profile was updated even when my session could not follow it", async () => {
+  test("should allow me to see that my profile was updated even when my session could not follow it", async () => {
     updateSessionNicknameMock.mockRejectedValue(new Error("cookie is broken"));
 
     await expect(
@@ -86,7 +103,7 @@ describe("updateProfile", () => {
     });
   });
 
-  test("should not update my nickname in my session when the backend did not accept it", async () => {
+  test("should not allow my session to take a nickname that the backend did not accept", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -94,18 +111,61 @@ describe("updateProfile", () => {
       ),
     );
 
-    await updateProfile({}, formOf(""));
+    const state = await updateProfile({}, formOf(""));
 
+    expect(state).toMatchObject({ values: { nickname: "" } });
+    expect(setFlashMock).toHaveBeenCalledWith({
+      type: "error",
+      message: "入力に誤りがあります",
+    });
     expect(updateSessionNicknameMock).not.toHaveBeenCalled();
   });
 
-  test("should sign me out without asking the backend to delete my API key when the API responds with 401", async () => {
+  test("should allow me to be signed out without deleting my API key when the API responds with 401", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response(null, { status: 401 })),
     );
 
     await updateProfile({}, formOf("new"));
+
+    expect(signOutAndRedirectMock).toHaveBeenCalledWith("/signin", {
+      revokeApiKey: false,
+    });
+  });
+});
+
+describe("updateShowAnswerCount", () => {
+  beforeEach(() => {
+    getSessionMock.mockReset().mockResolvedValue({ accessToken: "token" });
+    setFlashMock.mockReset();
+    signOutAndRedirectMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("should allow me to change whether my answer count is shown", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await updateShowAnswerCount(false)).toEqual({ success: true });
+
+    expect(fetchMock.mock.calls[0][1].body).toBe(
+      JSON.stringify({ user: { show_answer_count: false } }),
+    );
+  });
+
+  test("should allow me to be signed out without deleting my API key when the API responds with 401", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(null, { status: 401 })),
+    );
+
+    await updateShowAnswerCount(true);
 
     expect(signOutAndRedirectMock).toHaveBeenCalledWith("/signin", {
       revokeApiKey: false,

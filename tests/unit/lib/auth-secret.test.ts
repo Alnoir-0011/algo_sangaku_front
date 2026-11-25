@@ -25,6 +25,13 @@ describe("resolveAuthSecret", () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     vi.stubEnv("AUTH_SECRET", "");
 
-    expect(resolveAuthSecret()).toBeFalsy();
+    expect(resolveAuthSecret()).toBe("");
+  });
+
+  test("should not allow a secret to be made up when none is set", () => {
+    vi.stubEnv("BETTER_AUTH_SECRET", undefined);
+    vi.stubEnv("AUTH_SECRET", undefined);
+
+    expect(resolveAuthSecret()).toBeUndefined();
   });
 });

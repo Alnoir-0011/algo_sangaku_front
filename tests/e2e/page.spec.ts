@@ -5,6 +5,7 @@ import {
   HttpResponse,
 } from "@/tests/e2e/fixtures.msw";
 import { setSession } from "../__helpers__/signin";
+import { DEFAULT_ACCESS_TOKEN } from "../__helpers__/test-auth";
 
 const apiUrl = process.env.API_URL;
 
@@ -73,11 +74,14 @@ test.describe("TopPage", () => {
     });
 
     test.describe("after login", () => {
-      test("should allow me to see the app name link in the drawer", async ({ page }) => {
+      test("should allow me to see the menu for signed-in users in the drawer", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
 
         const drawer = page.getByRole("navigation");
+        await expect(
+          drawer.getByRole("button", { name: "サインアウト" }),
+        ).toBeVisible();
         const link = drawer.getByRole("link", { name: "アルゴ算額" });
         await expect(link).toBeVisible();
         await expect(link).toHaveAttribute("href", "/");
@@ -86,6 +90,10 @@ test.describe("TopPage", () => {
       test("should not allow me to see the sign in button after login", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
+        // ページが想定外の状態でも通らないよう、ログイン中のメニューが出ていることを先に確かめる
+        await expect(
+          page.getByRole("button", { name: "サインアウト" }),
+        ).toBeVisible();
         const button = page.getByRole("button", { name: "サインイン" });
         await expect(button).not.toBeVisible({ timeout: 5_000 });
       });
@@ -105,6 +113,29 @@ test.describe("TopPage", () => {
         });
         await page.getByRole("button", { name: "サインアウト" }).click();
         await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+      });
+
+      test("should allow me to sign out and have my API key deleted at the backend", async ({
+        page,
+        msw,
+      }) => {
+        const deletedWith: (string | null)[] = [];
+        msw.use(
+          http.delete(`${apiUrl}/api/v1/authenticate`, ({ request }) => {
+            deletedWith.push(request.headers.get("Authorization"));
+            return HttpResponse.json({}, { status: 200 });
+          }),
+        );
+        await setSession(page);
+        await page.goto("/");
+
+        await page.evaluate(() => {
+          window.confirm = () => true;
+        });
+        await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect(page).toHaveURL("/signin", { timeout: 10_000 });
+
+        expect(deletedWith).toEqual([`Bearer ${DEFAULT_ACCESS_TOKEN}`]);
       });
 
       test("should allow me to see the sign-in menu right after I sign out", async ({
@@ -133,6 +164,7 @@ test.describe("TopPage", () => {
         await expect(
           page.getByRole("button", { name: "サインアウト" }),
         ).not.toBeVisible();
+        await expect(page.getByText("サインアウトしました")).toBeVisible();
       });
 
       for (const { reason, respond } of [
@@ -158,14 +190,39 @@ test.describe("TopPage", () => {
       test("should not allow me to sign out when dismissed", async ({
         page,
       }) => {
+        // Server Action は、next-action ヘッダー付きの POST で呼ばれる。ページの表示時にも
+        // 別の Server Action が走るため、クリック前後の増減で確かめる。
+        // 遷移や表示の確認だけだと、キャンセルを無視して実行される実装でも、実行前の状態を見て通る
+        const serverActionRequests: string[] = [];
+        page.on("request", (request) => {
+          if (request.method() === "POST" && request.headers()["next-action"]) {
+            serverActionRequests.push(request.url());
+          }
+        });
         await setSession(page);
         await page.goto("/");
+        await page.waitForLoadState("networkidle");
+        const requestsBeforeClick = serverActionRequests.length;
 
         // window.confirm を false で上書きしてキャンセルをシミュレート
         await page.evaluate(() => {
-          window.confirm = () => false;
+          (window as unknown as { confirmCalls: number }).confirmCalls = 0;
+          window.confirm = () => {
+            (window as unknown as { confirmCalls: number }).confirmCalls += 1;
+            return false;
+          };
         });
         await page.getByRole("button", { name: "サインアウト" }).click();
+        await expect
+          .poll(() =>
+            page.evaluate(
+              () => (window as unknown as { confirmCalls: number }).confirmCalls,
+            ),
+          )
+          .toBe(1);
+        await page.waitForLoadState("networkidle");
+
+        expect(serverActionRequests).toHaveLength(requestsBeforeClick);
         await expect(page).toHaveURL("/");
         // キャンセル後もサインアウトボタンが残っていること（セッションが維持されていること）を確認
         await expect(page.getByRole("button", { name: "サインアウト" })).toBeVisible();

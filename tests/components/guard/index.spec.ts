@@ -85,7 +85,7 @@ test.describe("classifyRoute", () => {
 
   test("should allow me to classify a sign-in request", () => {
     // Act
-    const group = classifyRoute("POST", "/api/auth/signin");
+    const group = classifyRoute("POST", "/api/auth/sign-in/social");
 
     // Assert
     expect(group).toBe("signin");

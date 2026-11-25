@@ -142,8 +142,16 @@ export const auth = betterAuth({
 
               const accessToken = response.headers.get("accesstoken");
               if (!accessToken) return null;
-              const body = await response.json();
-              return { accessToken, attributes: body.data.attributes };
+
+              // 外側の catch では accessToken が見えないため、本文を読めなかったときの失効は、
+              // ここで行う
+              try {
+                const body = await response.json();
+                return { accessToken, attributes: body.data.attributes };
+              } catch (error) {
+                await revokeRailsApiKey(accessToken);
+                throw error;
+              }
             },
           );
           if (!authenticated) return null;

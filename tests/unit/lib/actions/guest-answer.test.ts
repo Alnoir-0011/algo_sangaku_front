@@ -114,8 +114,10 @@ describe("submitGuestReorderAnswer", () => {
     });
   });
 
-  test("should not send an Authorization header when called with valid input", async () => {
+  // サインイン中でも、ゲスト解答には ApiKey を送らない。session が token を持つ状態で確かめる
+  test("should not send an Authorization header when called with valid input even if I am signed in", async () => {
     // Arrange
+    getSessionMock.mockResolvedValue({ accessToken: "my-token" });
     const fetchMock = getFetchMock();
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: "correct" }));
 

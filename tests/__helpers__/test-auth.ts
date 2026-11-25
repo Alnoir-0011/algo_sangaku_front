@@ -62,10 +62,12 @@ const playwrightCookieFrom = (
   };
 };
 
+export const DEFAULT_ACCESS_TOKEN = "dummy_token";
+
 export async function createSessionCookies({
   email,
   role = "general",
-  accessToken = "dummy_token",
+  accessToken = DEFAULT_ACCESS_TOKEN,
 }: {
   email: string;
   role?: "general" | "admin";

@@ -22,6 +22,10 @@ describe("safeCallbackPath", () => {
     ["an encoded slash in the path", "/%2F%2Fevil.example"],
     ["an encoded backslash in the path", "/%5Cevil.example"],
     ["a lower-case encoded slash in the path", "/a%2fb"],
+    ["a lower-case encoded backslash in the path", "/a%5cb"],
+    ["a control character (DEL)", "/a\u007fb"],
+    ["a control character (NEL)", "/a\u0085b"],
+    ["a leading space", " /a"],
   ])("should not allow me to be sent to %s", (_label, value) => {
     expect(safeCallbackPath(value)).toBe("/");
   });
