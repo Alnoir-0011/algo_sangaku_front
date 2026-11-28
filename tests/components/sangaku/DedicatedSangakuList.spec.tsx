@@ -35,7 +35,9 @@ const sangakus = [
   buildSangaku("2", "title_2", "difficult"),
 ];
 
+// DedicatedSangakuList
 test.describe("DedicatedSangakuList", () => {
+  // 各算額のタイトルと説明が見える
   test("should allow me to see the title and description of each sangaku", async ({
     mount,
   }) => {
@@ -49,6 +51,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(component.getByText("title_2_desc")).toBeVisible();
   });
 
+  // 各算額の難易度ラベルが見える
   test("should allow me to see the difficulty label of each sangaku", async ({
     mount,
   }) => {
@@ -60,6 +63,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(component.getByText("難しい", { exact: true })).toBeVisible();
   });
 
+  // 総ページ数が 3 のとき、ページネーションのボタンが見える
   test("should allow me to see pagination buttons when total page is 3", async ({
     mount,
   }) => {
@@ -71,6 +75,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(component.getByRole("button", { name: "3ページ目" })).toBeVisible();
   });
 
+  // 算額を選択する前は、神社モーダルが見えない
   test("should not allow me to see the shrine modal before I select a sangaku", async ({
     mount,
     page,
@@ -80,6 +85,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
+  // 算額を選択したとき、神社名と保存数が見える
   test("should allow me to see the shrine name and save count when I select a sangaku", async ({
     mount,
     page,
@@ -96,6 +102,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(page.getByText(/算額が写された数/)).toContainText("5");
   });
 
+  // 算額の結果の取得が失敗したとき、算額の結果は見えず、エラーメッセージが見える
   test("should not allow me to see the sangaku result and should allow me to see an error message when fetching the result fails", async ({
     mount,
     page,
@@ -113,6 +120,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(page.getByText(/算額が写された数/)).toHaveCount(0);
   });
 
+  // 失敗した後、算額の結果の取得を再試行できる
   test("should allow me to retry fetching the sangaku result after a failure", async ({
     mount,
     page,
@@ -134,6 +142,7 @@ test.describe("DedicatedSangakuList", () => {
     ).toHaveCount(0);
   });
 
+  // 再試行の直後に、Escape キーで神社モーダルを閉じられる
   test("should allow me to close the shrine modal with the Escape key right after retrying", async ({
     mount,
     page,
@@ -151,6 +160,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
+  // 選択中の算額が一覧から消えても、神社モーダルが見え続ける
   test("should allow me to keep seeing the shrine modal when the selected sangaku is removed from the list", async ({
     mount,
     page,
@@ -170,6 +180,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(page.getByText(/算額が写された数/)).toContainText("5");
   });
 
+  // 算額一覧の取得が失敗したとき、メッセージが見える
   test("should allow me to see the message when fetching the sangakus fails", async ({
     mount,
   }) => {
@@ -184,6 +195,7 @@ test.describe("DedicatedSangakuList", () => {
     await expect(component.getByText("リクエストに失敗しました")).toBeVisible();
   });
 
+  // 算額に神社がないとき、神社名なしで算額の結果が見える
   test("should allow me to see the sangaku result without a shrine name when the sangaku has no shrine", async ({
     mount,
     page,
@@ -207,6 +219,7 @@ test.describe("DedicatedSangakuList", () => {
     ).toHaveCount(0);
   });
 
+  // Escape キーで神社モーダルを閉じられる
   test("should allow me to close the shrine modal with the Escape key", async ({
     mount,
     page,

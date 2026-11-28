@@ -29,6 +29,7 @@ const setCookieOf = (response: Response, name: string) =>
 const sessionOf = (cookie: string) =>
   auth.api.getSession({ headers: new Headers({ cookie }) });
 
+// セッションの有効期間
 describe("session lifetime", () => {
   let signedInAt = 0;
 
@@ -53,6 +54,7 @@ describe("session lifetime", () => {
     return setCookie !== undefined && !/max-age=0/i.test(setCookie);
   };
 
+  // 2 日後に Cookie キャッシュを飛ばしても、セッションが延長されない
   test("should not allow my session to be extended when I skip the cookie cache after 2 days", async () => {
     const { cookie } = await signIn("my-token");
     const before = await sessionOf(cookie);
@@ -73,6 +75,7 @@ describe("session lifetime", () => {
 
   // session_data は、再発行されて、cookie としての寿命が 7 日に戻る。中身の expiresAt は
   // 変わらないため、再発行された cookie を持っていても、7 日で切れなければならない
+  // 再発行された Cookie でも、7 日後にはサインインしたままでいられない
   test("should not allow me to stay signed in after 7 days with the cookie that was issued again", async () => {
     const { cookie } = await signIn("my-token");
     afterDays(2);
@@ -88,6 +91,7 @@ describe("session lifetime", () => {
     expect(await sessionOf(reissued)).toBeNull();
   });
 
+  // 7 日後には、サインインしたままでいられない
   test("should not allow me to stay signed in after 7 days", async () => {
     const { cookie } = await signIn("my-token");
     afterDays(7, 1000);
@@ -95,6 +99,7 @@ describe("session lifetime", () => {
     expect(await sessionOf(cookie)).toBeNull();
   });
 
+  // ニックネームを更新しても、セッションを 7 日より先に延ばせない
   test("should not allow me to extend my session beyond 7 days by updating my nickname", async () => {
     const { cookie } = await signIn("my-token");
     afterDays(6);
@@ -115,7 +120,9 @@ describe("session lifetime", () => {
   });
 });
 
+// サインイン後の Cookie
 describe("cookies after signing in", () => {
+  // Google から受け取ったトークンを、ブラウザに残せない
   test("should not allow me to keep the tokens from Google in my browser", async () => {
     const { response } = await signIn("my-token");
 
@@ -127,6 +134,7 @@ describe("cookies after signing in", () => {
   });
 
   // Secure は、https の公開 URL でだけ付く。その確認は cookie-attributes.test.ts に任せる
+  // http でサインインしても、https でしか保持できない Cookie（%s）が付かない
   test.each(["session_token", "session_data"])(
     "should allow me to sign in on http without a cookie that only https can keep (%s)",
     async (name) => {
@@ -137,7 +145,9 @@ describe("cookies after signing in", () => {
   );
 });
 
+// ブラウザ向けのセッションデータ
 describe("session data for the browser", () => {
+  // セッションでアクセストークンを受け取れない
   test("should not allow me to receive my access token in the session", async () => {
     const { cookie } = await signIn("secret-token");
 
@@ -153,6 +163,7 @@ describe("session data for the browser", () => {
     }
   });
 
+  // ブラウザでニックネームとロールが見える
   test("should allow me to see my nickname and role in the browser", async () => {
     const { cookie } = await signIn("secret-token");
 
@@ -164,6 +175,7 @@ describe("session data for the browser", () => {
     });
   });
 
+  // Cookie だけでサインインしたままでいられる
   test("should allow me to stay signed in with only my cookie", async () => {
     const { cookie } = await signIn("secret-token");
 
@@ -176,6 +188,7 @@ describe("session data for the browser", () => {
   });
 
   // 拒否リスト（railsAccessToken だけを除く）だと、項目を足したときに、除き忘れて漏れる
+  // ブラウザで、許可リストにあるフィールドだけが見える
   test("should allow me to see only the fields that are listed in the browser", async () => {
     const { cookie } = await signIn("secret-token");
 

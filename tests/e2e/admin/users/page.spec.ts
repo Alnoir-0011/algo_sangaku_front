@@ -61,6 +61,7 @@ function makeUsersHandler(onRequest?: (sort: string | null) => void) {
   });
 }
 
+// /admin/users
 test.describe("/admin/users", () => {
   test.use({
     mswHandlers: [
@@ -72,7 +73,9 @@ test.describe("/admin/users", () => {
     ],
   });
 
+  // 未認証ユーザー
   test.describe("unauthenticated user", () => {
+    // 認証なしではユーザー一覧にアクセスできない
     test("should not allow me to access user list without authentication", async ({ page }) => {
       await page.goto("/admin/users");
       await expect(page).toHaveURL("/signin");
@@ -83,7 +86,9 @@ test.describe("/admin/users", () => {
     });
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーではユーザー一覧にアクセスできない
     test("should not allow me to access user list as a general user", async ({ page }) => {
       await setSession(page);
       await page.goto("/admin/users");
@@ -92,35 +97,41 @@ test.describe("/admin/users", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
     test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users");
     });
 
+    // 管理者として、ユーザー一覧の見出しが見える
     test("should allow me to see the users list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "ユーザー管理" }),
       ).toBeVisible({ timeout: 10_000 });
     });
 
+    // API から取得したユーザーのニックネームが見える
     test("should allow me to see user nicknames from API", async ({ page }) => {
       await expect(page.getByText("admin_nick")).toBeVisible();
       await expect(page.getByText("general_nick")).toBeVisible();
     });
 
+    // 各ユーザーの編集リンクが見える
     test("should allow me to see the edit link for each user", async ({ page }) => {
       const editLinks = page.getByRole("link", { name: "編集" });
       await expect(editLinks.first()).toBeVisible();
     });
 
     // RED: AdminUserRow に created_at カラムが存在しない（page.tsx のテーブルに登録日時列・AdminUserSortHeader が未実装）
+    // ユーザー一覧で created_at が YYYY/MM/DD 形式で見える
     test("should allow me to see created_at formatted as YYYY/MM/DD in the user list", async ({ page }) => {
       await expect(page.getByText("2026/01/01")).toBeVisible({ timeout: 10_000 });
       await expect(page.getByText("2026/01/02")).toBeVisible();
     });
 
     // RED: AdminUserRow に created_at カラムが存在しない（AdminUserSortHeader が未実装）
+    // ソート未指定で created_at のソートヘッダーをクリックしたとき、URL が ?sort=asc に変わって見える
     test("should allow me to see URL changed to ?sort=asc when clicking the created_at sort header with no current sort", async ({ page }) => {
       // Arrange: beforeEach で /admin/users に遷移済み（sort パラメータなし）
       // Act
@@ -130,6 +141,7 @@ test.describe("/admin/users", () => {
     });
 
     // RED: AdminUserRow に created_at カラムが存在しない（AdminUserSortHeader が未実装）
+    // sort=asc の状態で created_at のソートヘッダーをクリックしたとき、desc に切り替えられる
     test("should allow me to toggle sort to desc when clicking the created_at sort header with sort=asc", async ({ page }) => {
       // Arrange
       await page.goto("/admin/users?sort=asc");
@@ -140,6 +152,7 @@ test.describe("/admin/users", () => {
     });
 
     // RED: AdminUserSearchForm が未実装（検索フォームが存在しない）
+    // ユーザーページに検索フォームが見える
     test("should allow me to see search form on the users page", async ({ page }) => {
       // Arrange: beforeEach で /admin/users に遷移済み
       // Act: （レンダリングのみ）
@@ -148,6 +161,7 @@ test.describe("/admin/users", () => {
     });
 
     // RED: AdminUserSearchForm が未実装（URL への query パラメータ反映が未実装）
+    // 検索フォームに入力したとき、URL にクエリパラメータが見える
     test("should allow me to see query param in URL when typing in search form", async ({ page }) => {
       // Arrange: beforeEach で /admin/users に遷移済み
       // Act
@@ -159,6 +173,7 @@ test.describe("/admin/users", () => {
     });
 
     // RED: AdminUserSearchForm が未実装（sort パラメータを保持したまま query を反映する機能が未実装）
+    // ソート後に検索フォームに入力したとき、sort パラメータが保持される
     test("should allow me to preserve sort param when typing in search form after sorting", async ({ page }) => {
       // Arrange
       await page.goto("/admin/users?sort=asc");
@@ -172,6 +187,7 @@ test.describe("/admin/users", () => {
     });
 
     // RED: AdminUserSearchForm が未実装（query パラメータを保持したままソートヘッダーをクリックする機能が未実装）
+    // 検索後にソートヘッダーをクリックしたとき、クエリパラメータが保持される
     test("should allow me to preserve query param when clicking sort header after searching", async ({ page }) => {
       // Arrange
       await page.goto("/admin/users?query=Admin");
@@ -184,6 +200,7 @@ test.describe("/admin/users", () => {
   });
 });
 
+// /admin/users（API エラー時）
 test.describe("/admin/users (API error)", () => {
   test.use({
     mswHandlers: [
@@ -197,6 +214,7 @@ test.describe("/admin/users (API error)", () => {
     ],
   });
 
+  // API がエラーを返したとき、ユーザー一覧が見えない
   test("should not allow me to see user list when API returns error", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/users");

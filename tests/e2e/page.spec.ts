@@ -9,18 +9,22 @@ import { DEFAULT_ACCESS_TOKEN } from "../__helpers__/test-auth";
 
 const apiUrl = process.env.API_URL;
 
+// トップページ
 test.describe("TopPage", () => {
+  // メインノード
   test.describe("mainNode", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto("/");
     });
 
+    // タイトルがある
     test("has title", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "アルゴ算額" }),
       ).toBeVisible();
     });
 
+    // 説明がある
     test("has description", async ({ page }) => {
       const mainNode = page.locator("main");
       await expect(
@@ -31,6 +35,7 @@ test.describe("TopPage", () => {
       ).toBeVisible();
     });
 
+    // createSangaku ページへのリンクがある
     test("has link to createSangaku page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を作る" });
@@ -38,6 +43,7 @@ test.describe("TopPage", () => {
       await expect(link).toHaveAttribute("href", "/sangakus/create");
     });
 
+    // showSangakus ページへのリンクがある
     test("has link to showSangakus page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を確認" });
@@ -45,6 +51,7 @@ test.describe("TopPage", () => {
       await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
+    // map ページへのリンクがある
     test("has link to map page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "神社を探す" });
@@ -52,6 +59,7 @@ test.describe("TopPage", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
+    // answerSangaku ページへのリンクがある
     test("has link to answerSangaku page", async ({ page }) => {
       const mainNode = page.locator("main");
       const link = mainNode.getByRole("link", { name: "算額を解く" });
@@ -60,8 +68,11 @@ test.describe("TopPage", () => {
     });
   });
 
+  // ドロワー
   test.describe("Drawer", () => {
+    // サインイン前
     test.describe("before login", () => {
+      // サインインボタンを押すと、サインインページに Google サインインボタンが見える
       test("should allow me to see the Google sign-in button on the sign-in page when I press the sign in button", async ({ page }) => {
         await page.goto("/");
         const button = page.getByRole("button", { name: "サインイン" });
@@ -73,7 +84,9 @@ test.describe("TopPage", () => {
       });
     });
 
+    // サインイン後
     test.describe("after login", () => {
+      // ドロワーに、サインイン済みユーザー向けのメニューが見える
       test("should allow me to see the menu for signed-in users in the drawer", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
@@ -87,6 +100,7 @@ test.describe("TopPage", () => {
         await expect(link).toHaveAttribute("href", "/");
       });
 
+      // サインイン後、サインインボタンが見えない
       test("should not allow me to see the sign in button after login", async ({ page }) => {
         await setSession(page);
         await page.goto("/");
@@ -98,6 +112,7 @@ test.describe("TopPage", () => {
         await expect(button).not.toBeVisible({ timeout: 5_000 });
       });
 
+      // 確認すると、サインアウトできる
       test("should allow me to sign out when confirmed", async ({ page, msw }) => {
         msw.use(
           http.delete(`${apiUrl}/api/v1/authenticate`, () => {
@@ -115,6 +130,7 @@ test.describe("TopPage", () => {
         await expect(page).toHaveURL("/signin", { timeout: 10_000 });
       });
 
+      // サインアウトでき、バックエンドで API キーが削除される
       test("should allow me to sign out and have my API key deleted at the backend", async ({
         page,
         msw,
@@ -138,6 +154,7 @@ test.describe("TopPage", () => {
         expect(deletedWith).toEqual([`Bearer ${DEFAULT_ACCESS_TOKEN}`]);
       });
 
+      // サインアウト直後に、サインインメニューが見える
       test("should allow me to see the sign-in menu right after I sign out", async ({
         page,
         msw,
@@ -171,6 +188,7 @@ test.describe("TopPage", () => {
         { reason: "responds with an error", respond: () => HttpResponse.json({}, { status: 500 }) },
         { reason: "cannot be reached", respond: () => HttpResponse.error() },
       ]) {
+        // バックエンドがエラーを返す場合や、到達できない場合でも、サインアウトできる
         test(`should allow me to sign out even when the backend ${reason}`, async ({
           page,
           msw,
@@ -187,6 +205,7 @@ test.describe("TopPage", () => {
         });
       }
 
+      // キャンセルすると、サインアウトできない
       test("should not allow me to sign out when dismissed", async ({
         page,
       }) => {
@@ -230,9 +249,11 @@ test.describe("TopPage", () => {
     });
   });
 
+  // モバイル
   test.describe("mobile", () => {
     test.use({ viewport: { width: 430, height: 932 } });
 
+    // モバイルでメニューボタンをクリックすると、ドロワーを開ける
     test("should allow me to open the drawer by clicking the menu button on mobile", async ({ page }) => {
       await page.goto("/");
       await page.getByRole("button", { name: "open drawer" }).click();
@@ -240,6 +261,7 @@ test.describe("TopPage", () => {
       await expect(appName).toBeVisible();
     });
 
+    // Escape キーを押すと、ドロワーを閉じられる
     test("should allow me to close the drawer by pressing Escape key", async ({ page }) => {
       await page.goto("/");
       await page.getByRole("button", { name: "open drawer" }).click();

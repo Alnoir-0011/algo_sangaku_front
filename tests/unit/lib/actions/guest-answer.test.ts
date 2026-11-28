@@ -28,6 +28,7 @@ function getFetchMock() {
   return fetch as unknown as ReturnType<typeof vi.fn>;
 }
 
+// submitGuestReorderAnswer（ゲストによる並べ替え問題への解答送信）
 describe("submitGuestReorderAnswer", () => {
   beforeEach(() => {
     getSessionMock.mockReset();
@@ -36,6 +37,7 @@ describe("submitGuestReorderAnswer", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // back が 200 で status が correct のレスポンスを返したとき、{ status: 'correct' } を返す
   test("should return { status: 'correct' } when back responds 200 with status correct", async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce(jsonResponse({ status: "correct" }));
@@ -47,6 +49,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(result).toEqual({ status: "correct" });
   });
 
+  // back が 200 で status が incorrect のレスポンスを返したとき、{ status: 'incorrect' } を返す
   test("should return { status: 'incorrect' } when back responds 200 with status incorrect", async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce(jsonResponse({ status: "incorrect" }));
@@ -58,6 +61,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(result).toEqual({ status: "incorrect" });
   });
 
+  // back が 200 を返したが status がないとき、{ error } を返す
   test("should return { error } when back responds 200 without status", async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce(jsonResponse({}));
@@ -70,6 +74,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(result).not.toHaveProperty("status");
   });
 
+  // back が 200 で想定外の status の値を返したとき、{ error } を返す
   test("should return { error } when back responds 200 with an unexpected status value", async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce(jsonResponse({ status: "pending" }));
@@ -82,6 +87,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(result).not.toHaveProperty("status");
   });
 
+  // 有効な入力で呼び出したとき、/api/v1/public/reorder_sangakus/:id/answer に POST リクエストを送る
   test("should send a POST request to /api/v1/public/reorder_sangakus/:id/answer when called with valid input", async () => {
     // Arrange
     const fetchMock = getFetchMock();
@@ -99,6 +105,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(options).toMatchObject({ method: "POST" });
   });
 
+  // 有効な入力で呼び出したとき、{ answer: { block_ids } } をリクエストボディとして送る
   test("should send a request body of { answer: { block_ids } } when called with valid input", async () => {
     // Arrange
     const fetchMock = getFetchMock();
@@ -115,6 +122,7 @@ describe("submitGuestReorderAnswer", () => {
   });
 
   // サインイン中でも、ゲスト解答には ApiKey を送らない。session が token を持つ状態で確かめる
+  // 有効な入力で呼び出したとき、サインイン中でも Authorization ヘッダーを送らない
   test("should not send an Authorization header when called with valid input even if I am signed in", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "my-token" });
@@ -132,6 +140,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(headers.has("Authorization")).toBe(false);
   });
 
+  // blockIds がちょうど 100 要素のとき、リクエストを送る
   test("should send a request when blockIds has exactly 100 elements", async () => {
     // Arrange
     const fetchMock = getFetchMock();
@@ -163,6 +172,7 @@ describe("submitGuestReorderAnswer", () => {
     ["blockIds contains duplicates", "1", [1, 2, 2]],
   ];
 
+  // %s のとき、fetch を呼ばずに { error } を返す
   test.each(invalidCases)(
     "should return { error } without calling fetch when %s",
     async (_name, sangakuId, blockIds) => {
@@ -178,6 +188,7 @@ describe("submitGuestReorderAnswer", () => {
     },
   );
 
+  // back が %i を返したとき、例外を投げずに { error } を返す
   test.each([400, 404, 500])(
     "should return { error } without throwing when back responds %i",
     async (status) => {
@@ -192,6 +203,7 @@ describe("submitGuestReorderAnswer", () => {
     },
   );
 
+  // fetch が reject されたとき、例外を投げずに { error } を返す
   test("should return { error } without throwing when fetch rejects", async () => {
     // Arrange
     getFetchMock().mockRejectedValueOnce(new Error("network error"));
@@ -203,6 +215,7 @@ describe("submitGuestReorderAnswer", () => {
     expect(result).toHaveProperty("error");
   });
 
+  // 有効な入力で呼び出したとき、auth・setFlash・redirect を呼ばない
   test("should not call auth, setFlash, or redirect when called with valid input", async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce(jsonResponse({ status: "correct" }));

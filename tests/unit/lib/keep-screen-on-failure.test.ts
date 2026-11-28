@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { redirect } from "next/navigation";
 import { keepScreenOnFailure } from "@/app/lib/keep-screen-on-failure";
 
+// keepScreenOnFailure（失敗時に画面を維持する処理）
 describe("keepScreenOnFailure", () => {
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -11,6 +12,7 @@ describe("keepScreenOnFailure", () => {
     vi.restoreAllMocks();
   });
 
+  // タスクが成功したとき、onFailure を呼ばない
   test("should not call onFailure when the task succeeds", async () => {
     // Arrange
     const onFailure = vi.fn();
@@ -22,6 +24,7 @@ describe("keepScreenOnFailure", () => {
     expect(onFailure).not.toHaveBeenCalled();
   });
 
+  // タスクが例外を投げたとき、引数なしで onFailure を呼ぶ
   test("should call onFailure without any argument when the task throws", async () => {
     // Arrange
     const onFailure = vi.fn();
@@ -36,6 +39,7 @@ describe("keepScreenOnFailure", () => {
     expect(onFailure).toHaveBeenCalledWith();
   });
 
+  // タスクが例外を投げても、再スローしない
   test("should not rethrow when the task throws", async () => {
     // Act & Assert
     await expect(
@@ -45,6 +49,7 @@ describe("keepScreenOnFailure", () => {
     ).resolves.toBeUndefined();
   });
 
+  // リダイレクトエラーは、onFailure を呼ばずに再スローする
   test("should rethrow a redirect error without calling onFailure", async () => {
     // Arrange
     const onFailure = vi.fn();

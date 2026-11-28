@@ -1,13 +1,16 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import PageTab from "@/app/ui/answer/PageTab";
 
+// PageTab コンポーネント
 test.describe("PageTab", () => {
+  // 両方のタブが見える
   test("should allow me to see both tabs", async ({ mount }) => {
     const component = await mount(<PageTab />);
     await expect(component.getByRole("tab", { name: "未解答" })).toBeVisible();
     await expect(component.getByRole("tab", { name: "解答済み" })).toBeVisible();
   });
 
+  // クリックして解答済みタブに切り替えられる
   test("should allow me to switch to answered tab by clicking", async ({ mount }) => {
     const component = await mount(<PageTab />);
     const answeredTab = component.getByRole("tab", { name: "解答済み" });

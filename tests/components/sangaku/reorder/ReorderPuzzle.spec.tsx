@@ -51,7 +51,9 @@ const description = "これは並べ替え問題の問題文です";
 // ビューポート制約上、厳密な検証が難しいためここではテストしない。
 // 実際の見た目（md 未満で縦積み、md 以上で2カラム）の確認は F4a（ブラウザ目視）で行う。
 
+// ReorderPuzzle
 test.describe("ReorderPuzzle", () => {
+  // コンポーネントの初回描画時、未使用エリアにすべてのブロックの内容が見える
   test("should allow me to see all block contents in the unused area when the component is initially rendered", async ({
     mount,
   }) => {
@@ -70,6 +72,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(unusedArea.getByText("puts 3")).toBeVisible();
   });
 
+  // 解答エリアへ移動ボタンをクリックしたとき、ブロックを解答エリアへ移動できる
   test("should allow me to move a block to the answer area when clicking the move-to-answer button", async ({
     mount,
   }) => {
@@ -94,6 +97,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  // 解答エリアに移動済みのブロックの後ろに、2 つ目のブロックを追加で移動できる
   test("should allow me to append a second moved block after an already-moved block in the answer area", async ({
     mount,
   }) => {
@@ -124,6 +128,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // 未使用に戻すボタンをクリックしたとき、ブロックを未使用エリアへ戻せる
   test("should allow me to move a block back to the unused area when clicking the return-to-unused button", async ({
     mount,
   }) => {
@@ -157,6 +162,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(answerArea.getByText("puts 1")).toBeVisible();
   });
 
+  // 中間のブロックの上へ移動ボタンをクリックしたとき、解答エリア内のブロックを並べ替えられる
   test("should allow me to reorder blocks in the answer area when clicking the move-up button on a middle block", async ({
     mount,
   }) => {
@@ -196,6 +202,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // 中間のブロックの下へ移動ボタンをクリックしたとき、解答エリア内のブロックを並べ替えられる
   test("should allow me to reorder blocks in the answer area when clicking the move-down button on a middle block", async ({
     mount,
   }) => {
@@ -237,6 +244,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // ブロックが解答エリアの先頭にあるとき、上へ移動ボタンをクリックできない
   test("should not allow me to click the move-up button when the block is at the top of the answer area", async ({
     mount,
   }) => {
@@ -265,6 +273,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(moveUpButtonOnFirstBlock).toBeDisabled();
   });
 
+  // ブロックが解答エリアの末尾にあるとき、下へ移動ボタンをクリックできない
   test("should not allow me to click the move-down button when the block is at the bottom of the answer area", async ({
     mount,
   }) => {
@@ -293,6 +302,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(moveDownButtonOnLastBlock).toBeDisabled();
   });
 
+  // 解答エリアが空のとき、送信できない
   test("should not allow me to submit when the answer area is empty", async ({
     mount,
   }) => {
@@ -311,6 +321,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(submitButton).toBeDisabled();
   });
 
+  // 解答エリアにブロックが 1 つ以上あるとき、送信できる
   test("should allow me to submit when the answer area has at least one block", async ({
     mount,
   }) => {
@@ -336,6 +347,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(submitButton).toBeEnabled();
   });
 
+  // 解答終了ボタンをクリックしたとき、解答エリアの順序で block_ids を送信できる
   test("should allow me to send block_ids in answer area order when clicking the end-answer button", async ({
     mount,
     page,
@@ -384,6 +396,7 @@ test.describe("ReorderPuzzle", () => {
     expect(lastCall?.payload).toEqual({ block_ids: [2, 3, 1] });
   });
 
+  // title prop が渡されたとき、タイトルが見出しとして見える
   test("should allow me to see the title as a heading when the title prop is given", async ({
     mount,
   }) => {
@@ -403,6 +416,7 @@ test.describe("ReorderPuzzle", () => {
     ).toBeVisible();
   });
 
+  // description prop が渡されたとき、問題文エリアに説明文が見える
   test("should allow me to see the description text in the problem statement area when the description prop is given", async ({
     mount,
   }) => {
@@ -420,6 +434,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(component.getByText(description)).toBeVisible();
   });
 
+  // 未使用エリアからドラッグしたとき、ブロックを解答エリアへ移動できる
   test("should allow me to move a block to the answer area when dragging it from the unused area", async ({
     mount,
     page,
@@ -448,6 +463,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  // ドラッグハンドルのアイコン以外のブロック内のどこからドラッグしても、ブロックを解答エリアへ移動できる
   test("should allow me to move a block to the answer area when dragging it from anywhere in the block other than the drag handle icon", async ({
     mount,
     page,
@@ -474,6 +490,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(unusedArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  // 操作ボタンを押下したとき、ブロックのドラッグを開始できない
   test("should not allow me to start dragging a block when pressing down on an action button", async ({
     mount,
     page,
@@ -501,6 +518,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(answerArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  // 未使用エリアから解答エリアの途中へドラッグしたとき、ドロップした位置にブロックを挿入できる
   test("should allow me to insert a block at the position it is dropped on when dragging it from the unused area into the middle of the answer area", async ({
     mount,
     page,
@@ -545,6 +563,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // 最後のブロックを先頭へドラッグしたとき、解答エリア内でブロックを並べ替えられる
   test("should allow me to reorder blocks within the answer area when dragging the last block to the first position", async ({
     mount,
     page,
@@ -590,6 +609,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // 解答エリアからドラッグしたとき、ブロックを未使用エリアへ戻せる
   test("should allow me to move a block back to the unused area when dragging it from the answer area", async ({
     mount,
     page,
@@ -621,6 +641,7 @@ test.describe("ReorderPuzzle", () => {
     await expect(answerArea.getByText("puts 2")).toHaveCount(0);
   });
 
+  // 最後のブロックを先頭へドラッグしたとき、未使用エリア内でブロックを並べ替えられる
   test("should allow me to reorder blocks within the unused area when dragging the last block to the first position", async ({
     mount,
     page,
@@ -665,6 +686,7 @@ test.describe("ReorderPuzzle", () => {
     ]);
   });
 
+  // onSubmit prop が渡されたとき
   test.describe("when the onSubmit prop is given", () => {
     // Playwright CT では mount の props に渡した関数コールバックは
     // テスト側（Node）のスコープで実行されるため、テスト内のローカル配列に記録できる。
@@ -683,6 +705,7 @@ test.describe("ReorderPuzzle", () => {
       }
     }
 
+    // 解答終了ボタンをクリックしたとき、解答エリアの順序の block_ids で onSubmit を 1 回呼べる
     test("should allow me to call onSubmit once with block_ids in answer area order when clicking the end-answer button", async ({
       mount,
       page,
@@ -713,6 +736,7 @@ test.describe("ReorderPuzzle", () => {
       expect(submittedBlockIds[0]).toEqual([2, 3, 1]);
     });
 
+    // 解答終了ボタンをクリックしても、確認ダイアログが見えない
     test("should not allow me to see a confirm dialog when clicking the end-answer button", async ({
       mount,
       page,
@@ -746,6 +770,7 @@ test.describe("ReorderPuzzle", () => {
       expect(dialogMessages).toEqual([]);
     });
 
+    // 解答終了ボタンをクリックしても、createAnswer を呼べない
     test("should not allow me to call createAnswer when clicking the end-answer button", async ({
       mount,
       page,
@@ -778,6 +803,7 @@ test.describe("ReorderPuzzle", () => {
     });
   });
 
+  // locked prop が true のとき
   test.describe("when the locked prop is true", () => {
     // 先にブロックを解答エリアへ移動してから update で locked を true にする
     // （同じコンポーネントインスタンスのため state は保持される）。
@@ -814,6 +840,7 @@ test.describe("ReorderPuzzle", () => {
       return component;
     }
 
+    // パズルがロックされているとき、解答エリアへ移動ボタンをクリックできない
     test("should not allow me to click the move-to-answer button when the puzzle is locked", async ({
       mount,
     }) => {
@@ -830,6 +857,7 @@ test.describe("ReorderPuzzle", () => {
       await expect(buttons.nth(1)).toBeDisabled();
     });
 
+    // パズルがロックされているとき、上へ移動ボタンをクリックできない
     test("should not allow me to click the move-up button when the puzzle is locked", async ({
       mount,
     }) => {
@@ -848,6 +876,7 @@ test.describe("ReorderPuzzle", () => {
       ).toBeDisabled();
     });
 
+    // パズルがロックされているとき、下へ移動ボタンをクリックできない
     test("should not allow me to click the move-down button when the puzzle is locked", async ({
       mount,
     }) => {
@@ -866,6 +895,7 @@ test.describe("ReorderPuzzle", () => {
       ).toBeDisabled();
     });
 
+    // パズルがロックされているとき、未使用に戻すボタンをクリックできない
     test("should not allow me to click the return-to-unused button when the puzzle is locked", async ({
       mount,
     }) => {
@@ -882,6 +912,7 @@ test.describe("ReorderPuzzle", () => {
       await expect(buttons.nth(1)).toBeDisabled();
     });
 
+    // 解答エリアにブロックがあっても、パズルがロックされているとき、解答終了ボタンをクリックできない
     test("should not allow me to click the end-answer button when the puzzle is locked even if the answer area has blocks", async ({
       mount,
     }) => {
@@ -894,6 +925,7 @@ test.describe("ReorderPuzzle", () => {
       ).toBeDisabled();
     });
 
+    // パズルがロックされている間は、未使用エリアからドラッグしても、ブロックを解答エリアへ移動できない
     test("should not allow me to move a block to the answer area when dragging it from the unused area while the puzzle is locked", async ({
       mount,
       page,
@@ -916,6 +948,7 @@ test.describe("ReorderPuzzle", () => {
       await expect(unusedArea.getByText("puts 2")).toBeVisible();
     });
 
+    // パズルがロックされている間は、最後のブロックを先頭へドラッグしても、解答エリア内でブロックを並べ替えられない
     test("should not allow me to reorder blocks in the answer area when dragging the last block to the first position while the puzzle is locked", async ({
       mount,
       page,
@@ -945,6 +978,7 @@ test.describe("ReorderPuzzle", () => {
       ]);
     });
 
+    // パズルがロックされている間は、解答エリアからドラッグしても、ブロックを未使用エリアへ戻せない
     test("should not allow me to move a block back to the unused area when dragging it from the answer area while the puzzle is locked", async ({
       mount,
       page,
@@ -966,7 +1000,9 @@ test.describe("ReorderPuzzle", () => {
     });
   });
 
+  // 解答の送信中のとき
   test.describe("when I double-click the end-answer button while the answer is being sent", () => {
+    // createAnswer が遅くても、解答を二重に送信できない
     test("should not allow me to send the answer twice when createAnswer is slow", async ({
       mount,
       page,
@@ -1004,6 +1040,7 @@ test.describe("ReorderPuzzle", () => {
       expect(callCount).toBe(1);
     });
 
+    // onSubmit が遅くても、onSubmit を二重に呼べない
     test("should not allow me to call onSubmit twice when onSubmit is slow", async ({
       mount,
       page,
@@ -1040,6 +1077,7 @@ test.describe("ReorderPuzzle", () => {
       expect(submitCount).toBe(1);
     });
 
+    // 解答の送信中は、ブロックを移動できない
     test("should not allow me to move blocks while the answer is being sent", async ({
       mount,
       page,
@@ -1075,6 +1113,7 @@ test.describe("ReorderPuzzle", () => {
       await page.evaluate(() => window.__releaseActions?.());
     });
 
+    // リクエストが失敗したとき、ページが保たれ、解答を再度送信できる
     test("should allow me to keep the page and send the answer again when the request fails", async ({
       mount,
       page,
@@ -1109,6 +1148,7 @@ test.describe("ReorderPuzzle", () => {
       expect(pageErrors).toEqual([]);
     });
 
+    // 解答の送信が失敗したとき、失敗メッセージが見える
     test("should allow me to see the failure message when sending the answer fails", async ({
       mount,
       page,
@@ -1139,6 +1179,7 @@ test.describe("ReorderPuzzle", () => {
       );
     });
 
+    // onSubmit が失敗したとき、失敗メッセージが見える
     test("should allow me to see the failure message when onSubmit fails", async ({
       mount,
       page,

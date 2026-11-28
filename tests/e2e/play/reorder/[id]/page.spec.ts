@@ -49,7 +49,9 @@ async function moveAllBlocksToAnswerArea(page: Page) {
   ).toHaveCount(3);
 }
 
+// /play/reorder/[id] ページ
 test.describe("/play/reorder/[id]", () => {
+  // サインイン前
   test.describe("before signin", () => {
     test.use({
       mswHandlers: [
@@ -74,6 +76,7 @@ test.describe("/play/reorder/[id]", () => {
       ],
     });
 
+    // サインインせずに訪問すると、タイトルと説明が見え、すべてのブロックが「利用しないエリア」に見える
     test("should allow me to see the title, description and all blocks in the unused area when visiting without signing in", async ({
       page,
     }) => {
@@ -102,6 +105,7 @@ test.describe("/play/reorder/[id]", () => {
 
     // toPuzzleBlocks は、入力が昇順のとき昇順のまま返さない。ページが呼び忘れると、
     // API が返した昇順のまま表示されるため、確率に頼らずに検知できる。
+    // ブロックが API の返却順で見えない
     test("should not allow me to see the blocks in the order returned by the API", async ({
       page,
     }) => {
@@ -117,6 +121,7 @@ test.describe("/play/reorder/[id]", () => {
       expect(displayed).not.toEqual(["puts 1", "puts 2", "puts 3"]);
     });
 
+    // サインインせずに解答を送信すると、正解の結果とサインインリンクが同じページに見える
     test("should allow me to see the correct result and the signin link on the same page when submitting an answer without signing in", async ({
       page,
     }) => {
@@ -144,6 +149,7 @@ test.describe("/play/reorder/[id]", () => {
       expect(dialogCount).toBe(0);
     });
 
+    // ゲストとして正解した後にサインインリンクをクリックすると、サインインページへ遷移できる
     test("should allow me to go to the signin page when clicking the signin link after answering as a guest", async ({
       page,
     }) => {
@@ -166,6 +172,7 @@ test.describe("/play/reorder/[id]", () => {
       await expect(page).toHaveURL(/\/signin/);
     });
 
+    // ゲストとして正解した後、神社の算額一覧ページへの callbackUrl 付きサインインリンクが見える
     test("should allow me to see the signin link with a callbackUrl to the shrine's sangakus page after answering as a guest", async ({
       page,
     }) => {
@@ -188,6 +195,7 @@ test.describe("/play/reorder/[id]", () => {
       expect(href).toBe("/signin?callbackUrl=%2Fshrines%2F1%2Fsangakus");
     });
 
+    // 算額が神社に紐付いていないとき
     test.describe("when the sangaku is not linked to any shrine", () => {
       const unlinkedShrineReorderSangakuResponse = {
         data: {
@@ -229,6 +237,7 @@ test.describe("/play/reorder/[id]", () => {
         ],
       });
 
+      // 算額が神社に紐付いていないとき、ゲストとして正解した後に callbackUrl なしのサインインリンクが見える
       test("should allow me to see the signin link without a callbackUrl after answering as a guest when the sangaku is not linked to any shrine", async ({
         page,
       }) => {
@@ -255,7 +264,9 @@ test.describe("/play/reorder/[id]", () => {
       });
     });
 
+    // メタデータ
     test.describe("metadata", () => {
+      // サインインせずに訪問すると、算額のタイトルを含む title が見える
       test("should allow me to see the title containing the sangaku title when visiting without signing in", async ({
         page,
       }) => {
@@ -269,6 +280,7 @@ test.describe("/play/reorder/[id]", () => {
         await expect(page).toHaveTitle(/guest_reorder_titleを解く/);
       });
 
+      // サインインせずに訪問すると、算額の説明を含む meta description が見える
       test("should allow me to see the meta description containing the sangaku description when visiting without signing in", async ({
         page,
       }) => {
@@ -285,6 +297,7 @@ test.describe("/play/reorder/[id]", () => {
         );
       });
 
+      // サインインせずに訪問すると、算額のタイトルを含む og:title が見える
       test("should allow me to see the og:title containing the sangaku title when visiting without signing in", async ({
         page,
       }) => {
@@ -300,6 +313,7 @@ test.describe("/play/reorder/[id]", () => {
         ).toHaveAttribute("content", /guest_reorder_title/);
       });
 
+      // サインインせずに訪問すると、算額の説明を含む og:description が見える
       test("should allow me to see the og:description containing the sangaku description when visiting without signing in", async ({
         page,
       }) => {
@@ -315,6 +329,7 @@ test.describe("/play/reorder/[id]", () => {
         ).toHaveAttribute("content", /guest_reorder_description/);
       });
 
+      // サインインせずに訪問すると、空でない og:image が見える
       test("should allow me to see a non-empty og:image when visiting without signing in", async ({
         page,
       }) => {
@@ -332,6 +347,7 @@ test.describe("/play/reorder/[id]", () => {
       });
     });
 
+    // back が 404 を返すとき
     test.describe("when back returns 404", () => {
       test.use({
         mswHandlers: [
@@ -351,6 +367,7 @@ test.describe("/play/reorder/[id]", () => {
         ],
       });
 
+      // サインインせずに代表ではない並べ替え算額を訪問すると、サインインページへリダイレクトされる
       test("should allow me to be redirected to the signin page when visiting a non-representative reorder sangaku without signing in", async ({
         page,
       }) => {
@@ -369,6 +386,7 @@ test.describe("/play/reorder/[id]", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -388,6 +406,7 @@ test.describe("/play/reorder/[id]", () => {
       ],
     });
 
+    // サインイン後に代表ではない並べ替え算額を訪問すると、リダイレクトされずに not found ページが見える
     test("should allow me to see the not found page without being redirected when visiting a non-representative reorder sangaku after signing in", async ({
       page,
     }) => {
@@ -406,6 +425,7 @@ test.describe("/play/reorder/[id]", () => {
     });
   });
 
+  // パズルのブロックが 10 個でビューポートが 1368x907 のとき
   test.describe("when the puzzle has 10 blocks and the viewport is 1368x907", () => {
     const tenBlocksResponse = {
       data: {
@@ -450,6 +470,7 @@ test.describe("/play/reorder/[id]", () => {
       ],
     });
 
+    // すべてのブロックを解答エリアに置いて解答したとき、メインコンテンツの下に余分な空白が見えない
     test("should not allow me to see extra blank space below the main content when I have answered with all blocks in the answer area", async ({
       page,
     }) => {

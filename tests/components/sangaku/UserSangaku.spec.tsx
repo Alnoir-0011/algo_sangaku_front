@@ -32,23 +32,28 @@ const sangaku: Sangaku = {
   },
 };
 
+// UserSangaku
 test.describe("UserSangaku", () => {
+  // 算額のタイトルが見える
   test("should allow me to see sangaku title", async ({ mount }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const title = component.getByRole("heading", { name: "test_title" });
     await expect(title).toBeVisible();
   });
 
+  // 算額の説明が見える
   test("should allow me to see sangaku description", async ({ mount, page }) => {
     await mount(<UserSangaku sangaku={sangaku} />);
     await expect(page.getByText("test_desc")).toBeVisible();
   });
 
+  // 算額の難易度が日本語で見える
   test("should allow me to see sangaku difficulty as Japanese text", async ({ mount, page }) => {
     await mount(<UserSangaku sangaku={sangaku} />);
     await expect(page.getByText("普通")).toBeVisible();
   });
 
+  // 算額の kind が code のとき、コード記述バッジが見える
   test("should allow me to see コード記述 badge when sangaku kind is code", async ({
     mount,
     page,
@@ -66,6 +71,7 @@ test.describe("UserSangaku", () => {
     await expect(page.getByText("コード記述")).toBeVisible();
   });
 
+  // 算額の kind が reorder のとき、並べ替えバッジが見える
   test("should allow me to see 並べ替え badge when sangaku kind is reorder", async ({
     mount,
     page,
@@ -83,6 +89,7 @@ test.describe("UserSangaku", () => {
     await expect(page.getByText("並べ替え")).toBeVisible();
   });
 
+  // メニュー内に編集リンクが見える
   test("should allow me to see edit link in menu", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const menuButton = component.getByRole("button", { name: "算額のメニューを開く" });
@@ -93,6 +100,7 @@ test.describe("UserSangaku", () => {
     await expect(editLink).toBeVisible();
   });
 
+  // メニュー内に削除ボタンが見える
   test("should allow me to see delete button in menu", async ({ mount, page }) => {
     const component = await mount(<UserSangaku sangaku={sangaku} />);
     const menuButton = component.getByRole("button", { name: "算額のメニューを開く" });

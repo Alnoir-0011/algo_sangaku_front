@@ -114,6 +114,7 @@ const deleteResponse = {
   },
 };
 
+// /user/sangakus
 test.describe("/user/sangakus", () => {
   test.use({
     mswHandlers: [
@@ -191,7 +192,9 @@ test.describe("/user/sangakus", () => {
     ],
   });
 
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに自分の算額ページへアクセスできず、サインインページへリダイレクトされる
     test("should not allow me to visit my sangakus page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
@@ -203,6 +206,7 @@ test.describe("/user/sangakus", () => {
       await expect(heading).toBeVisible();
     });
 
+    // サインインページへのリダイレクト後、ナビゲーションにサインインボタンが見える
     test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
       await page.goto("/user/sangakus");
       await expect(page).toHaveURL("/signin");
@@ -213,13 +217,16 @@ test.describe("/user/sangakus", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
+    // 自分の算額のタイトルが見える
     test("should allow me to see my sangaku title", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
       await expect(page.getByRole("heading", { name: "test_title" })).toBeVisible();
     });
 
+    // 算額を 1 つ以上持っているとき、算額を神社に奉納するよう促すお知らせが見える
     test("should allow me to see a notice to dedicate my sangaku at a shrine when I have at least one sangaku", async ({ page }) => {
       // Arrange
       await setSession(page);
@@ -247,6 +254,7 @@ test.describe("/user/sangakus", () => {
       await expect(findShrineLink).toHaveAttribute("href", "/shrines");
     });
 
+    // 算額を 1 つも持っていないとき、奉納を促すお知らせが見えない
     test("should not allow me to see the dedicate notice when I have no sangaku", async ({
       page,
       msw,
@@ -287,6 +295,7 @@ test.describe("/user/sangakus", () => {
       ).toHaveCount(0);
     });
 
+    // kind クエリパラメータがあるとき、自分の算額一覧を kind で絞り込める
     test("should allow me to filter my sangaku list by kind when the kind query param is present", async ({
       page,
       msw,
@@ -318,6 +327,7 @@ test.describe("/user/sangakus", () => {
       expect(capturedKind).toBe("reorder");
     });
 
+    // kind クエリパラメータがあるとき、奉納済み算額一覧を kind で絞り込める
     test("should allow me to filter dedicated sangaku list by kind when the kind query param is present", async ({
       page,
       msw,
@@ -349,6 +359,7 @@ test.describe("/user/sangakus", () => {
       expect(capturedKind).toBe("reorder");
     });
 
+    // ページネーションをクリックしたとき、奉納済み算額の次ページが見える
     test("should allow me to see the dedicated sangakus of the next page when clicking the pagination", async ({ page, msw }) => {
       msw.use(
         pagedSangakusHandler(apiUrl, { shrineId: "1" }),
@@ -367,6 +378,7 @@ test.describe("/user/sangakus", () => {
       await expect(page).toHaveURL(/[?&]tab=already_dedicate/);
     });
 
+    // 検索ボックスに入力したとき、タイトルで絞り込まれた奉納済み算額が見える
     test("should allow me to see the dedicated sangakus filtered by title when typing in the search box", async ({ page, msw }) => {
       msw.use(
         http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
@@ -391,6 +403,7 @@ test.describe("/user/sangakus", () => {
       await expect(page).toHaveURL(/[?&]query=foo/);
     });
 
+    // kind を選択したとき、kind で絞り込まれた奉納済み算額が見える
     test("should allow me to see the dedicated sangakus filtered by kind when selecting a kind", async ({ page, msw }) => {
       msw.use(
         http.get(`${apiUrl}/api/v1/user/sangakus`, ({ request }) => {
@@ -416,6 +429,7 @@ test.describe("/user/sangakus", () => {
       await expect(page).toHaveURL(/[?&]kind=reorder/);
     });
 
+    // 奉納済み算額の詳細取得中にセッションが切れたとき、再試行ボタンなしでサインインを促すメッセージが見える
     test("should allow me to see a sign-in message without a retry button when the session has expired while fetching the dedicated sangaku details", async ({ page, msw }) => {
       msw.use(
         http.get(`${apiUrl}/api/v1/user/sangakus/1/result`, () => {
@@ -436,6 +450,7 @@ test.describe("/user/sangakus", () => {
       await expect(dialog.getByRole("button", { name: "再試行" })).toHaveCount(0);
     });
 
+    // 自分の奉納済み算額ページが共有キャッシュに保存されない
     test("should not allow my dedicated sangakus page to be stored in shared caches", async ({ page }) => {
       await setSession(page);
 
@@ -445,6 +460,7 @@ test.describe("/user/sangakus", () => {
       expect(response!.headers()["cache-control"]).toContain("no-store");
     });
 
+    // 算額メニューに、正しい href の編集リンクが見える
     test("should allow me to see the edit link with correct href in sangaku menu", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -457,6 +473,7 @@ test.describe("/user/sangakus", () => {
       await expect(editLink).toHaveAttribute("href", "/user/sangakus/1/edit");
     });
 
+    // 算額メニューに削除の選択肢が見える
     test("should allow me to see the delete option in sangaku menu", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -466,6 +483,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("menuitem", { name: "削除" })).toBeVisible();
     });
 
+    // 奉納済み算額のタイトルが見える
     test("should allow me to see dedicated sangaku title", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -473,6 +491,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
     });
 
+    // 奉納済みの算額にはメニューが見えない
     test("should not allow me to see menu for dedicated sangakus", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -483,6 +502,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("menuitem", { name: "削除" })).not.toBeVisible({ timeout: 3_000 });
     });
 
+    // 奉納済み算額をクリックしたとき、神社の情報が見える
     test("should allow me to see shrine info when clicking a dedicated sangaku", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -495,6 +515,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("dialog").getByText("test_desc")).toBeVisible();
     });
 
+    // 奉納済み算額のモーダルを閉じられる
     test("should allow me to close the dedicated sangaku modal", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -509,6 +530,7 @@ test.describe("/user/sangakus", () => {
       await expect(page.getByRole("heading", { name: "dedicated" })).toBeVisible();
     });
 
+    // 最初のリクエストが失敗した後、奉納済み算額の詳細取得を再試行できる
     test("should allow me to retry fetching the dedicated sangaku details after the first request fails", async ({
       page,
       msw,
@@ -555,6 +577,7 @@ test.describe("/user/sangakus", () => {
       ).not.toBeVisible();
     });
 
+    // 自分の算額を削除できる
     test("should allow me to delete my sangaku", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus");
@@ -572,6 +595,7 @@ test.describe("/user/sangakus", () => {
       await expect(flash).toContainText("算額を削除しました");
     });
 
+    // API リクエストが失敗したとき、算額を削除できない
     test("should not allow me to delete sangaku when the API request fails", async ({
       page,
       msw,
@@ -596,6 +620,7 @@ test.describe("/user/sangakus", () => {
       await expect(flash).toContainText("リクエストに失敗しました");
     });
 
+    // 奉納済みタブで、difficult と very_difficult の難易度ラベルが見える
     test("should allow me to see difficult and very_difficult difficulty labels on dedicated tab", async ({
       page,
       msw,
@@ -677,6 +702,7 @@ test.describe("/user/sangakus", () => {
       });
     });
 
+    // 取得に失敗したとき、奉納済み算額が見えない
     test("should not allow me to see dedicated sangakus when fetch fails", async ({
       page,
       msw,

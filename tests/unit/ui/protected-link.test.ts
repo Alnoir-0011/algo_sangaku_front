@@ -30,47 +30,55 @@ const render = (props: { prefetch?: boolean | null } = {}) =>
     createElement(ProtectedLink, { href: "/sangakus/create", ...props }),
   );
 
+// ProtectedLink（保護されたリンク）
 describe("ProtectedLink", () => {
   beforeEach(() => {
     sessionState.status = "unauthenticated";
   });
 
+  // サインアウト中は、プリフェッチできない
   test("should not allow prefetching while I am signed out", () => {
     sessionState.status = "unauthenticated";
 
     expect(render()).toContain('data-prefetch="false"');
   });
 
+  // セッションの読み込み中は、プリフェッチできない
   test("should not allow prefetching while my session is loading", () => {
     sessionState.status = "loading";
 
     expect(render()).toContain('data-prefetch="false"');
   });
 
+  // サインアウト中は、prefetch が要求されてもプリフェッチできない
   test("should not allow prefetching while I am signed out even if prefetch is requested", () => {
     sessionState.status = "unauthenticated";
 
     expect(render({ prefetch: true })).toContain('data-prefetch="false"');
   });
 
+  // サインイン後は、デフォルトの挙動でプリフェッチできる
   test("should allow prefetching with the default behavior after I sign in", () => {
     sessionState.status = "authenticated";
 
     expect(render()).toContain('data-prefetch="default"');
   });
 
+  // サインイン後は、プリフェッチを要求できる
   test("should allow prefetching to be requested after I sign in", () => {
     sessionState.status = "authenticated";
 
     expect(render({ prefetch: true })).toContain('data-prefetch="true"');
   });
 
+  // サインイン後でも、prefetch が無効のときはプリフェッチできない
   test("should not allow prefetching after I sign in when prefetch is turned off", () => {
     sessionState.status = "authenticated";
 
     expect(render({ prefetch: false })).toContain('data-prefetch="false"');
   });
 
+  // href をそのまま渡す
   test("should pass the href through", () => {
     expect(render()).toContain('href="/sangakus/create"');
   });

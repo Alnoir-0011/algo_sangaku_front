@@ -19,12 +19,15 @@ const authCookieReissues = (response: APIResponse) =>
 
 const NOT_FOUND = { message: "Not found" };
 
+// セッション cookie
 test.describe("Session cookie", () => {
+  // サインイン済みのとき
   test.describe("when signed in", () => {
     test.beforeEach(async ({ page }) => {
       await setSession(page);
     });
 
+    // サインイン済みと認識される
     test("should allow me to be recognized as signed in", async ({ page }) => {
       const response = await page.request.get("/api/auth/get-session");
 
@@ -35,6 +38,7 @@ test.describe("Session cookie", () => {
       });
     });
 
+    // ページのレスポンスで、セッション cookie が再発行されない
     test("should not allow me to have my session cookie re-issued by a page response", async ({
       page,
     }) => {
@@ -44,6 +48,7 @@ test.describe("Session cookie", () => {
       expect(authCookieReissues(response)).toEqual([]);
     });
 
+    // RSC のレスポンスで、セッション cookie が再発行されない
     test("should not allow me to have my session cookie re-issued by an RSC response", async ({
       page,
     }) => {
@@ -55,6 +60,7 @@ test.describe("Session cookie", () => {
       expect(authCookieReissues(response)).toEqual([]);
     });
 
+    // セッション確認で、セッション cookie が再発行されない
     test("should not allow me to have my session cookie re-issued by the session check", async ({
       page,
     }) => {
@@ -64,6 +70,7 @@ test.describe("Session cookie", () => {
       expect(authCookieReissues(response)).toEqual([]);
     });
 
+    // セッション確認で、アクセストークンがブラウザに露出しない
     test("should not allow my access token to be exposed to the browser by the session check", async ({
       page,
     }) => {
@@ -73,6 +80,7 @@ test.describe("Session cookie", () => {
       expect(await response.text()).not.toContain(DEFAULT_ACCESS_TOKEN);
     });
 
+    // ページで、アクセストークンがブラウザに露出しない
     test("should not allow my access token to be exposed to the browser by a page", async ({
       page,
     }) => {
@@ -82,6 +90,7 @@ test.describe("Session cookie", () => {
       expect(await response.text()).not.toContain(DEFAULT_ACCESS_TOKEN);
     });
 
+    // API 経由でセッションを更新できない
     test("should not allow me to update my session through the API", async ({
       page,
       baseURL,
@@ -101,7 +110,9 @@ test.describe("Session cookie", () => {
   });
 
   // 攻撃者は、通常、サインインしていない
+  // サインアウト状態のとき
   test.describe("when signed out", () => {
+    // API 経由でセッションを更新できない
     test("should not allow me to update a session through the API", async ({
       request,
       baseURL,
@@ -115,6 +126,7 @@ test.describe("Session cookie", () => {
       expect(await response.json()).toMatchObject(NOT_FOUND);
     });
 
+    // OAuth の state を省略した ID トークンでサインインできない
     test("should not allow me to sign in with an ID token that skips the OAuth state", async ({
       request,
       baseURL,

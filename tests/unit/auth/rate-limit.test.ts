@@ -31,8 +31,10 @@ const statuses = async (path: string, ip: string, count: number) => {
 };
 
 // 制限の状態は IP ごとに分かれる。テスト間で状態が混ざらないよう、テストごとに別の IP を使う
+// 認証 API のレート制限
 describe("rate limit of the auth API", () => {
   // 制限が有効な条件で動いていることの確認。これが 429 を返さないと、下のテストは意味を持たない
+  // 同じ IP から 10 秒間に、その他のパスへ 100 リクエストを超えて送れない
   test("should not allow more than 100 requests to the other paths from the same IP in 10 seconds", async () => {
     const result = await statuses("/ok", "203.0.113.1", 101);
 
@@ -42,6 +44,7 @@ describe("rate limit of the auth API", () => {
 
   // 同じ IP（学校やオフィスの NAT など）から、フォーカス復帰や遷移ごとの再取得が、多数届く。
   // 未認証でも叩ける処理なので、無制限にはしない
+  // 同じ IP から 10 秒間に、セッション確認は 300 回までできるが 301 回目はできない
   test("should allow me to check my session 300 times but not 301 times in 10 seconds from the same IP", async () => {
     const result = await statuses("/get-session", "203.0.113.2", 301);
 
@@ -49,6 +52,7 @@ describe("rate limit of the auth API", () => {
     expect(result[300]).toBe(429);
   });
 
+  // 自分のセッション確認が原因で、別の IP が制限されない
   test("should not allow another IP to be limited because of my session checks", async () => {
     await statuses("/get-session", "203.0.113.3", 301);
 

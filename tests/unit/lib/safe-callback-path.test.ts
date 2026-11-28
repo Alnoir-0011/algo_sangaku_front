@@ -2,7 +2,9 @@ import { describe, test, expect } from "vitest";
 
 import { safeCallbackPath } from "@/app/lib/safe-callback-path";
 
+// safeCallbackPath（コールバック先パスの安全化）
 describe("safeCallbackPath", () => {
+  // このサイトのページには戻れる（%s）
   test.each(["/user/profile", "/shrines?searchType=Map", "/a/b#section"])(
     "should allow me to go back to a page of this site (%s)",
     (path) => {
@@ -10,6 +12,7 @@ describe("safeCallbackPath", () => {
     },
   );
 
+  // %s には遷移させない
   test.each([
     ["a protocol-relative URL", "//evil.example"],
     ["a backslash host", "/\\evil.example"],
@@ -30,6 +33,7 @@ describe("safeCallbackPath", () => {
     expect(safeCallbackPath(value)).toBe("/");
   });
 
+  // 文字列でない値は受け付けない（%j）
   test.each([undefined, null, 1, ["/a"], { path: "/a" }])(
     "should not allow a value that is not a string (%j)",
     (value) => {
@@ -38,6 +42,7 @@ describe("safeCallbackPath", () => {
   );
 
   // 本体（Better Auth の isSafeRelativeURL）は、パスの部分だけを見る。クエリの中は、拒否しない
+  // クエリ中のエンコードされたスラッシュは許可する
   test("should allow an encoded slash in the query", () => {
     expect(safeCallbackPath("/shrines?next=%2Fa")).toBe("/shrines?next=%2Fa");
   });

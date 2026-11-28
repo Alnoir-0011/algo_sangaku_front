@@ -24,7 +24,9 @@ const sangaku: Sangaku = {
   },
 };
 
+// EditReorderForm
 test.describe("EditReorderForm", () => {
+  // 算額にタイトルがあるとき、タイトルが入力済みで見える
   test("should allow me to see pre-filled title when sangaku has a title", async ({
     mount,
   }) => {
@@ -33,6 +35,7 @@ test.describe("EditReorderForm", () => {
     await expect(component.getByLabel("タイトル")).toHaveValue("test_title");
   });
 
+  // 算額にコードブロックがあるとき、変換後のブロック内容が見える
   test("should allow me to see converted block contents when sangaku has code blocks", async ({
     mount,
   }) => {

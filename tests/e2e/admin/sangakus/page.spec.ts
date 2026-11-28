@@ -40,6 +40,7 @@ const sangakusResponse = {
   ],
 };
 
+// /admin/sangakus
 test.describe("/admin/sangakus", () => {
   test.use({
     mswHandlers: [
@@ -64,7 +65,9 @@ test.describe("/admin/sangakus", () => {
     ],
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーでは /admin/sangakus にアクセスできない
     test("should not allow me to access /admin/sangakus as a general user", async ({
       page,
     }) => {
@@ -75,35 +78,42 @@ test.describe("/admin/sangakus", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
     test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus");
     });
 
+    // 管理者として、算額一覧の見出しが見える
     test("should allow me to see the sangakus list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "算額管理" }),
       ).toBeVisible();
     });
 
+    // 一覧ページに算額のタイトルが見える
     test("should allow me to see sangaku titles on the list page", async ({ page }) => {
       await expect(page.getByText("管理算額テスト")).toBeVisible();
       await expect(page.getByText("未奉納の算額")).toBeVisible();
     });
 
+    // 算額が奉納済みのとき、神社名が見える
     test("should allow me to see shrine name when sangaku is dedicated", async ({ page }) => {
       await expect(page.getByText("test_shrine")).toBeVisible();
     });
 
+    // 算額が未奉納のとき、未奉納 のラベルが見える
     test("should allow me to see 未奉納 label when sangaku is not dedicated", async ({ page }) => {
       await expect(page.getByText("未奉納", { exact: true })).toBeVisible();
     });
 
+    // 各算額の編集リンクが見える
     test("should allow me to see edit link for each sangaku", async ({ page }) => {
       await expect(page.getByRole("link", { name: "編集" }).first()).toBeVisible();
     });
 
+    // 確認したとき、算額を削除できる
     test("should allow me to delete sangaku when confirmed", async ({ page, msw }) => {
       msw.use(
         http.delete(`${apiUrl}/api/v1/admin/sangakus/1`, () => {
@@ -119,6 +129,7 @@ test.describe("/admin/sangakus", () => {
       await expect(flash).toContainText("算額を削除しました");
     });
 
+    // キャンセルしたとき、算額を削除できない
     test("should not allow me to delete sangaku when cancelled", async ({
       page,
     }) => {
@@ -132,6 +143,7 @@ test.describe("/admin/sangakus", () => {
   });
 });
 
+// /admin/sangakus（API エラー時）
 test.describe("/admin/sangakus (API error)", () => {
   test.use({
     mswHandlers: [
@@ -145,6 +157,7 @@ test.describe("/admin/sangakus (API error)", () => {
     ],
   });
 
+  // API がエラーを返したとき、算額一覧が見えない
   test("should not allow me to see sangaku list when API returns error", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/sangakus");

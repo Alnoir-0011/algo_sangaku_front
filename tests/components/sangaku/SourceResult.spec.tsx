@@ -7,7 +7,9 @@ import SourceResult from "@/app/ui/sangaku/SourceResult";
 
 const fixedInputs = ["input_1"];
 
+// SourceResult
 test.describe("SourceResult", () => {
+  // ソースの実行結果が見える
   test("should allow me to see the results of running the source", async ({
     mount,
   }) => {
@@ -18,6 +20,7 @@ test.describe("SourceResult", () => {
     await expect(component.getByLabel("result-1")).toHaveText("mock output");
   });
 
+  // ソースの実行中は、実行結果の代わりにローディング表示が見える
   test("should allow me to see a loading indicator instead of the results while the source is running", async ({
     mount,
   }) => {
@@ -32,6 +35,7 @@ test.describe("SourceResult", () => {
     await expect(component.getByRole("progressbar")).toHaveCount(0);
   });
 
+  // ソースの実行が失敗したとき、エラーメッセージが見える
   test("should allow me to see the error message when running the source fails", async ({
     mount,
   }) => {
@@ -43,6 +47,7 @@ test.describe("SourceResult", () => {
     await expect(component.getByLabel("result-1")).toHaveText("mock reject");
   });
 
+  // 新しいソースの実行中は、前のソースの実行結果が見えない
   test("should not allow me to see the results of the previous source while the new source is running", async ({
     mount,
   }) => {
@@ -63,6 +68,7 @@ test.describe("SourceResult", () => {
 
   // 古い入力の実行が、新しい入力の実行より後に終わっても、結果を上書きしない。
   // 「上書きされない」という起きないことの確認なので、古い実行が終わるまでの時間を固定で置く。
+  // 前のソースの実行が新しいソースより後に終わっても、前のソースの実行結果が見えない
   test("should not allow me to see the results of the previous source when it finishes after the new source", async ({
     mount,
     page,

@@ -49,7 +49,9 @@ beforeEach(() => {
   vi.resetAllMocks();
 });
 
+// fetchSangakuModalDetail（算額モーダルの詳細取得）
 describe("fetchSangakuModalDetail", () => {
+  // 神社と結果の両方を取得できたとき、両方を返して解決する
   test("should resolve with the shrine and the result when both are fetched", async () => {
     vi.mocked(fetchShrine).mockResolvedValue(shrine);
     vi.mocked(fetchUserSangakuResult).mockResolvedValue(result);
@@ -62,6 +64,7 @@ describe("fetchSangakuModalDetail", () => {
     expect(fetchUserSangakuResult).toHaveBeenCalledWith("1");
   });
 
+  // 算額に神社がないとき、神社を取得しない
   test("should not fetch a shrine when the sangaku has no shrine", async () => {
     vi.mocked(fetchUserSangakuResult).mockResolvedValue(result);
 
@@ -74,6 +77,7 @@ describe("fetchSangakuModalDetail", () => {
 
   // fetchShrine は 404 も通信失敗もすべて null を返し、区別できない。例外にすると、
   // 神社が削除された算額のモーダルが開けなくなるため、神社名を出さずに開く。
+  // 神社を取得できないとき、神社を null として解決する
   test("should resolve with a null shrine when the shrine cannot be fetched", async () => {
     vi.mocked(fetchShrine).mockResolvedValue(null);
     vi.mocked(fetchUserSangakuResult).mockResolvedValue(result);
@@ -84,6 +88,7 @@ describe("fetchSangakuModalDetail", () => {
     });
   });
 
+  // 結果を取得できないとき、算額の id を含むエラーで reject する
   test("should reject with an error that includes the sangaku id when the result cannot be fetched", async () => {
     vi.mocked(fetchUserSangakuResult).mockResolvedValue(null);
 
@@ -93,6 +98,7 @@ describe("fetchSangakuModalDetail", () => {
     await expect(promise).rejects.not.toBeInstanceOf(SessionExpiredError);
   });
 
+  // 結果が 401 を返したとき、セッション切れのエラーで reject する
   test("should reject with a session expired error when the result responds with 401", async () => {
     vi.mocked(fetchUserSangakuResult).mockResolvedValue(undefined);
 
@@ -103,6 +109,7 @@ describe("fetchSangakuModalDetail", () => {
 
   // 同期例外のままだと、クリックのイベントハンドラの外へ投げられ、Error Boundary で
   // 受けられない。reject にして、失敗を再試行つきの表示にする。
+  // 算額に relationships がないとき、例外を投げずに reject された Promise を返す
   test("should return a rejected promise instead of throwing when the sangaku has no relationships", async () => {
     const broken = { ...buildSangaku(null), relationships: undefined } as unknown as Sangaku;
 
@@ -114,7 +121,9 @@ describe("fetchSangakuModalDetail", () => {
   });
 });
 
+// fetchReorderDetail（並べ替え問題の詳細取得）
 describe("fetchReorderDetail", () => {
+  // 算額を取得できたとき、その算額を返して解決する
   test("should resolve with the sangaku when it is fetched", async () => {
     const sangaku = buildSangaku(null);
     vi.mocked(fetchUserSangaku).mockResolvedValue(sangaku);
@@ -123,6 +132,7 @@ describe("fetchReorderDetail", () => {
     expect(fetchUserSangaku).toHaveBeenCalledWith("1");
   });
 
+  // 算額を取得できないとき、算額の id を含むエラーで reject する
   test("should reject with an error that includes the sangaku id when it cannot be fetched", async () => {
     vi.mocked(fetchUserSangaku).mockResolvedValue(null);
 
@@ -132,6 +142,7 @@ describe("fetchReorderDetail", () => {
     await expect(promise).rejects.not.toBeInstanceOf(SessionExpiredError);
   });
 
+  // レスポンスが 401 のとき、セッション切れのエラーで reject する
   test("should reject with a session expired error when the response is 401", async () => {
     vi.mocked(fetchUserSangaku).mockResolvedValue(undefined);
 

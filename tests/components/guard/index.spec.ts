@@ -6,7 +6,9 @@ import {
   toResetSeconds,
 } from "@/app/lib/guard";
 
+// resolveGuardMode（ガードのモードの解決）
 test.describe("resolveGuardMode", () => {
+  // shadow モードを有効にできる
   test("should allow me to enable shadow mode", () => {
     // Arrange
     const raw = "shadow";
@@ -18,6 +20,7 @@ test.describe("resolveGuardMode", () => {
     expect(mode).toBe("shadow");
   });
 
+  // enforce モードを有効にできる
   test("should allow me to enable enforce mode", () => {
     // Arrange
     const raw = "enforce";
@@ -29,6 +32,7 @@ test.describe("resolveGuardMode", () => {
     expect(mode).toBe("enforce");
   });
 
+  // ガードを明示的にオフにできる
   test("should allow me to turn the guard off explicitly", () => {
     // Arrange
     const raw = "off";
@@ -40,6 +44,7 @@ test.describe("resolveGuardMode", () => {
     expect(mode).toBe("off");
   });
 
+  // 変数が未設定のとき、デフォルトでオフになる
   test("should allow me to default to off when the variable is unset", () => {
     // Arrange
     const raw = undefined;
@@ -51,6 +56,7 @@ test.describe("resolveGuardMode", () => {
     expect(mode).toBe("off");
   });
 
+  // 認識できない値では、ガードを有効にできない
   test("should not allow me to enable the guard with an unrecognised value", () => {
     // Arrange
     const raw = "on";
@@ -62,6 +68,7 @@ test.describe("resolveGuardMode", () => {
     expect(mode).toBe("off");
   });
 
+  // 大文字小文字が異なる値では、ガードを有効にできない
   test("should not allow me to enable the guard with a differently cased value", () => {
     // Arrange
     const raw = "SHADOW";
@@ -74,7 +81,9 @@ test.describe("resolveGuardMode", () => {
   });
 });
 
+// classifyRoute（リクエストのルート分類）
 test.describe("classifyRoute", () => {
+  // Server Action のリクエストを分類できる
   test("should allow me to classify a server action request", () => {
     // Act
     const group = classifyRoute("POST", "/sangakus/1");
@@ -83,6 +92,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("server-action");
   });
 
+  // サインインのリクエストを分類できる
   test("should allow me to classify a sign-in request", () => {
     // Act
     const group = classifyRoute("POST", "/api/auth/sign-in/social");
@@ -91,6 +101,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("signin");
   });
 
+  // 認証のプレフィックス配下のコールバックを、サインインのリクエストに分類できる
   test("should allow me to classify a callback under the auth prefix as a sign-in request", () => {
     // Act
     const group = classifyRoute("POST", "/api/auth/callback/google");
@@ -99,6 +110,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("signin");
   });
 
+  // ページのリクエストを、公開 GET に分類できる
   test("should allow me to classify a page request as a public get", () => {
     // Act
     const group = classifyRoute("GET", "/shrines");
@@ -107,6 +119,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("public-get");
   });
 
+  // サインインの GET が、サインインの試行として数えられない
   test("should not allow me to see a sign-in get counted as a sign-in attempt", () => {
     // Act
     const group = classifyRoute("GET", "/api/auth/get-session");
@@ -115,6 +128,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("public-get");
   });
 
+  // HEAD リクエストでのページ取得を、公開 GET に分類できる
   test("should allow me to fetch a page with a head request as a public get", () => {
     // Act
     const group = classifyRoute("HEAD", "/shrines");
@@ -123,6 +137,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("public-get");
   });
 
+  // 変わったメソッドでレート制限を逃れられない
   test("should not allow me to escape the rate limit with an unusual method", () => {
     // Arrange
     // PUT でもページはフルレンダリングされるため、数えなければ回避経路になる
@@ -134,6 +149,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("server-action");
   });
 
+  // body ベースの Server Action でレート制限を逃れられない
   test("should not allow me to escape the rate limit with a body based server action", () => {
     // Arrange
     // Server Action は next-action ヘッダーがなくてもボディの $ACTION_ID_* で起動できる
@@ -145,6 +161,7 @@ test.describe("classifyRoute", () => {
     expect(group).toBe("server-action");
   });
 
+  // サインインのコールバックのパスは、パス判定が先に行われて signin に分類される
   test("should not allow me to relax the sign-in limit by adding a next-action header", () => {
     // Arrange
     // next-action はクライアントが自由に付けられる。パス判定を先に行わないと
@@ -158,7 +175,9 @@ test.describe("classifyRoute", () => {
   });
 });
 
+// buildRateLimitKey（レート制限キーの組み立て）
 test.describe("buildRateLimitKey", () => {
+  // サインイン済みの Server Action を、ハッシュ化したメールアドレスでキー化できる
   test("should allow me to key a signed-in server action by the hashed email", async () => {
     // Arrange
     const email = "user@example.com";
@@ -173,6 +192,7 @@ test.describe("buildRateLimitKey", () => {
     expect(key).toMatch(/^guard:server-action:user:[0-9a-f]{32}$/);
   });
 
+  // 匿名の Server Action を、IP でキー化できる
   test("should allow me to key an anonymous server action by ip", async () => {
     // Arrange
     const ip = "198.51.100.20";
@@ -184,6 +204,7 @@ test.describe("buildRateLimitKey", () => {
     expect(key).toBe("guard:server-action:ip:198.51.100.20");
   });
 
+  // サインインの試行を、IP でキー化できる
   test("should allow me to key a sign-in attempt by ip", async () => {
     // Arrange
     const ip = "198.51.100.20";
@@ -195,6 +216,7 @@ test.describe("buildRateLimitKey", () => {
     expect(key).toBe("guard:signin:ip:198.51.100.20");
   });
 
+  // 公開 GET を、IP でキー化できる
   test("should allow me to key a public get by ip", async () => {
     // Arrange
     const ip = "198.51.100.20";
@@ -206,6 +228,7 @@ test.describe("buildRateLimitKey", () => {
     expect(key).toBe("guard:public-get:ip:198.51.100.20");
   });
 
+  // 同じメールアドレスでは、同じキーが得られる
   test("should allow me to get the same key for the same email", async () => {
     // Arrange
     const email = "user@example.com";
@@ -224,6 +247,7 @@ test.describe("buildRateLimitKey", () => {
     expect(first).toBe(second);
   });
 
+  // 異なるメールアドレスでは、同じキーが得られない
   test("should not allow me to get the same key for different emails", async () => {
     // Arrange
     const ip = "198.51.100.20";
@@ -242,6 +266,7 @@ test.describe("buildRateLimitKey", () => {
     expect(first).not.toBe(second);
   });
 
+  // キーの中に平文のメールアドレスが見えない
   test("should not allow me to see the plain email inside the key", async () => {
     // Arrange
     const email = "user@example.com";
@@ -257,7 +282,9 @@ test.describe("buildRateLimitKey", () => {
   });
 });
 
+// toResetSeconds（リセット時刻から残り秒数への変換）
 test.describe("toResetSeconds", () => {
+  // リセット時刻を、残り秒数に変換できる
   test("should allow me to convert a reset timestamp into remaining seconds", () => {
     // Arrange
     const now = 1_700_000_000_000;
@@ -270,6 +297,7 @@ test.describe("toResetSeconds", () => {
     expect(seconds).toBe(30);
   });
 
+  // 残り秒数を切り捨てられる
   test("should allow me to round the remaining seconds down", () => {
     // Arrange
     const now = 1_700_000_000_000;
@@ -282,6 +310,7 @@ test.describe("toResetSeconds", () => {
     expect(seconds).toBe(30);
   });
 
+  // 残り秒数が 1 秒未満にならない
   test("should not allow me to get a remaining value below one second", () => {
     // Arrange
     const now = 1_700_000_000_000;

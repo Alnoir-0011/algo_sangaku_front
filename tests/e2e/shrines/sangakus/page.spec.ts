@@ -31,6 +31,7 @@ const representativeSangakuBody = {
   },
 };
 
+// /shrines/[id]/sangakus ページ
 test.describe("/shrines/[id]/sangakus", () => {
   test.use({
     geolocation: { latitude: 35.70204829610801, longitude: 139.76789333814216 },
@@ -138,7 +139,9 @@ test.describe("/shrines/[id]/sangakus", () => {
     ],
   });
 
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに、神社の算額一覧が見える
     test("should allow me to see shrine sangaku list without signing in", async ({ page }) => {
       await page.goto("/shrines/1/sangakus");
       const heading = page.getByRole("heading", {
@@ -151,6 +154,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(sangakuTitle).toBeVisible();
     });
 
+    // ゲストのとき、算額を写すボタンの代わりに、サインインして算額を写すための操作が見える
     test("should allow me to see the sign-in to copy sangaku control instead of the copy button when I am a guest", async ({
       page,
     }) => {
@@ -174,6 +178,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       ).toHaveCount(0);
     });
 
+    // サインインして算額を写すリンクをクリックすると、一覧へ戻る callbackUrl 付きでサインインページへ移動できる
     test("should allow me to go to the signin page with a callbackUrl back to the list when clicking the sign-in to copy sangaku link", async ({
       page,
     }) => {
@@ -194,6 +199,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(page).toHaveURL(/\/signin\?callbackUrl=%2Fshrines%2F1%2Fsangakus/);
     });
 
+    // 存在しない神社では not found ページが見える
     test("should allow me to see not found page for a non-existent shrine", async ({ page }) => {
       await page.goto("/shrines/999/sangakus");
       const message = page.getByRole("heading", {
@@ -202,6 +208,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(message).toBeVisible();
     });
 
+    // kind クエリパラメータがあるとき、神社の算額一覧を kind で絞り込める
     test("should allow me to filter shrine sangaku list by kind when the kind query param is present", async ({
       page,
       msw,
@@ -229,6 +236,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       expect(capturedKind).toBe("reorder");
     });
 
+    // ゲストのとき、一覧の先頭に代表算額カードとゲスト解答ボタンが見える
     test("should allow me to see the representative sangaku card at the head of the list with a guest answer button when I am a guest", async ({
       page,
       msw,
@@ -253,6 +261,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(guestButton).toHaveAttribute("href", "/play/reorder/5");
     });
 
+    // ゲストのとき、代表算額カードにサインインして算額を写すための操作が見えない
     test("should not allow me to see the sign-in to copy sangaku control on the representative sangaku card when I am a guest", async ({
       page,
       msw,
@@ -278,6 +287,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       ).toHaveCount(1);
     });
 
+    // ゲスト解答ボタンをクリックすると、ゲスト解答ページへ移動できる
     test("should allow me to go to the guest answer page when clicking the guest answer button", async ({
       page,
       msw,
@@ -301,6 +311,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(page).toHaveURL(/\/play\/reorder\/5$/);
     });
 
+    // 神社に代表算額がないとき、代表算額カードが見えない
     test("should not allow me to see the representative sangaku card when the shrine has no representative sangaku", async ({
       page,
       msw,
@@ -330,6 +341,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       ["a difficulty filter", "?difficulty=normal"],
       ["a kind filter", "?kind=reorder"],
     ] as const) {
+      // 2 ページ目・検索クエリ・難易度フィルタ・kind フィルタのいずれかが指定されたとき、代表算額カードが見えない
       test(`should not allow me to see the representative sangaku card when ${label} is specified`, async ({
         page,
         msw,
@@ -355,7 +367,9 @@ test.describe("/shrines/[id]/sangakus", () => {
     }
   });
 
+  // サインイン後
   test.describe("after signin", () => {
+    // サインイン済みのとき、代表算額カードが見えない
     test("should not allow me to see the representative sangaku card when I am signed in", async ({
       page,
       msw,
@@ -380,6 +394,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(page.getByRole("link", { name: "お試しで解く" })).toHaveCount(0);
     });
 
+    // サインイン済みのとき、サインインして算額を写すリンクが見えない
     test("should not allow me to see the sign-in to copy sangaku link when I am signed in", async ({
       page,
     }) => {
@@ -396,6 +411,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       ).toHaveCount(0);
     });
 
+    // 神社のページから算額を写せる
     test("should allow me to copy a sangaku from the shrine page", async ({ page }) => {
       await setSession(page);
 
@@ -418,6 +434,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
+    // コピーボタンをダブルクリックしても、算額が 2 回写されない
     test("should not allow me to copy a sangaku twice when I double-click the copy button", async ({ page, msw }) => {
       const responseDelayMs = 1500;
       let saveCount = 0;
@@ -444,6 +461,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       expect(saveCount).toBe(1);
     });
 
+    // 初期表示で、保存済みの算額が「保存済み」ラベル付きの無効状態で見える
     test("should allow me to see an already-saved sangaku as disabled with a 保存済み label on initial load", async ({
       page,
       msw,
@@ -465,6 +483,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
+    // 保存済みの算額を、保存できない
     test("should not allow me to save an already-saved sangaku", async ({
       page,
       msw,
@@ -491,6 +510,7 @@ test.describe("/shrines/[id]/sangakus", () => {
       await expect(savedButton).toBeDisabled();
     });
 
+    // 保存が 401 で失敗すると、セッション切れのメッセージとともにサインアウトされる
     test("should allow me to be signed out with the session-expired message when saving fails with 401", async ({
       page,
       msw,

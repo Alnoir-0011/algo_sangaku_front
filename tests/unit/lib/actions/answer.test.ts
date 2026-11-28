@@ -22,6 +22,7 @@ function mockValidationErrorResponse() {
   return new Response(JSON.stringify({ errors: [] }), { status: 400 });
 }
 
+// createAnswer（解答の作成）
 describe("createAnswer", () => {
   beforeEach(() => {
     getSessionMock.mockReset();
@@ -30,6 +31,7 @@ describe("createAnswer", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // API が 401 を返したとき、共通のセッション切れメッセージが表示される
   test("should show the shared session-expired message when the API responds with 401", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -46,6 +48,7 @@ describe("createAnswer", () => {
     });
   });
 
+  // API が 401 を返したとき、バックエンドに API キーの削除を依頼せずにサインアウトする
   test("should sign me out without asking the backend to delete my API key when the API responds with 401", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -62,6 +65,7 @@ describe("createAnswer", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  // source のペイロードで呼び出したとき、POST /api/v1/user/saved_sangakus/:id/answer にリクエストを送る
   test("should send a POST request to /api/v1/user/saved_sangakus/:id/answer when called with a source payload", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -80,6 +84,7 @@ describe("createAnswer", () => {
     expect(options).toMatchObject({ method: "POST" });
   });
 
+  // source のペイロードで呼び出したとき、リクエストボディに answer.source が含まれる
   test("should send a request body containing answer.source when called with a source payload", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -99,6 +104,7 @@ describe("createAnswer", () => {
     });
   });
 
+  // block_ids のペイロードで呼び出したとき、リクエストボディに answer.block_ids が含まれる
   test("should send a request body containing answer.block_ids when called with a block_ids payload", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -118,6 +124,7 @@ describe("createAnswer", () => {
     });
   });
 
+  // block_ids に整数でない要素が含まれるとき、fetch を呼ばない
   test("should not call fetch when block_ids contains a non-integer element", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -136,6 +143,7 @@ describe("createAnswer", () => {
     expect(result).toEqual({ message: "リクエストに失敗しました" });
   });
 
+  // block_ids が空配列のとき、fetch を呼ばない
   test("should not call fetch when block_ids is an empty array", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -153,6 +161,7 @@ describe("createAnswer", () => {
     expect(result).toEqual({ message: "リクエストに失敗しました" });
   });
 
+  // ペイロードに source も block_ids もないとき、fetch を呼ばない
   test("should not call fetch when payload has neither source nor block_ids", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -171,6 +180,7 @@ describe("createAnswer", () => {
     expect(result).toEqual({ message: "リクエストに失敗しました" });
   });
 
+  // source が文字列でないとき、fetch を呼ばない
   test("should not call fetch when source is not a string", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -189,6 +199,7 @@ describe("createAnswer", () => {
     expect(result).toEqual({ message: "リクエストに失敗しました" });
   });
 
+  // ペイロードに source と block_ids の両方が含まれるとき、source フィールドだけを送る
   test("should send only the source field when the payload contains both source and block_ids", async () => {
     // Arrange
     // "use server" 経由の直接呼び出しでは union 型の排他性を実行時には保証できないため、
@@ -209,6 +220,7 @@ describe("createAnswer", () => {
     expect(body).toEqual({ answer: { source: "puts 1" } });
   });
 
+  // block_ids に重複した id が含まれるとき、fetch を呼ばない
   test("should not call fetch when block_ids contains a duplicate id", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -226,6 +238,7 @@ describe("createAnswer", () => {
     expect(result).toEqual({ message: "リクエストに失敗しました" });
   });
 
+  // block_ids に正でない id が含まれるとき、fetch を呼ばない
   test("should not call fetch when block_ids contains a non-positive id", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });

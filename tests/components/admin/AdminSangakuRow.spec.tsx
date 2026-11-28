@@ -40,7 +40,9 @@ const reorderSangaku = {
   },
 };
 
+// AdminSangakuRow
 test.describe("AdminSangakuRow", () => {
+  // 算額のタイトルが見える
   test("should allow me to see sangaku title", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -52,6 +54,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("テスト算額")).toBeVisible();
   });
 
+  // ユーザー名が見える
   test("should allow me to see user name", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -63,6 +66,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("test_user")).toBeVisible();
   });
 
+  // 奉納済みのとき、神社名が見える
   test("should allow me to see shrine name when dedicated", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -74,6 +78,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("test_shrine")).toBeVisible();
   });
 
+  // 奉納されていないとき、代替テキストが見える
   test("should allow me to see fallback text when not dedicated", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -85,6 +90,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("未奉納")).toBeVisible();
   });
 
+  // 編集リンクが見える
   test("should allow me to see edit link", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -96,6 +102,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByRole("link", { name: "編集" })).toBeVisible();
   });
 
+  // 削除ボタンが見える
   test("should allow me to see delete button", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -107,6 +114,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByRole("button", { name: "削除" })).toBeVisible();
   });
 
+  // kind が code のとき、kind ラベルが「コード記述」で見える
   test("should allow me to see kind label as code when kind is code", async ({ mount }) => {
     const component = await mount(
       <table>
@@ -118,6 +126,7 @@ test.describe("AdminSangakuRow", () => {
     await expect(component.getByText("コード記述")).toBeVisible();
   });
 
+  // kind が reorder のとき、kind ラベルが「並べ替え」で見える
   test("should allow me to see kind label as reorder when kind is reorder", async ({ mount }) => {
     const component = await mount(
       <table>

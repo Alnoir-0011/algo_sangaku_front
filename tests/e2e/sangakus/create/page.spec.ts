@@ -11,8 +11,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /sangakus/create ページ
 test.describe("/sangakus/create", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに作成ページを訪問できず、サインインへリダイレクトされる
     test("should not allow me to visit create page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
@@ -24,6 +27,7 @@ test.describe("/sangakus/create", () => {
       await expect(heading).toBeVisible();
     });
 
+    // サインインへのリダイレクト後、ナビにサインインボタンが見える
     test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
       await page.goto("/sangakus/create");
       await expect(page).toHaveURL("/signin");
@@ -34,6 +38,7 @@ test.describe("/sangakus/create", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -58,6 +63,7 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
+    // 確認モーダルに、入力したフォームの内容が見える
     test("should allow me to see filled form content in the confirmation modal", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");
@@ -75,6 +81,7 @@ test.describe("/sangakus/create", () => {
       await expect(resultText).toBeVisible();
     });
 
+    // 算額を保存でき、フラッシュメッセージ付きでリダイレクトされる
     test("should allow me to save a sangaku and be redirected with a flash message", async ({ page, msw }) => {
       const backendResponse = {
         data: {
@@ -110,6 +117,7 @@ test.describe("/sangakus/create", () => {
       await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
+    // 保存ボタンをダブルクリックしても、算額が 2 回作成されない
     test("should not allow me to create a sangaku twice when I double-click the save button", async ({ page, msw }) => {
       const responseDelayMs = 1500;
       let createCount = 0;
@@ -154,6 +162,7 @@ test.describe("/sangakus/create", () => {
       expect(createCount).toBe(1);
     });
 
+    // 説明が空のとき、生成ボタンをクリックできない
     test("should not allow me to click the generate button when description is empty", async ({
       page,
     }) => {
@@ -176,6 +185,7 @@ test.describe("/sangakus/create", () => {
       await expect(generateButton).toBeDisabled();
     });
 
+    // 説明からソースコードを生成できる
     test("should allow me to generate source code from description", async ({ page, msw }) => {
       const generatedSource =
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
@@ -248,6 +258,7 @@ test.describe("/sangakus/create", () => {
       await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
+    // 送信に失敗すると、バリデーションエラーメッセージが見える
     test("should allow me to see validation error messages on failed submission", async ({ page, msw }) => {
       // NOTE:モックの定義
       const backendResponse = {
@@ -302,6 +313,7 @@ test.describe("/sangakus/create", () => {
       await expect(sourceErrorMessage).toHaveText("を入力してください");
     });
 
+    // API が不正な形式の errors フィールドを返しても、クラッシュせずに汎用エラーが見える
     test("should not crash and show a generic error when the API returns a malformed errors field", async ({
       page,
       msw,
@@ -335,6 +347,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByLabel("titleError")).not.toBeVisible();
     });
 
+    // 残り回数付きの利用状況インジケーターが見える
     test("should allow me to see usage indicator with remaining count", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");
@@ -343,6 +356,7 @@ test.describe("/sangakus/create", () => {
       await expect(usageIndicator).toBeVisible();
     });
 
+    // 生成に成功すると、更新された利用回数が見える
     test("should allow me to see updated usage count after successful generation", async ({ page, msw }) => {
       const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
 
@@ -371,6 +385,7 @@ test.describe("/sangakus/create", () => {
       await expect(usageIndicator).toBeVisible();
     });
 
+    // 429 レスポンスのとき、エラーメッセージが見える
     test("should allow me to see an error message on 429 response", async ({ page, msw }) => {
       msw.use(
         http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
@@ -396,6 +411,7 @@ test.describe("/sangakus/create", () => {
       ).toBeDisabled();
     });
 
+    // 生成回数の取得 API が失敗したとき、「本日の残り生成回数: - / -」と見える
     test("should allow me to see dash indicator when generate source API fails", async ({
       page,
       msw,
@@ -415,6 +431,7 @@ test.describe("/sangakus/create", () => {
       ).toBeVisible({ timeout: 10_000 });
     });
 
+    // Markdown をプレビューすると、レンダリング結果と空のプレースホルダーが見える
     test("should allow me to preview markdown content with rendered content and empty placeholder", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");
@@ -452,6 +469,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByRole("cell", { name: "A" })).toBeVisible();
     });
 
+    // 確認モーダルから編集画面へ戻れる
     test("should allow me to go back from the confirmation modal to the edit screen", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");
@@ -463,6 +481,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByLabel("タイトル")).toBeVisible();
     });
 
+    // 説明が 2000 文字を超えると、警告メッセージが見える
     test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");
@@ -483,6 +502,7 @@ test.describe("/sangakus/create", () => {
     });
   });
 
+  // kind の選択
   test.describe("kind selection", () => {
     test.use({
       mswHandlers: [
@@ -507,6 +527,7 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
+    // kind が未指定のとき、kind 選択リンクが見える
     test("should allow me to see kind selection links when kind is not specified", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create");
@@ -514,6 +535,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByRole("link", { name: "並べ替え形式で作成" })).toBeVisible();
     });
 
+    // kind が reorder のとき、並べ替え算額のフォームが見える
     test("should allow me to see reorder sangaku form when kind is reorder", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=reorder");
@@ -521,6 +543,7 @@ test.describe("/sangakus/create", () => {
       await expect(page.getByRole("button", { name: "行分割して生成" })).toBeVisible();
     });
 
+    // 並べ替え算額を、正しい形のペイロードで保存できる
     test("should allow me to save a reorder sangaku with correctly shaped payload", async ({ page, msw }) => {
       let capturedBody: unknown;
       msw.use(
@@ -589,6 +612,7 @@ test.describe("/sangakus/create", () => {
       });
     });
 
+    // 並べ替え算額を保存でき、フラッシュメッセージ付きでリダイレクトされる
     test("should allow me to save a reorder sangaku and be redirected with a flash message", async ({ page, msw }) => {
       const backendResponse = {
         data: {
@@ -637,6 +661,7 @@ test.describe("/sangakus/create", () => {
       await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
     });
 
+    // 並べ替え算額の送信に失敗すると、フィールドエラーが見える
     test("should allow me to see field errors when reorder sangaku submission fails", async ({ page, msw }) => {
       msw.use(
         http.post(`${apiUrl}/api/v1/user/reorder_sangakus`, () => {
@@ -674,6 +699,7 @@ test.describe("/sangakus/create", () => {
     });
   });
 
+  // 1 日の上限に達したとき
   test.describe("when daily limit is reached", () => {
     test.use({
       mswHandlers: [
@@ -693,6 +719,7 @@ test.describe("/sangakus/create", () => {
       ],
     });
 
+    // 残りが 0 のとき、生成ボタンをクリックできない
     test("should not allow me to click the generate button when remaining is 0", async ({ page }) => {
       await setSession(page);
       await page.goto("/sangakus/create?kind=code");

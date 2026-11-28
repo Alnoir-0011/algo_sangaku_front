@@ -9,7 +9,9 @@ import type { CodeBlockDraft } from "@/app/ui/sangaku/reorder/CodeBlockEditor";
 // この testid は仕様に明記されていないため、GREEN フェーズ実装時にこのパターンで
 // 実装することが前提となる。
 
+// ReorderCheckPage
 test.describe("ReorderCheckPage", () => {
+  // open が true のとき、モーダルが見える
   test("should allow me to see the modal when open is true", async ({
     mount,
     page,
@@ -32,6 +34,7 @@ test.describe("ReorderCheckPage", () => {
     ).toBeVisible();
   });
 
+  // open が false のとき、モーダルが見えない
   test("should not allow me to see the modal when open is false", async ({
     mount,
     page,
@@ -51,6 +54,7 @@ test.describe("ReorderCheckPage", () => {
     ).not.toBeVisible();
   });
 
+  // ダミーでないブロックだけのとき、正解ブロックが配列の並び順で 1 から連番付きで見える
   test("should allow me to see correct blocks numbered in correct_position order when blocks contain only non-dummy blocks", async ({
     mount,
     page,
@@ -83,6 +87,7 @@ test.describe("ReorderCheckPage", () => {
     await expect(block2.getByText("puts 3")).toBeVisible();
   });
 
+  // ブロックがダミーのとき、番号の代わりにダミーラベルが見える
   test("should allow me to see a dummy label instead of a number when a block is marked as dummy", async ({
     mount,
     page,
@@ -106,6 +111,7 @@ test.describe("ReorderCheckPage", () => {
     await expect(dummyBlock.getByText("1", { exact: true })).not.toBeVisible();
   });
 
+  // 正解ブロックとダミーブロックが混在するとき、正解ブロックの番号がダミーブロックを飛ばして付く
   test("should allow me to see correct block numbering skip dummy blocks when correct and dummy blocks are mixed", async ({
     mount,
     page,
@@ -135,6 +141,7 @@ test.describe("ReorderCheckPage", () => {
     ).toBeVisible();
   });
 
+  // 戻るボタンをクリックしたとき、onClose が呼ばれる
   test("should allow me to go back to the create page when I click the back button", async ({
     mount,
     page,
@@ -163,6 +170,7 @@ test.describe("ReorderCheckPage", () => {
     expect(onCloseCalled).toBe(true);
   });
 
+  // 渡されたフォーム ID に紐づく保存ボタンが見える
   test("should allow me to see the save button associated with the given form id", async ({
     mount,
     page,
@@ -188,6 +196,7 @@ test.describe("ReorderCheckPage", () => {
     await expect(saveButton).toHaveAttribute("form", "reorder_sangaku_form");
   });
 
+  // isPending が true のとき、保存ボタンをクリックできない
   test("should not allow me to click the save button when isPending is true", async ({
     mount,
     page,

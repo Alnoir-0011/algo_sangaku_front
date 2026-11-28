@@ -10,7 +10,9 @@ import { RATE_LIMIT_BUCKETS } from "@/app/lib/guard";
 /** しきい値を実装から取得する。ハードコードすると変更時に静かにずれる */
 const PUBLIC_GET_LIMIT = RATE_LIMIT_BUCKETS["public-get"].limit;
 
+// プロキシガード（enforce モード）
 test.describe("Proxy guard (enforce)", () => {
+  // 悪意のある User-Agent ではアプリに到達できない
   test("should not allow me to reach the app with a malicious user agent", async ({
     request,
   }) => {
@@ -32,6 +34,7 @@ test.describe("Proxy guard (enforce)", () => {
     });
   });
 
+  // 通常の訪問者として公開ページを閲覧できる
   test("should allow me to browse public pages as an ordinary visitor", async ({
     request,
   }) => {
@@ -46,6 +49,7 @@ test.describe("Proxy guard (enforce)", () => {
     }).toEqual({ status: 200, limit: undefined });
   });
 
+  // 公開ページのレート制限を超えてバーストアクセスできない
   test("should not allow me to burst past the public page rate limit", async ({
     request,
   }) => {
@@ -61,6 +65,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(throttled.length).toBeGreaterThan(0);
   });
 
+  // 制限されたとき、再試行のヒントを読める
   test("should allow me to read the retry hint when I am throttled", async ({
     request,
   }) => {
@@ -86,6 +91,7 @@ test.describe("Proxy guard (enforce)", () => {
     });
   });
 
+  // 他の訪問者の残り回数に影響を与えられない
   test("should not allow me to affect another visitor's budget", async ({
     request,
   }) => {
@@ -102,6 +108,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(other.status()).toBe(200);
   });
 
+  // cf-connecting-ip を偽装して残り回数をリセットできない
   test("should not allow me to reset my budget by forging cf-connecting-ip", async ({
     request,
   }) => {
@@ -121,6 +128,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(throttled.length).toBeGreaterThan(0);
   });
 
+  // 通常でない HTTP メソッドでレート制限を回避できない
   test("should not allow me to escape the rate limit with an unusual method", async ({
     request,
   }) => {
@@ -135,6 +143,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(throttled.length).toBeGreaterThan(0);
   });
 
+  // next-action ヘッダーでサインインの制限を緩められない
   test("should not allow me to relax the sign-in limit with a next-action header", async ({
     request,
   }) => {
@@ -155,6 +164,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(throttled.length).toBeGreaterThan(0);
   });
 
+  // ドット付きのパスでガードを回避できない
   test("should not allow me to bypass the guard with a dotted path", async ({
     request,
   }) => {
@@ -170,6 +180,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(response.status()).toBe(403);
   });
 
+  // Googlebot を名乗るクローラーとして公開ページをクロールできる
   test("should allow me to crawl public pages as a verified crawler", async ({
     request,
   }) => {
@@ -184,6 +195,7 @@ test.describe("Proxy guard (enforce)", () => {
     expect(response.status()).toBe(200);
   });
 
+  // Server Action が制限されても、アプリが壊れた様子が見えない
   test("should not allow me to see the app break when a server action is throttled", async ({
     page,
   }) => {

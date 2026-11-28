@@ -18,6 +18,7 @@ const statsResponse = {
   },
 };
 
+// /admin（ダッシュボード）
 test.describe("/admin (dashboard)", () => {
   test.use({
     mswHandlers: [
@@ -33,7 +34,9 @@ test.describe("/admin (dashboard)", () => {
     ],
   });
 
+  // 未認証ユーザー
   test.describe("unauthenticated user", () => {
+    // 認証なしではダッシュボードにアクセスできない
     test("should not allow me to access dashboard without authentication", async ({
       page,
     }) => {
@@ -46,7 +49,9 @@ test.describe("/admin (dashboard)", () => {
     });
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーではダッシュボードにアクセスできない
     test("should not allow me to access dashboard as a general user", async ({ page }) => {
       await setSession(page);
       await page.goto("/admin");
@@ -55,34 +60,41 @@ test.describe("/admin (dashboard)", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
     test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin");
     });
 
+    // 管理者として、ダッシュボードの見出しが見える
     test("should allow me to see the dashboard heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "管理ダッシュボード" }),
       ).toBeVisible();
     });
 
+    // API から取得したユーザー数が見える
     test("should allow me to see users count from API", async ({ page }) => {
       await expect(page.getByTestId("users_count")).toContainText("42");
     });
 
+    // API から取得した算額数が見える
     test("should allow me to see sangakus count from API", async ({ page }) => {
       await expect(page.getByTestId("sangakus_count")).toContainText("15");
     });
 
+    // API から取得した神社数が見える
     test("should allow me to see shrines count from API", async ({ page }) => {
       await expect(page.getByTestId("shrines_count")).toContainText("8");
     });
 
+    // API から取得した解答数が見える
     test("should allow me to see answers count from API", async ({ page }) => {
       await expect(page.getByTestId("answers_count")).toContainText("100", { timeout: 10_000 });
     });
 
+    // 各管理ページへのナビゲーションリンクが見える
     test("should allow me to see navigation links to management pages", async ({ page }) => {
       await expect(
         page.getByRole("link", { name: "ユーザー管理" }),

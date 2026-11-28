@@ -4,7 +4,9 @@ import CheckPage from "@/app/ui/sangaku/CheckPage";
 // MUI Modal は React Portal で document.body 直下にレンダリングされるため、
 // マウント済みコンポーネントのルート配下に限定される component.getByRole ではなく、
 // ページ全体を対象にする page.getByRole を使う。
+// CheckPage
 test.describe("CheckPage", () => {
+  // isPending が false のとき、保存ボタンをクリックできる
   test("should allow me to click the save button when isPending is false", async ({
     mount,
     page,
@@ -24,6 +26,7 @@ test.describe("CheckPage", () => {
     await expect(page.getByRole("button", { name: "保存する" })).toBeEnabled();
   });
 
+  // isPending が true のとき、保存ボタンをクリックできない
   test("should not allow me to click the save button when isPending is true", async ({
     mount,
     page,

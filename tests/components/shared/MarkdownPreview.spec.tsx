@@ -1,12 +1,15 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import MarkdownPreview from "@/app/ui/shared/MarkdownPreview";
 
+// MarkdownPreview（Markdown のプレビュー）
 test.describe("MarkdownPreview", () => {
+  // プレーンテキストが描画されて見える
   test("should allow me to see plain text rendered", async ({ mount }) => {
     const component = await mount(<MarkdownPreview content="Hello World" />);
     await expect(component).toContainText("Hello World");
   });
 
+  // 見出しが描画されて見える
   test("should allow me to see heading rendered", async ({ mount }) => {
     const component = await mount(<MarkdownPreview content="# 見出し1" />);
     const heading = component.locator("h1");
@@ -14,6 +17,7 @@ test.describe("MarkdownPreview", () => {
     await expect(heading).toContainText("見出し1");
   });
 
+  // 太字が描画されて見える
   test("should allow me to see bold text rendered", async ({ mount }) => {
     const component = await mount(<MarkdownPreview content="**太字テキスト**" />);
     const strong = component.locator("strong");
@@ -21,6 +25,7 @@ test.describe("MarkdownPreview", () => {
     await expect(strong).toContainText("太字テキスト");
   });
 
+  // リスト項目が描画されて見える
   test("should allow me to see list items rendered", async ({ mount }) => {
     const content = "- 項目1\n- 項目2\n- 項目3";
     const component = await mount(<MarkdownPreview content={content} />);
@@ -31,6 +36,7 @@ test.describe("MarkdownPreview", () => {
     await expect(component).toContainText("項目3");
   });
 
+  // インラインコードが描画されて見える
   test("should allow me to see inline code rendered", async ({ mount }) => {
     const component = await mount(<MarkdownPreview content="`code`" />);
     const code = component.locator("code");
@@ -38,6 +44,7 @@ test.describe("MarkdownPreview", () => {
     await expect(code).toContainText("code");
   });
 
+  // コードブロックが描画されて見える
   test("should allow me to see code block rendered", async ({ mount }) => {
     const content = "```ruby\nputs 'hello'\n```";
     const component = await mount(<MarkdownPreview content={content} />);
@@ -46,6 +53,7 @@ test.describe("MarkdownPreview", () => {
     await expect(code).toContainText("puts 'hello'");
   });
 
+  // GFM のテーブルが描画されて見える
   test("should allow me to see table rendered with GFM", async ({ mount }) => {
     const content = "| A | B |\n|---|---|\n| 1 | 2 |";
     const component = await mount(<MarkdownPreview content={content} />);
@@ -53,6 +61,7 @@ test.describe("MarkdownPreview", () => {
     await expect(table).toBeVisible();
   });
 
+  // script タグが描画結果に見えない
   test("should not allow me to see script tags in rendered output", async ({ mount }) => {
     // scriptタグと本文テキストは別の段落として分ける
     const component = await mount(
@@ -63,6 +72,7 @@ test.describe("MarkdownPreview", () => {
     await expect(component).toContainText("テキスト");
   });
 
+  // 内容が空のとき、何も見えない
   test("should allow me to see nothing when content is empty", async ({ mount }) => {
     const component = await mount(<MarkdownPreview content="" />);
     await expect(component.locator("p, h1, h2, h3, ul, ol, table")).toHaveCount(0);

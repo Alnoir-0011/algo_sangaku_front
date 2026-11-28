@@ -10,8 +10,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /saved_sangakus/[id]/answer/create ページ
 test.describe("/saved_sangakus/[id]/answer/create", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに解答作成ページへアクセスできない
     test("should not allow me to access create answer page without signing in", async ({ page }) => {
       await page.goto("/saved_sangakus/1/answer/create");
       await expect(page).toHaveURL("/signin");
@@ -21,6 +24,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -220,6 +224,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       ],
     });
 
+    // 解答を送信して、結果ページへ遷移できる
     test("should allow me to submit answer and navigate to result page", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer/create");
@@ -245,6 +250,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(output).toContainText("test");
     });
 
+    // 解答終了ボタンをダブルクリックしても、解答が 2 回送信されない
     test("should not allow me to submit an answer twice when I double-click the end-answer button", async ({ page, msw }) => {
       const responseDelayMs = 1500;
       let answerCount = 0;
@@ -290,6 +296,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       expect(answerCount).toBe(1);
     });
 
+    // 確認ダイアログを閉じると、解答を終了できない
     test("should not allow me to end answer when confirm is dismissed", async ({
       page,
     }) => {
@@ -304,6 +311,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(page).toHaveURL("/saved_sangakus/1/answer/create");
     });
 
+    // ソースなしでは、解答を作成できない
     test("should not allow me to create answer without source", async ({
       page,
       msw,
@@ -338,6 +346,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(errorMessage).toBeVisible();
     });
 
+    // 解答済みの算額には、解答を送信できない
     test("should not allow me to submit an answer for an already-answered sangaku", async ({
       page,
       msw,
@@ -367,6 +376,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(flash).toContainText("この算額にはすでに解答済みです");
     });
 
+    // 実行ボタンをクリックすると、PaizaIO の出力が見える
     test("should allow me to see PaizaIO output after clicking the run button", async ({
       page,
       msw,
@@ -396,6 +406,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
       await expect(output).toHaveValue("paiza mock output\n", { timeout: 10_000 });
     });
 
+    // 算額の kind が reorder のとき
     test.describe("when sangaku kind is reorder", () => {
       test.use({
         mswHandlers: [
@@ -455,6 +466,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         ],
       });
 
+      // kind が reorder のとき、ReorderPuzzle が見える
       test("should allow me to see ReorderPuzzle when sangaku kind is reorder", async ({
         page,
       }) => {
@@ -472,6 +484,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
 
       // toPuzzleBlocks は、入力が昇順のとき昇順のまま返さない。ページが呼び忘れると、
       // API が返した昇順のまま表示されるため、確率に頼らずに検知できる。
+      // ブロックが API の返却順で見えない
       test("should not allow me to see the blocks in the order returned by the API", async ({
         page,
       }) => {
@@ -495,6 +508,7 @@ test.describe("/saved_sangakus/[id]/answer/create", () => {
         ]);
       });
 
+      // 並べ替えパズルを開いても、ハイドレーションエラーが見えない
       test("should not allow me to see a hydration error when I open the reorder puzzle", async ({
         page,
       }) => {

@@ -48,6 +48,7 @@ const getUserInfo = () => {
   return google?.getUserInfo as unknown as GetUserInfo;
 };
 
+// Google サインイン
 describe("Google sign-in", () => {
   beforeEach(() => {
     serverFetchMock.mockReset().mockImplementation(async () => backendOk());
@@ -61,6 +62,7 @@ describe("Google sign-in", () => {
     vi.restoreAllMocks();
   });
 
+  // バックエンドが返したアクセストークン・ニックネーム・ロールでサインインできる
   test("should allow me to sign in with the access token, nickname and role the backend gave", async () => {
     const result = await getUserInfo()({ idToken: validIdToken });
 
@@ -77,6 +79,7 @@ describe("Google sign-in", () => {
     expect(revokeRailsApiKeyMock).not.toHaveBeenCalled();
   });
 
+  // ID トークンで、バックエンドに識別される
   test("should allow me to be identified by the backend with my ID token", async () => {
     await getUserInfo()({ idToken: validIdToken });
 
@@ -91,6 +94,7 @@ describe("Google sign-in", () => {
 
   // サインインの成功が確定する前に出すと、後段の失敗（リンクの拒否など）で、
   // 失敗の表示と同時に出る。成功の通知は、フック（sign-in.test.ts）で出す
+  // サインインに成功する前は、サインインのメッセージが見えない
   test("should not allow me to see the sign-in message before the sign-in succeeds", async () => {
     const result = await getUserInfo()({ idToken: validIdToken });
 
@@ -98,17 +102,21 @@ describe("Google sign-in", () => {
     expect(setFlashMock).not.toHaveBeenCalled();
   });
 
+  // 失敗しうる処理が失敗したとき
   describe("when something that can fail fails", () => {
+    // ID トークンがないと、サインインできない
     test("should not allow me to sign in without an ID token", async () => {
       expect(await getUserInfo()({})).toBeNull();
       expect(serverFetchMock).not.toHaveBeenCalled();
     });
 
+    // ID トークンをデコードできないとき、API キーが残らない
     test("should not leave an API key behind when my ID token cannot be decoded", async () => {
       expect(await getUserInfo()({ idToken: "not-a-token" })).toBeNull();
       expect(serverFetchMock).not.toHaveBeenCalled();
     });
 
+    // ID トークンにメールアドレスがないとき、API キーが残らない
     test("should not leave an API key behind when my ID token has no email", async () => {
       const result = await getUserInfo()({
         idToken: idTokenOf({ sub: "google-sub", name: "Me" }),
@@ -118,6 +126,7 @@ describe("Google sign-in", () => {
       expect(serverFetchMock).not.toHaveBeenCalled();
     });
 
+    // ID トークンにサブジェクトがないとき、API キーが残らない
     test("should not leave an API key behind when my ID token has no subject", async () => {
       const result = await getUserInfo()({
         idToken: idTokenOf({ email: "me@example.com", name: "Me" }),
@@ -127,6 +136,7 @@ describe("Google sign-in", () => {
       expect(serverFetchMock).not.toHaveBeenCalled();
     });
 
+    // バックエンドが返したユーザーが「%s」状態のとき、API キーを削除し、サインインできない
     test.each([
       ["role is unknown", { nickname: "nick", role: "owner" }],
       ["nickname is missing", { nickname: null, role: "admin" }],
@@ -145,6 +155,7 @@ describe("Google sign-in", () => {
       },
     );
 
+    // バックエンドが %i を返したとき、サインインできない
     test.each([401, 500])(
       "should not allow me to sign in when the backend responds with %i",
       async (status) => {
@@ -154,6 +165,7 @@ describe("Google sign-in", () => {
       },
     );
 
+    // バックエンドがアクセストークンを返さないとき、サインインできない
     test("should not allow me to sign in when the backend gives no access token", async () => {
       serverFetchMock.mockResolvedValue(
         new Response(
@@ -165,6 +177,7 @@ describe("Google sign-in", () => {
       expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
     });
 
+    // バックエンドは受け入れたが、読み取れない本文を返したとき、API キーを削除する
     test("should delete the API key when the backend accepted me but gave a body that cannot be read", async () => {
       serverFetchMock.mockResolvedValue(
         new Response("not json", {
@@ -177,6 +190,7 @@ describe("Google sign-in", () => {
       expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("api-token");
     });
 
+    // バックエンドは受け入れたが、ユーザーを返さなかったとき、API キーを削除する
     test("should delete the API key when the backend accepted me but gave no user", async () => {
       serverFetchMock.mockResolvedValue(
         new Response(JSON.stringify({}), {
@@ -189,12 +203,14 @@ describe("Google sign-in", () => {
       expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("api-token");
     });
 
+    // バックエンドに接続できないとき、サインインできない
     test("should not allow me to sign in when the backend cannot be reached", async () => {
       serverFetchMock.mockRejectedValue(new TypeError("fetch failed"));
 
       expect(await getUserInfo()({ idToken: validIdToken })).toBeNull();
     });
 
+    // サインイン時に、バックエンドの応答を長く待たされない
     test("should not allow the backend to keep me waiting for long when I sign in", async () => {
       vi.useFakeTimers();
       // 応答しないバックエンドを再現する。中断されたときだけ reject する

@@ -11,8 +11,11 @@ const mockSession: TestSession = {
   expires: "dummy",
 };
 
+// Drawer（ナビゲーションのドロワー）
 test.describe("Drawer", () => {
+  // サインイン前
   test.describe("before login", () => {
+    // アプリ名のリンクが見える
     test("should allow me to see app name link", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -27,6 +30,7 @@ test.describe("Drawer", () => {
       await expect(heading).toBeVisible();
     });
 
+    // 地図ページへのリンクが見える
     test("should allow me to see link to map page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -42,6 +46,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
+    // サインインボタンが見える
     test("should allow me to see sign-in button", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -56,6 +61,7 @@ test.describe("Drawer", () => {
       await expect(button).toBeVisible();
     });
 
+    // プライバシーポリシーページへのリンクが見える
     test("should allow me to see link to privacy policy page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -73,6 +79,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
+    // 利用規約ページへのリンクが見える
     test("should allow me to see link to terms of use page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -89,7 +96,9 @@ test.describe("Drawer", () => {
     });
   });
 
+  // サインイン後
   test.describe("after login", () => {
+    // アプリ名のリンクが見える
     test("should allow me to see app name link", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -104,6 +113,7 @@ test.describe("Drawer", () => {
       await expect(heading).toBeVisible();
     });
 
+    // 地図ページへのリンクが見える
     test("should allow me to see link to map page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -119,6 +129,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/shrines");
     });
 
+    // サインイン中は、サインインボタンが見えない
     test("should not allow me to see sign-in button when logged in", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -133,6 +144,7 @@ test.describe("Drawer", () => {
       await expect(button).not.toBeVisible();
     });
 
+    // 算額作成ページへのリンクが見える
     test("should allow me to see link to create sangaku page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -148,6 +160,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/sangakus/create");
     });
 
+    // 算額を解くページへのリンクが見える
     test("should allow me to see link to answer sangaku page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -163,6 +176,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/saved_sangakus");
     });
 
+    // 自分の算額一覧ページへのリンクが見える
     test("should allow me to see link to own sangaku list page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -178,6 +192,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/user/sangakus");
     });
 
+    // プロフィール編集ページへのリンクが見える
     test("should allow me to see link to edit profile page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -193,6 +208,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/user/profile");
     });
 
+    // サインアウトボタンが見える
     test("should allow me to see sign-out button", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -207,6 +223,7 @@ test.describe("Drawer", () => {
       await expect(button).toBeVisible();
     });
 
+    // プライバシーポリシーページへのリンクが見える
     test("should allow me to see link to privacy policy page", async ({ mount }) => {
       const component = await mount(
         <Drawer
@@ -224,6 +241,7 @@ test.describe("Drawer", () => {
       await expect(link).toHaveAttribute("href", "/privacy_policy");
     });
 
+    // 利用規約ページへのリンクが見える
     test("should allow me to see link to terms of use page", async ({ mount }) => {
       const component = await mount(
         <Drawer

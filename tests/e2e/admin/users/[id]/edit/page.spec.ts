@@ -41,6 +41,7 @@ const updatedUserResponse = {
   },
 };
 
+// /admin/users/[id]/edit
 test.describe("/admin/users/[id]/edit", () => {
   test.use({
     mswHandlers: [
@@ -59,7 +60,9 @@ test.describe("/admin/users/[id]/edit", () => {
     ],
   });
 
+  // 未認証ユーザー
   test.describe("unauthenticated user", () => {
+    // 認証なしではユーザー編集ページにアクセスできない
     test("should not allow me to access user edit page without authentication", async ({
       page,
     }) => {
@@ -70,7 +73,9 @@ test.describe("/admin/users/[id]/edit", () => {
     });
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーではユーザー編集ページにアクセスできない
     test("should not allow me to access user edit page as a general user", async ({
       page,
     }) => {
@@ -81,7 +86,9 @@ test.describe("/admin/users/[id]/edit", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
+    // 管理者として、ユーザー編集の見出しが見える
     test("should allow me to see the user edit heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
@@ -90,12 +97,14 @@ test.describe("/admin/users/[id]/edit", () => {
       ).toBeVisible();
     });
 
+    // 既存のユーザー名が入力済みのフォームが見える
     test("should allow me to see the form pre-filled with the existing user name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
       await expect(page.getByLabel("名前")).toHaveValue("General User");
     });
 
+    // ユーザーを更新できる
     test("should allow me to update user", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/users/2/edit");
@@ -108,6 +117,7 @@ test.describe("/admin/users/[id]/edit", () => {
   });
 });
 
+// /admin/users/[id]/edit（存在しないとき）
 test.describe("/admin/users/[id]/edit (not found)", () => {
   test.use({
     mswHandlers: [
@@ -121,6 +131,7 @@ test.describe("/admin/users/[id]/edit (not found)", () => {
     ],
   });
 
+  // ユーザーが見つからないとき、ユーザー編集ページが見えない
   test("should not allow me to see user edit page when user is not found", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/users/2/edit");

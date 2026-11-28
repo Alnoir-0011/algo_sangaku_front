@@ -27,7 +27,9 @@ const sangaku: SangakuType = {
   },
 };
 
+// Sangaku
 test.describe("Sangaku", () => {
+  // 算額の kind が code のとき、コード記述バッジが見える
   test("should allow me to see コード記述 badge when sangaku kind is code", async ({
     mount,
     page,
@@ -45,6 +47,7 @@ test.describe("Sangaku", () => {
     await expect(page.getByText("コード記述")).toBeVisible();
   });
 
+  // 算額の kind が reorder のとき、並べ替えバッジが見える
   test("should allow me to see 並べ替え badge when sangaku kind is reorder", async ({
     mount,
     page,

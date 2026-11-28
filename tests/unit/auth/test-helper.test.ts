@@ -31,7 +31,9 @@ const sessionOf = (cookies: Cookies) =>
 
 // E2E は、このヘルパーが作った cookie だけで、サーバー（auth.ts）にログインする。
 // 食い違いは、ビルド済みの E2E 全体でしか分からないため、ここで確かめる
+// テストヘルパーが作る Cookie
 describe("cookies that the test helper creates", () => {
+  // サーバーが、アクセストークン・ニックネーム・ロールを読み取れる
   test("should allow the server to read my access token, nickname and role", async () => {
     const cookies = await createSessionCookies({ email: "me@example.com" });
 
@@ -45,6 +47,7 @@ describe("cookies that the test helper creates", () => {
     });
   });
 
+  // 管理者を、一般ユーザーと見分けられる
   test("should allow an admin to be told from a general user", async () => {
     const cookies = await createSessionCookies({
       email: "admin@example.com",
@@ -54,6 +57,7 @@ describe("cookies that the test helper creates", () => {
     expect(railsUserOf(await sessionOf(cookies))?.role).toBe("admin");
   });
 
+  // 2 人分の Cookie が混ざらない
   test("should not allow the cookies of two people to be mixed", async () => {
     const first = await createSessionCookies({
       email: "first@example.com",
@@ -76,6 +80,7 @@ describe("cookies that the test helper creates", () => {
     ]);
   });
 
+  // ブラウザが、アクセストークンなしで自分が誰かを把握できる
   test("should allow the browser to know who I am without my access token", async () => {
     const cookies = await createSessionCookies({
       email: "me@example.com",
@@ -94,6 +99,7 @@ describe("cookies that the test helper creates", () => {
     expect(body).not.toContain("SECRET-TOKEN");
   });
 
+  // Cookie のセッションが 7 日を超えて残らない
   test("should not allow the session of the cookies to outlive 7 days", async () => {
     const cookies = await createSessionCookies({ email: "me@example.com" });
 
@@ -105,7 +111,9 @@ describe("cookies that the test helper creates", () => {
   });
 });
 
+// テスト用の認証とサーバーの認証
 describe("the auth for tests and the auth of the server", () => {
+  // ヘルパーの %s の Cookie を、サーバーが受け入れられる
   test.each(["sessionToken", "sessionData"] as const)(
     "should allow the cookie of %s from the helper to be accepted by the server",
     async (key) => {
@@ -118,6 +126,7 @@ describe("the auth for tests and the auth of the server", () => {
     },
   );
 
+  // テスト用ユーティリティが、サーバーの認証に含まれない
   test("should not allow the test utilities to be part of the auth of the server", () => {
     const idsOf = (instance: { options: { plugins?: { id: string }[] } }) =>
       instance.options.plugins?.map((plugin) => plugin.id) ?? [];
@@ -127,6 +136,7 @@ describe("the auth for tests and the auth of the server", () => {
   });
 });
 
+// テスト用の認証の設定
 describe("the settings of the auth for tests", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -134,6 +144,7 @@ describe("the settings of the auth for tests", () => {
   });
 
   // 設定の無い環境でも、テストの一覧を出せるよう、読み込みの時点では設定を読まない
+  // 設定がなくても、テストを一覧できる
   test("should allow me to list the tests without the settings", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     vi.stubEnv("AUTH_SECRET", "");
@@ -145,6 +156,7 @@ describe("the settings of the auth for tests", () => {
     ).resolves.toHaveProperty("createSessionCookies");
   });
 
+  // %s なしでは、Cookie を作成できない
   test.each([
     ["the secret", { BETTER_AUTH_SECRET: "", AUTH_SECRET: "" }],
     ["the base URL", { BETTER_AUTH_URL: "" }],

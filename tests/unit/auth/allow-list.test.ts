@@ -36,19 +36,24 @@ beforeEach(() => {
 
 const NOT_FOUND = { message: "Not found" };
 
+// ブラウザ向けの認証 API
 describe("auth API for the browser", () => {
+  // 認証 API が動いていることを確認できる
   test("should allow me to check that the auth API is running", async () => {
     expect((await get("/ok")).status).toBe(200);
   });
 
+  // 自分のセッションを確認できる
   test("should allow me to check my session", async () => {
     expect((await get("/get-session")).status).toBe(200);
   });
 
+  // サインアウトできる
   test("should allow me to sign out", async () => {
     expect((await post("/sign-out", {})).status).toBe(200);
   });
 
+  // エラーページからサインインページへ遷移できる
   test("should allow me to be sent to the sign-in page from the error page", async () => {
     const response = await get("/error?error=access_denied");
 
@@ -60,6 +65,7 @@ describe("auth API for the browser", () => {
 
   // /sign-in/email と /sign-up/email は、emailAndPassword を有効にしていなくても、
   // Better Auth のルーターは 400 を返す。404 はこの許可リストからだけ返る
+  // %s を呼び出せない
   test.each([
     ["/update-user", { name: "x" }],
     ["/update-session", {}],
@@ -79,6 +85,7 @@ describe("auth API for the browser", () => {
     expect(await response.json()).toMatchObject(NOT_FOUND);
   });
 
+  // %s を読み取れない
   test.each(["/list-sessions", "/list-accounts", "/account-info"])(
     "should not allow me to read %s",
     async (path) => {
@@ -91,6 +98,7 @@ describe("auth API for the browser", () => {
 
   // OAuth の state を飛ばして ID トークンだけでサインインできる経路と、サーバーだけが
   // 開始できるサインインの経路は、どちらもブラウザからは閉じる
+  // %s でブラウザからサインインを開始できない
   test.each([
     ["with an ID token that skips the OAuth state", { idToken: { token: "x" } }],
     ["without an ID token", { callbackURL: "/" }],
@@ -105,7 +113,9 @@ describe("auth API for the browser", () => {
   });
 });
 
+// サーバー向けの認証 API
 describe("auth API for the server", () => {
+  // PKCE と state を使って、Google でのサインインを開始できる
   test("should allow me to start sign-in with Google using PKCE and a state", async () => {
     const { url } = await auth.api.signInSocial({
       body: { provider: "google", callbackURL: "/", disableRedirect: true },
@@ -118,12 +128,14 @@ describe("auth API for the server", () => {
     expect(params.get("state")).toMatch(/^[\w-]{16,}$/);
   });
 
+  // サーバーからでも、許可リストにないエンドポイントを呼び出せない
   test("should not allow me to call an endpoint that is not listed even from the server", async () => {
     await expect(
       auth.api.changeEmail({ body: { newEmail: "a@example.com" } }),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 
+  // アクセストークンを失わずに、ニックネームを更新できる
   test("should allow me to update my nickname without losing my access token", async () => {
     const { cookie } = await signIn("my-token");
 
@@ -141,7 +153,9 @@ describe("auth API for the server", () => {
   });
 });
 
+// Cookie キャッシュを飛ばすクエリ
 describe("queries that skip the cookie cache", () => {
+  // %s %s を送れない
   test.each([
     ["GET", "/get-session?disableCookieCache=true"],
     ["GET", "/get-session?disableRefresh=true"],

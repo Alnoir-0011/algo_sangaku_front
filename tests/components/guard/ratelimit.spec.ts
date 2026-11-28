@@ -10,7 +10,9 @@ import {
 const NOW = 1_700_000_000_000;
 const WINDOW_MS = 60_000;
 
+// createMemoryLimiter（メモリ上のレート制限）
 test.describe("createMemoryLimiter", () => {
+  // しきい値以内のリクエストを通せる
   test("should allow me to pass a request that is within the threshold", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 3, windowMs: WINDOW_MS });
@@ -22,6 +24,7 @@ test.describe("createMemoryLimiter", () => {
     expect(result.success).toBe(true);
   });
 
+  // リクエストごとに、残り回数が減っていくのが見える
   test("should allow me to see the remaining count decrease on each request", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 3, windowMs: WINDOW_MS });
@@ -35,6 +38,7 @@ test.describe("createMemoryLimiter", () => {
     expect([first.remaining, second.remaining]).toEqual([2, 1]);
   });
 
+  // ウィンドウ内で、しきい値を超えられない
   test("should not allow me to exceed the threshold within the window", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 2, windowMs: WINDOW_MS });
@@ -49,6 +53,7 @@ test.describe("createMemoryLimiter", () => {
     expect(result.success).toBe(false);
   });
 
+  // ウィンドウが過ぎると、再びリクエストを送れる
   test("should allow me to send a request again once the window has passed", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 1, windowMs: WINDOW_MS });
@@ -63,6 +68,7 @@ test.describe("createMemoryLimiter", () => {
     expect([blocked.success, recovered.success]).toEqual([false, true]);
   });
 
+  // キーごとのカウンターを、独立に保てる
   test("should allow me to keep the counters of different keys independent", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 1, windowMs: WINDOW_MS });
@@ -75,6 +81,7 @@ test.describe("createMemoryLimiter", () => {
     expect(other.success).toBe(true);
   });
 
+  // 設定された上限と、リセット時刻を読める
   test("should allow me to read the configured limit and the reset timestamp", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 20, windowMs: WINDOW_MS });
@@ -90,7 +97,9 @@ test.describe("createMemoryLimiter", () => {
   });
 });
 
+// createLimiter（レート制限の生成）
 test.describe("createLimiter", () => {
+  // upstash が未設定のとき、メモリ上のレート制限にフォールバックできる
   test("should allow me to fall back to the in-memory limiter when upstash is not configured", async () => {
     // Arrange
     const limiter = createLimiter({
@@ -110,7 +119,9 @@ test.describe("createLimiter", () => {
   });
 });
 
+// withMemoryFallback（メモリへのフォールバック）
 test.describe("withMemoryFallback", () => {
+  // ストアが正常な間は、プライマリのストアを使える
   test("should allow me to use the primary store while it is healthy", async () => {
     // Arrange
     const primary = createMemoryLimiter({ limit: 5, windowMs: WINDOW_MS });
@@ -126,6 +137,7 @@ test.describe("withMemoryFallback", () => {
     });
   });
 
+  // ストアが枯渇したとき、レート制限を逃れられない
   test("should not allow me to escape the rate limit when the store is exhausted", async () => {
     // Arrange
     // Upstash の無料枠を使い切ると以降は全部エラーになる。素通しにすると
@@ -147,6 +159,7 @@ test.describe("withMemoryFallback", () => {
     expect([first.success, second.success]).toEqual([true, false]);
   });
 
+  // カウンターがメモリ上のストアに縮退したのが見える
   test("should allow me to see that the counter degraded to the in-memory store", async () => {
     // Arrange
     const broken: Limiter = {
@@ -165,6 +178,7 @@ test.describe("withMemoryFallback", () => {
     });
   });
 
+  // プライマリのストアが回復したら、そちらに戻れる
   test("should allow me to go back to the primary store once it recovers", async () => {
     // Arrange
     let failing = true;
@@ -194,6 +208,7 @@ test.describe("withMemoryFallback", () => {
     });
   });
 
+  // フォールバックのカウンターを、キーごとに分けて保てる
   test("should allow me to keep the fallback counters separate per key", async () => {
     // Arrange
     const broken: Limiter = {
@@ -211,6 +226,7 @@ test.describe("withMemoryFallback", () => {
 });
 
 test.describe("createMemoryLimiter の追い出し", () => {
+  // 新しいキーを大量に送り込んでも、有効なカウンターをリセットできない
   test("should not allow me to reset an active counter by flooding new keys", async () => {
     // Arrange
     // Map#set は既存キーの挿入位置を変えないため、delete してから set し直さないと
@@ -243,7 +259,9 @@ test.describe("createMemoryLimiter の追い出し", () => {
   });
 });
 
+// checkLimit（レート制限の判定）
 test.describe("checkLimit", () => {
+  // ストアが例外を投げても、リクエストを受け付け続けられる
   test("should allow me to keep serving requests when the store throws", async () => {
     // Arrange
     const brokenLimiter = {
@@ -260,6 +278,7 @@ test.describe("checkLimit", () => {
     });
   });
 
+  // ストアが正常なとき、ストアの結果が得られる
   test("should allow me to get the store result when the store is healthy", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 1, windowMs: WINDOW_MS });

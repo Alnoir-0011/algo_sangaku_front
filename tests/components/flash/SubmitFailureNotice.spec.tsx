@@ -4,7 +4,9 @@ import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure"
 
 // Provider は playwright/index.tsx のハーネスが全 CT に被せている。
 
+// SubmitFailureNotice（送信失敗の通知）
 test.describe("SubmitFailureNotice", () => {
+  // 送信に失敗したとき、固定の失敗メッセージが見える
   test("should allow me to see the fixed failure message when the submission fails", async ({
     mount,
     page,
@@ -19,6 +21,7 @@ test.describe("SubmitFailureNotice", () => {
     await expect(page.getByTestId("flash-message")).toHaveText(SUBMIT_FAILURE_MESSAGE_TEXT);
   });
 
+  // 送信に失敗したとき、エラーの詳細が見えない
   test("should not allow me to see the error detail when the submission fails", async ({
     mount,
     page,
@@ -36,6 +39,7 @@ test.describe("SubmitFailureNotice", () => {
     await expect(page.getByText("internal.example")).toHaveCount(0);
   });
 
+  // 送信に成功したとき、失敗メッセージが見えない
   test("should not allow me to see the failure message when the submission succeeds", async ({
     mount,
     page,
@@ -51,6 +55,7 @@ test.describe("SubmitFailureNotice", () => {
     await expect(page.getByTestId("flash-message")).toHaveCount(0);
   });
 
+  // 閉じたあとにもう一度送信に失敗したとき、失敗メッセージがもう一度見える
   test("should allow me to see the failure message again when the submission fails again after I closed it", async ({
     mount,
     page,

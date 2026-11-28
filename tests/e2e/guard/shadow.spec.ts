@@ -30,7 +30,9 @@ function debugHeaders(testInfo: TestInfo, id: number): Record<string, string> {
   };
 }
 
+// プロキシガード（shadow モード）
 test.describe("Proxy guard (shadow)", () => {
+  // デバッグトークンを提示すると、ガードの判定が見える
   test("should allow me to see the guard verdict when I present the debug token", async ({
     request,
   }, testInfo) => {
@@ -45,6 +47,7 @@ test.describe("Proxy guard (shadow)", () => {
     }).toEqual({ mode: "shadow", decision: "allow", reason: "ok" });
   });
 
+  // デバッグトークンがなければ、ガードの判定が見えない
   test("should not allow me to see the guard verdict without the debug token", async ({
     request,
   }, testInfo) => {
@@ -59,6 +62,7 @@ test.describe("Proxy guard (shadow)", () => {
     }).toEqual({ mode: undefined, reason: undefined, remaining: undefined });
   });
 
+  // 公開ページの残り回数が見える
   test("should allow me to see my remaining budget for public pages", async ({
     request,
   }, testInfo) => {
@@ -71,6 +75,7 @@ test.describe("Proxy guard (shadow)", () => {
     );
   });
 
+  // 観測のみの間は、悪意のある User-Agent でも閲覧を続けられる
   test("should allow me to keep browsing with a malicious user agent while only observing", async ({
     request,
   }, testInfo) => {
@@ -85,6 +90,7 @@ test.describe("Proxy guard (shadow)", () => {
     }).toEqual({ status: 200, decision: "would-block", reason: "bot-ua" });
   });
 
+  // shadow モードでは、ガードによるリクエストのブロックが見えない
   test("should not allow me to see the guard block a request in shadow mode", async ({
     request,
   }, testInfo) => {

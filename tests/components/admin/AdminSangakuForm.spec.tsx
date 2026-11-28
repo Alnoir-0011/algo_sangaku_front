@@ -17,12 +17,15 @@ const sangaku = {
   },
 };
 
+// AdminSangakuForm
 test.describe("AdminSangakuForm", () => {
+  // 既存の算額データでタイトルが入力済みで見える
   test("should allow me to see pre-filled title with existing sangaku data", async ({ mount }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByLabel("タイトル")).toHaveValue("テスト算額");
   });
 
+  // 現在の値が選択された難易度のセレクトが見える
   test("should allow me to see difficulty select with current value", async ({
     mount,
   }) => {
@@ -30,6 +33,7 @@ test.describe("AdminSangakuForm", () => {
     await expect(component.getByRole("combobox")).toHaveValue("easy");
   });
 
+  // 既存の算額データで説明が入力済みで見える
   test("should allow me to see pre-filled description with existing sangaku data", async ({
     mount,
   }) => {
@@ -37,6 +41,7 @@ test.describe("AdminSangakuForm", () => {
     await expect(component.getByLabel("説明文")).toHaveValue("テスト説明文");
   });
 
+  // 既存の算額データでソースが入力済みで見える
   test("should allow me to see pre-filled source with existing sangaku data", async ({
     mount,
   }) => {
@@ -44,11 +49,13 @@ test.describe("AdminSangakuForm", () => {
     await expect(component.getByLabel("想定回答")).toHaveValue("print('hello')");
   });
 
+  // 更新ボタンが見える
   test("should allow me to see update button", async ({ mount }) => {
     const component = await mount(<AdminSangakuForm sangaku={sangaku} />);
     await expect(component.getByRole("button", { name: "更新" })).toBeVisible();
   });
 
+  // kind が code のとき、ソースが入力済みで見える
   test("should allow me to see pre-filled source when kind is code", async ({
     mount,
   }) => {
@@ -67,6 +74,7 @@ test.describe("AdminSangakuForm", () => {
     );
   });
 
+  // kind が reorder のとき、ソースの欄が見えない
   test("should not allow me to see source field when kind is reorder", async ({
     mount,
   }) => {
@@ -84,6 +92,7 @@ test.describe("AdminSangakuForm", () => {
     await expect(component.getByLabel("想定回答")).not.toBeVisible();
   });
 
+  // kind が reorder のとき、CodeBlockEditor にコードブロックの内容が見える
   test("should allow me to edit code blocks with CodeBlockEditor when kind is reorder", async ({
     mount,
   }) => {
@@ -103,6 +112,7 @@ test.describe("AdminSangakuForm", () => {
     );
   });
 
+  // kind が reorder のとき、CodeBlockEditor から得た code_blocks を updateSangaku に渡せる
   test("should allow me to pass code_blocks derived from CodeBlockEditor to updateSangaku when kind is reorder", async ({
     mount,
     page,
@@ -140,6 +150,7 @@ test.describe("AdminSangakuForm", () => {
     ]);
   });
 
+  // kind が code のとき、source を updateSangaku に渡せる
   test("should allow me to pass source to updateSangaku when kind is code", async ({
     mount,
     page,
@@ -167,6 +178,7 @@ test.describe("AdminSangakuForm", () => {
     expect(lastCall?.formData.source).toBe("print('hello')");
   });
 
+  // kind が code のとき、code_blocks を updateSangaku に渡せない
   test("should not allow me to pass code_blocks to updateSangaku when kind is code", async ({
     mount,
     page,
@@ -194,6 +206,7 @@ test.describe("AdminSangakuForm", () => {
     expect(lastCall?.codeBlocks).toBeUndefined();
   });
 
+  // 送信中に 更新 ボタンをダブルクリックしても、二重送信できない
   test("should not allow me to submit twice when I double-click the 更新 button while sending", async ({
     mount,
     page,
@@ -217,6 +230,7 @@ test.describe("AdminSangakuForm", () => {
     expect(calls).toBe(1);
   });
 
+  // リクエストが失敗したとき、失敗メッセージが見える
   test("should allow me to see the failure message when the request fails", async ({
     mount,
     page,
