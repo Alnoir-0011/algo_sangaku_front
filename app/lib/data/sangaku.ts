@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import type {
   Sangaku,
@@ -43,9 +43,9 @@ export async function fetchUserSangakus(
   appendKindParam(params, kind);
 
   try {
-    // auth() を try の外に置くと、セッションの復号失敗が reject のまま Client の
+    // getSession() を try の外に置くと、セッションの復号失敗が reject のまま Client の
     // use() に届き、一覧ではなくエラー画面全体に切り替わってしまう
-    const session = await auth();
+    const session = await getSession();
     const res = await serverFetch(
       `${apiUrl}/api/v1/user/sangakus?${params.toString()}`,
       { token: session?.accessToken },
@@ -91,7 +91,7 @@ export async function fetchUserSangaku(id: string) {
     return null;
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(
@@ -225,7 +225,7 @@ export async function fetchSavedSangakuIds(
     return new Set();
   }
 
-  const session = await auth();
+  const session = await getSession();
   if (!session?.accessToken) {
     return new Set();
   }
@@ -262,7 +262,7 @@ export async function fetchSavedSangakus(
   type?: "before_answer" | "answered",
   kind?: string,
 ): Promise<{ sangakus: Sangaku[]; totalPage: number; message?: string }> {
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const params = new URLSearchParams({ page, title: query, difficulty });
@@ -319,7 +319,7 @@ export async function fetchSavedSangaku(
     return null;
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const params = new URLSearchParams();
@@ -354,7 +354,7 @@ export async function fetchSavedSangaku(
 export async function fetchGenerateSourceUsage(): Promise<
   GenerateSourceUsage | undefined
 > {
-  const session = await auth();
+  const session = await getSession();
 
   try {
     // AI コード生成の利用状況取得もコード問題専用の機能のため、作成・更新・生成と同様に
@@ -390,7 +390,7 @@ export async function fetchUserSangakuResult(id: string) {
     return null;
   }
 
-  const session = await auth();
+  const session = await getSession();
 
   try {
     const res = await serverFetch(

@@ -18,6 +18,32 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    // 本番のコードが、テスト用のコードやテスト用のプラグインに依存すると、特権のヘルパー
+    // （ctx.test）や、テスト用の入口が、本番に入る
+    files: ["app/**", "auth.ts", "proxy.ts", "routes.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/tests/*", "**/tests/**"],
+              message: "本番のコードから、tests/ を import しない。",
+            },
+          ],
+          paths: [
+            {
+              name: "better-auth/plugins",
+              importNames: ["testUtils"],
+              message:
+                "testUtils は、テスト用の認証のインスタンス（tests/__helpers__/test-auth.ts）にだけ入れる。",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

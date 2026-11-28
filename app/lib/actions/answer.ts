@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { getSession, signOutAndRedirect } from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
@@ -28,7 +28,7 @@ export const createAnswer = async (
   sangaku_id: string,
   payload: AnswerPayload,
 ) => {
-  const session = await auth();
+  const session = await getSession();
 
   const validPayload = isValidId(sangaku_id)
     ? validateAnswerPayload(payload)
@@ -60,7 +60,7 @@ export const createAnswer = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         break;
       case 400:
         const data = await res.json();

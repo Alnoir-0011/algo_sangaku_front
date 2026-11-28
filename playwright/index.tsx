@@ -5,8 +5,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import theme from "@/theme";
-import { SessionProvider } from "next-auth/react";
-import type { Session } from "next-auth";
+import type { TestSession } from "@/tests/__helpers__/session";
 import {
   fetchUserSangakuDelay,
   fetchUserSangakuRejects,
@@ -19,7 +18,8 @@ import type { Flash } from "@/app/lib/actions/flash";
 import { SubmitFailureNoticeProvider } from "@/app/ui/flash/SubmitFailureNotice";
 
 type HooksConfig = {
-  session?: Session | null;
+  // ブラウザ側では使わない。tests/fixtures.ct.ts の mount が、get-session の応答に差し替える
+  session?: TestSession | null;
   // テストからローディング状態を確実に再現するための遅延時間（ms）。
   // テストファイルとコンポーネントはブラウザ側で別々にバンドルされるため、
   // fetchUserSangakuDelay を直接 import して書き換えてもコンポーネント側には
@@ -35,6 +35,8 @@ type HooksConfig = {
   // consumeFlash が呼び出し順に返すフラッシュと、先頭から reject する回数。
   consumeFlashQueue?: (Flash | null)[];
   consumeFlashRejectCount?: number;
+  // consumeFlash の応答を、呼び出し順に遅らせる時間（ms）。
+  consumeFlashDelaysMs?: number[];
   // true のとき、Server Action のモック（createSangakuSave・dedicateSangaku・createAnswer）が、
   // window.__releaseActions() が呼ばれるまで応答を保留する。
   actionHold?: boolean;
@@ -52,18 +54,17 @@ beforeMount<HooksConfig>(({ App, hooksConfig }) => {
   runSourceBehavior.echoSource = hooksConfig?.runSourceEchoSource ?? false;
   consumeFlashBehavior.queue = [...(hooksConfig?.consumeFlashQueue ?? [])];
   consumeFlashBehavior.rejectCount = hooksConfig?.consumeFlashRejectCount ?? 0;
+  consumeFlashBehavior.delaysMs = [...(hooksConfig?.consumeFlashDelaysMs ?? [])];
   actionBehavior.hold = hooksConfig?.actionHold ?? false;
   actionBehavior.rejectCount = hooksConfig?.actionRejectCount ?? 0;
   return Promise.resolve(
-    <SessionProvider session={hooksConfig?.session ?? undefined}>
-      <AppRouterCacheProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SubmitFailureNoticeProvider>
-            <App />
-          </SubmitFailureNoticeProvider>
-        </ThemeProvider>
-      </AppRouterCacheProvider>
-    </SessionProvider>,
+    <AppRouterCacheProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <SubmitFailureNoticeProvider>
+          <App />
+        </SubmitFailureNoticeProvider>
+      </ThemeProvider>
+    </AppRouterCacheProvider>,
   );
 });

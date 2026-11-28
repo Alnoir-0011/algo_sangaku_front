@@ -2,9 +2,12 @@ import { describe, test, expect, vi } from "vitest";
 import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-vi.mock("next-auth/react", () => ({
-  useSession: () => ({ data: { user: {} }, status: "authenticated" }),
-  signIn: vi.fn(),
+vi.mock("@/app/lib/auth-client", () => ({
+  authClient: { useSession: () => ({ data: { user: {} }, isPending: false }) },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock("@/app/lib/actions/auth", () => ({ customSignOut: vi.fn() }));

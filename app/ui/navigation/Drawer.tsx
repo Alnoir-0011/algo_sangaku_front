@@ -1,5 +1,6 @@
 import React from "react";
-import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/app/lib/auth-client";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
@@ -11,7 +12,7 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import NextLink from "@/app/ui/shared/NextLink";
 import { customSignOut } from "@/app/lib/actions/auth";
-import { isPublicPath } from "@/routes";
+import { isPublicPath, signinPath } from "@/routes";
 
 const drawerContent = [
   { text: "神社を探す", href: "/shrines" },
@@ -34,7 +35,20 @@ export default function ResponsiveDrawer({
   handleDrawerTransitionEnd,
   handleDrawerClose,
 }: Props) {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+  // 表示中のパスはクリックの時点でしか確定しないため、リンクの href にはできない。
+  // Auth.js の signIn() は現在のページを callbackUrl に付けており、これを外すと
+  // サインイン後に元のページへ戻らなくなる
+  const handleSignin = () => {
+    const { pathname, search } = window.location;
+    // すでに /signin にいるときは遷移しない。push すると、開いている URL の
+    // callbackUrl が失われ、サインイン後の戻り先が変わってしまう
+    if (pathname === signinPath) return;
+    router.push(
+      `${signinPath}?callbackUrl=${encodeURIComponent(pathname + search)}`,
+    );
+  };
   const handleSignout = async () => {
     if (window.confirm("サインアウトしますか？")) {
       customSignOut();
@@ -80,12 +94,7 @@ export default function ResponsiveDrawer({
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => {
-                signIn();
-              }}
-              sx={{ pl: "1.5rem" }}
-            >
+            <ListItemButton onClick={handleSignin} sx={{ pl: "1.5rem" }}>
               <ListItemText
                 slotProps={{ primary: { sx: { fontSize: "1.3rem" } } }}
               >

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSession } from "@/app/lib/session";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { serverFetch } from "@/app/lib/server-fetch";
 import { apiUrl } from "@/app/lib/config";
@@ -6,7 +6,7 @@ import { isValidId } from "@/app/lib/validate-id";
 import type { AdminUser, AdminSangaku, AdminShrine, AdminStats } from "@/app/lib/definitions";
 
 async function requireAdmin() {
-  const session = await auth();
+  const session = await getSession();
   if (session?.role !== "admin") return null;
   return session;
 }

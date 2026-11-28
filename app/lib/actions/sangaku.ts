@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { getSession, signOutAndRedirect } from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
@@ -70,7 +70,7 @@ export const createSangaku = async (
   fixed_inputs: string[],
   description: string,
 ) => {
-  const session = await auth();
+  const session = await getSession();
   const title = formData.get("title");
 
   const params = {
@@ -102,7 +102,7 @@ export const createSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -166,7 +166,7 @@ export const createReorderSangaku = async (
   description: string,
   codeBlocks: ReorderCodeBlockInput[],
 ) => {
-  const session = await auth();
+  const session = await getSession();
   const title = formData.get("title");
 
   // title はファイル入力等から FormDataEntryValue として File が渡る可能性があり、
@@ -202,7 +202,7 @@ export const createReorderSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -237,7 +237,7 @@ export const updateSangaku = async (
   fixed_inputs: string[],
   description: string,
 ) => {
-  const session = await auth();
+  const session = await getSession();
 
   if (!isValidId(id)) {
     await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -279,7 +279,7 @@ export const updateSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -324,7 +324,7 @@ export const updateReorderSangaku = async (
   description: string,
   codeBlocks: ReorderCodeBlockInput[],
 ) => {
-  const session = await auth();
+  const session = await getSession();
 
   if (!isValidId(id)) {
     await setFlash({ type: "error", message: "リクエストに失敗しました" });
@@ -372,7 +372,7 @@ export const updateReorderSangaku = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {} as State;
       case 400:
         const data = await res.json();
@@ -410,7 +410,7 @@ export const updateReorderSangaku = async (
 };
 
 export const deleteSangaku = async (id: string) => {
-  const session = await auth();
+  const session = await getSession();
   if (!session) {
     await setFlash({ type: "error", message: "サインインしてください" });
     return;
@@ -439,7 +439,7 @@ export const deleteSangaku = async (id: string) => {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         break;
       // 奉納済み（back issue #365: forbid_dedicated_destroy）
       case 403: {
@@ -464,7 +464,7 @@ export const deleteSangaku = async (id: string) => {
 export const runSource = async (source: string, fixedInputs: string[]) => {
   // Server Action はどのルートからでも起動できる公開エンドポイントになるため、
   // ページの proxy 認証とは独立にここで未認証アクセスを拒否する
-  const session = await auth();
+  const session = await getSession();
   if (!session) {
     throw new Error("認証が必要です");
   }
@@ -613,7 +613,7 @@ export const generateSource = async (
   errorMessage?: string;
   usage?: GenerateSourceUsage;
 }> => {
-  const session = await auth();
+  const session = await getSession();
   try {
     // AI によるコード生成もコード問題専用の機能のため、作成・更新と同様に
     // code_sangakus エンドポイントを使う（エンドポイントの使い分けの理由は
@@ -641,7 +641,7 @@ export const generateSource = async (
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return {};
       case 429:
         return {

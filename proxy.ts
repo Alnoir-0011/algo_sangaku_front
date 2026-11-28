@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import type { NextFetchEvent, NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { auth } from "@/auth";
+import { railsUserOf } from "@/app/lib/rails-user";
 import {
   authRoutes,
   isPublicPath,
@@ -10,7 +11,6 @@ import {
   DEFAULT_LOGIN_REDIRECT,
 } from "@/routes";
 import { setFlash } from "@/app/lib/set-flash";
-import { stripSessionCookieReissue } from "@/app/lib/session-cookie";
 import {
   runGuard,
   resolveGuardMode,
@@ -74,9 +74,20 @@ function applyDebugHeaders(
   }
 }
 
-const authProxy = auth(async (req) => {
+export default async function proxy(req: NextRequest) {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  // Better Auth のセッションがあり、user に Rails の ApiKey などが揃っているときだけ
+  // ログイン中とみなす（app/lib/session.ts の getSession と同じ判定）
+  // 例外で、公開ページと /signin を含むすべての要求が 500 にならないよう、未ログイン扱いにする。
+  // guard の判定は、このあとも行う
+  const session = await auth.api
+    .getSession({ headers: req.headers })
+    .catch((error: unknown) => {
+      console.error("[proxy] getSession failed:", error);
+      return null;
+    });
+  const rails = railsUserOf(session);
+  const isLoggedIn = !!session && !!rails;
 
   const guardMode = resolveGuardMode(process.env.GUARD_MODE);
   const decision = await runGuard(
@@ -87,7 +98,7 @@ const authProxy = auth(async (req) => {
     },
     {
       mode: guardMode,
-      email: req.auth?.user?.email ?? null,
+      email: session?.user.email ?? null,
       getLimiter: getDefaultLimiter,
     },
   );
@@ -104,7 +115,10 @@ const authProxy = auth(async (req) => {
     });
   }
 
-  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+  // /api/authors のような、前方一致する別のルートを、認証の対象外にしない
+  const isApiAuthRoute =
+    nextUrl.pathname === apiAuthPrefix ||
+    nextUrl.pathname.startsWith(`${apiAuthPrefix}/`);
   // const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
   const isPublicRoute = isPublicPath(nextUrl.pathname);
@@ -120,19 +134,19 @@ const authProxy = auth(async (req) => {
     if (isAdminRoute) {
       if (!isLoggedIn) {
         await setFlash({ type: "warning", message: "サインインしてください" });
-        return Response.redirect(new URL("/signin", nextUrl));
+        return NextResponse.redirect(new URL("/signin", nextUrl));
       }
-      if (req.auth?.role !== "admin") {
-        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+      if (rails?.role !== "admin") {
+        return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
     } else if (!isAuthRoute) {
       if (!isLoggedIn && !isPublicRoute) {
         await setFlash({ type: "warning", message: "サインインしてください" });
-        return Response.redirect(new URL("/signin", nextUrl));
+        return NextResponse.redirect(new URL("/signin", nextUrl));
       }
     } else {
       if (isLoggedIn) {
-        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+        return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
     }
   }
@@ -144,24 +158,6 @@ const authProxy = auth(async (req) => {
   // 中間キャッシュに保存されると無関係な利用者へ配られる余地がある
   const response = NextResponse.next();
   applyDebugHeaders(response, req, decision);
-  return response;
-});
-
-type ProxyHandler = (
-  request: NextRequest,
-  event: NextFetchEvent,
-) => Promise<Response | undefined>;
-
-// auth() の callback の中では除去できない。ラッパーが callback の後にセッションの
-// Set-Cookie を付けるため、外側で包む。
-// auth(callback) の戻り値の型は Route Handler 用の引数を要求し proxy の引数と合わないため、
-// 実行時の形（NextFetchEvent を受ける）に合わせて型を付けている
-export default async function proxy(
-  request: NextRequest,
-  event: NextFetchEvent,
-) {
-  const response = await (authProxy as unknown as ProxyHandler)(request, event);
-  if (response) stripSessionCookieReissue(response);
   return response;
 }
 

@@ -5,7 +5,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme";
 import { CssBaseline } from "@mui/material";
 import "@fontsource-variable/noto-serif-jp";
-import { SessionProvider } from "next-auth/react";
+import SessionSync from "@/app/ui/auth/SessionSync";
 import FlashMessage from "@/app/ui/flash/FlashMessageContainer";
 import { SubmitFailureNoticeProvider } from "@/app/ui/flash/SubmitFailureNotice";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -41,23 +41,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SessionProvider>
-      <html lang="ja">
-        <body className={roboto.variable}>
-          <AppRouterCacheProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-              {/* Server Component はクライアントの再レンダリングで再実行されないため、毎回異なる値が必要。サーバー描画のたびに flash を再取得させるのが目的で、固定値だと Server Action 後の flash が表示されない */}
-              {/* eslint-disable-next-line react-hooks/purity */}
-              <FlashMessage refreshKey={Date.now()} />
-              <SubmitFailureNoticeProvider>{children}</SubmitFailureNoticeProvider>
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </body>
-        {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
-        )}
-      </html>
-    </SessionProvider>
+    <html lang="ja">
+      <body className={roboto.variable}>
+        <AppRouterCacheProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <SessionSync />
+            {/* Server Component はクライアントの再レンダリングで再実行されないため、毎回異なる値が必要。サーバー描画のたびに flash を再取得させるのが目的で、固定値だと Server Action 後の flash が表示されない */}
+            {/* eslint-disable-next-line react-hooks/purity */}
+            <FlashMessage refreshKey={Date.now()} />
+            <SubmitFailureNoticeProvider>{children}</SubmitFailureNoticeProvider>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
+      </body>
+      {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+      )}
+    </html>
   );
 }

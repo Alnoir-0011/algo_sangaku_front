@@ -1,12 +1,12 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-const { authMock, setFlashMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
+const { getSessionMock, setFlashMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
   setFlashMock: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({
-  auth: authMock,
+vi.mock("@/app/lib/session", () => ({
+  getSession: getSessionMock,
 }));
 
 vi.mock("@/app/lib/set-flash", () => ({
@@ -21,14 +21,14 @@ function mockValidationErrorResponse() {
 
 describe("createReorderSangaku", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    getSessionMock.mockReset();
     setFlashMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
   test("should send a POST request to /api/v1/user/reorder_sangakus when called", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -59,7 +59,7 @@ describe("createReorderSangaku", () => {
 
   test("should send a request body containing sangaku and code_blocks when called", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -97,7 +97,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when difficulty is not a valid value", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -124,7 +124,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when codeBlocks is an empty array", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -143,7 +143,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when codeBlocks exceeds the maximum count", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -166,7 +166,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when title is not a string", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", new Blob(["file content"]), "title.txt");
@@ -188,7 +188,7 @@ describe("createReorderSangaku", () => {
     // Arrange: title の空文字チェック（presence）は back のフィールドエラーに委ねる。
     // front で弾いてしまうと serverFetch 自体が呼ばれなくなり、back が返す
     // 「タイトルを入力してください」等のフィールド単位のエラーを表示できなくなる。
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
     const formData = new FormData();
@@ -204,7 +204,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when title exceeds the maximum length", async () => {
     // Arrange: back の Sangaku#title の length validator（maximum: 255）と同値
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "a".repeat(256));
@@ -224,7 +224,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when description exceeds the maximum length", async () => {
     // Arrange: back の Sangakuable#description の length validator（maximum: 65_535）と同値
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -251,7 +251,7 @@ describe("createReorderSangaku", () => {
   test("should not call fetch when correct_position exceeds the maximum block count", async () => {
     // Arrange: correct_position はダミーを除く正解ブロック数（MAX_CODE_BLOCKS）を
     // 超える値を取り得ない
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -271,7 +271,7 @@ describe("createReorderSangaku", () => {
 
   test("should not call fetch when correct_position is zero or negative", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -292,14 +292,14 @@ describe("createReorderSangaku", () => {
 
 describe("updateReorderSangaku", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    getSessionMock.mockReset();
     setFlashMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
   test("should send a PATCH request to /api/v1/user/reorder_sangakus/:id when called", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -331,7 +331,7 @@ describe("updateReorderSangaku", () => {
 
   test("should send a request body containing sangaku and code_blocks when called", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -370,7 +370,7 @@ describe("updateReorderSangaku", () => {
 
   test("should not call fetch when codeBlocks is an empty array", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -389,7 +389,7 @@ describe("updateReorderSangaku", () => {
 
   test("should not call fetch when difficulty is not a valid value", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -420,7 +420,7 @@ describe("updateReorderSangaku", () => {
 
   test("should not call fetch when codeBlocks exceeds the maximum count", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", "並べ替え問題タイトル");
@@ -450,7 +450,7 @@ describe("updateReorderSangaku", () => {
 
   test("should not call fetch when title is not a string", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     const formData = new FormData();
     formData.set("title", new Blob(["file content"]), "title.txt");

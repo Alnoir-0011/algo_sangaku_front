@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signOut } from "@/auth";
+import { getSession, signOutAndRedirect } from "@/app/lib/session";
 import { signinPath } from "@/routes";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { revalidatePath } from "next/cache";
@@ -14,7 +14,7 @@ import { SESSION_EXPIRED_MESSAGE } from "@/app/lib/constants";
 const apiUrl = process.env.API_URL!;
 
 async function requireAdmin() {
-  const session = await auth();
+  const session = await getSession();
   if (session?.role !== "admin") return null;
   return session;
 }
@@ -48,7 +48,7 @@ export async function updateUserRole(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -106,7 +106,7 @@ export async function updateUser(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -147,7 +147,7 @@ export async function deleteSangaku(id: string): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -222,7 +222,7 @@ export async function updateSangaku(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -284,7 +284,7 @@ export async function createShrine(formData: FormData): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -335,7 +335,7 @@ export async function updateShrine(
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });
@@ -376,7 +376,7 @@ export async function deleteShrine(id: string): Promise<boolean> {
           type: "error",
           message: SESSION_EXPIRED_MESSAGE,
         });
-        await signOut({ redirectTo: signinPath });
+        await signOutAndRedirect(signinPath, { revokeApiKey: false });
         return false;
       case 403:
         await setFlash({ type: "error", message: "この操作は許可されていません" });

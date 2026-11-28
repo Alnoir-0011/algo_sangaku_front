@@ -1,14 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-const { authMock, setFlashMock, signOutMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
+const { getSessionMock, setFlashMock, signOutAndRedirectMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
   setFlashMock: vi.fn(),
-  signOutMock: vi.fn(),
+  signOutAndRedirectMock: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({
-  auth: authMock,
-  signOut: signOutMock,
+vi.mock("@/app/lib/session", () => ({
+  getSession: getSessionMock,
+  signOutAndRedirect: signOutAndRedirectMock,
 }));
 
 vi.mock("@/app/lib/set-flash", () => ({
@@ -24,15 +24,15 @@ function mockValidationErrorResponse() {
 
 describe("createAnswer", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    getSessionMock.mockReset();
     setFlashMock.mockReset();
-    signOutMock.mockReset();
+    signOutAndRedirectMock.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
   test("should show the shared session-expired message when the API responds with 401", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
 
@@ -46,9 +46,9 @@ describe("createAnswer", () => {
     });
   });
 
-  test("should sign me out without calling the backend sign-out when the API responds with 401", async () => {
+  test("should sign me out without asking the backend to delete my API key when the API responds with 401", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
 
@@ -56,13 +56,15 @@ describe("createAnswer", () => {
     await createAnswer("1", { source: "puts 1" });
 
     // Assert
-    expect(signOutMock).toHaveBeenCalledWith({ redirectTo: "/signin" });
+    expect(signOutAndRedirectMock).toHaveBeenCalledWith("/signin", {
+      revokeApiKey: false,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   test("should send a POST request to /api/v1/user/saved_sangakus/:id/answer when called with a source payload", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -80,7 +82,7 @@ describe("createAnswer", () => {
 
   test("should send a request body containing answer.source when called with a source payload", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -99,7 +101,7 @@ describe("createAnswer", () => {
 
   test("should send a request body containing answer.block_ids when called with a block_ids payload", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -118,7 +120,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when block_ids contains a non-integer element", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
@@ -136,7 +138,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when block_ids is an empty array", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
@@ -153,7 +155,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when payload has neither source nor block_ids", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
@@ -171,7 +173,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when source is not a string", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
@@ -192,7 +194,7 @@ describe("createAnswer", () => {
     // "use server" 経由の直接呼び出しでは union 型の排他性を実行時には保証できないため、
     // source と block_ids の両方を含むオブジェクトが渡りうる。判定に使った source 側の
     // フィールドだけが転送され、未検証の block_ids が素通りしないことを確認する。
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(mockValidationErrorResponse());
 
@@ -209,7 +211,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when block_ids contains a duplicate id", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
@@ -226,7 +228,7 @@ describe("createAnswer", () => {
 
   test("should not call fetch when block_ids contains a non-positive id", async () => {
     // Arrange
-    authMock.mockResolvedValue({ accessToken: "token" });
+    getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
 
     // Act
