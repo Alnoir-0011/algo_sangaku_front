@@ -277,3 +277,9 @@ export const auth = betterAuth({
     nextCookies(),
   ],
 });
+
+// socialProviders に足したプロバイダー（enabled: false を除く）を、サインイン画面が列挙する。
+// auth.options.socialProviders は設定の生の値で、無効なものも含み、name も持たない。
+// $context は Promise のため、main の providerMap のような同期のエクスポートにはできない
+export const getProviderMap = async () =>
+  (await auth.$context).socialProviders.map(({ id, name }) => ({ id, name }));

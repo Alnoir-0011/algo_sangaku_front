@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth, getProviderMap } from "@/auth";
 import { requestHeaders } from "@/app/lib/session";
 import { safeCallbackPath } from "@/app/lib/safe-callback-path";
 import { signinPath } from "@/routes";
 import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "サインイン",
@@ -23,8 +24,15 @@ interface Props {
 const SIGNIN_FAILED_MESSAGE =
   "サインインに失敗しました。もう一度お試しください。";
 
+// アイコンと色は、Better Auth のプロバイダーが持たないため、id ごとに用意する。
+// 無いプロバイダーは、アイコンなし・既定の色で出る
+const PROVIDER_STYLES: Record<string, { icon: ReactNode; color: string }> = {
+  google: { icon: <GoogleIcon sx={{ mr: 1 }} />, color: "#4285F4" },
+};
+
 export default async function Signin(props: Props) {
   const searchParams = await props.searchParams;
+  const providers = await getProviderMap();
   const callbackURL = safeCallbackPath(searchParams.callbackUrl);
   // /error のような実在しないパスを渡すと、proxy が未ログインの非公開パスとして
   // /signin へ返し、失敗の通知が出ないまま警告の flash だけが残る。
@@ -52,29 +60,32 @@ export default async function Signin(props: Props) {
             {SIGNIN_FAILED_MESSAGE}
           </Alert>
         )}
-        <form
-          action={async () => {
-            "use server";
-            const { url } = await auth.api.signInSocial({
-              body: {
-                provider: "google",
-                callbackURL,
-                errorCallbackURL,
-              },
-              headers: await requestHeaders(),
-            });
-            redirect(url!);
-          }}
-        >
-          <Button
-            variant="contained"
-            type="submit"
-            sx={{ bgcolor: "#4285F4" }}
+        {providers.map((provider) => (
+          <form
+            key={provider.id}
+            action={async () => {
+              "use server";
+              const { url } = await auth.api.signInSocial({
+                body: {
+                  provider: provider.id,
+                  callbackURL,
+                  errorCallbackURL,
+                },
+                headers: await requestHeaders(),
+              });
+              redirect(url!);
+            }}
           >
-            <GoogleIcon sx={{ mr: 1 }} />
-            <span>Googleでサインイン</span>
-          </Button>
-        </form>
+            <Button
+              variant="contained"
+              type="submit"
+              sx={{ bgcolor: PROVIDER_STYLES[provider.id]?.color }}
+            >
+              {PROVIDER_STYLES[provider.id]?.icon}
+              <span>{provider.name}でサインイン</span>
+            </Button>
+          </form>
+        ))}
       </Paper>
     </Box>
   );
