@@ -9,8 +9,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /user/profile
 test.describe("/user/profile", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずにプロフィール編集ページへアクセスできず、サインインページへリダイレクトされる
     test("should not allow me to visit edit profile page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
@@ -22,6 +25,7 @@ test.describe("/user/profile", () => {
       await expect(heading).toBeVisible();
     });
 
+    // サインインページへのリダイレクト後、ナビゲーションにサインインボタンが見える
     test("should allow me to see sign in button in nav after redirect to signin", async ({ page }) => {
       await page.goto("/user/profile");
       await expect(page).toHaveURL("/signin");
@@ -32,6 +36,7 @@ test.describe("/user/profile", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -85,6 +90,7 @@ test.describe("/user/profile", () => {
       ],
     });
 
+    // show_answer_count のスイッチを切り替えられる
     test("should allow me to toggle show_answer_count switch", async ({ page, msw }) => {
       msw.use(
         http.patch(`${apiUrl}/api/v1/user/profile`, () => {
@@ -103,6 +109,7 @@ test.describe("/user/profile", () => {
       await expect(switchEl).toBeChecked({ timeout: 5_000 });
     });
 
+    // API が失敗したとき、show_answer_count を更新できない
     test("should not allow me to update show_answer_count when API fails", async ({
       page,
       msw,
@@ -128,6 +135,7 @@ test.describe("/user/profile", () => {
       await expect(switchEl).not.toBeChecked({ timeout: 5_000 });
     });
 
+    // プロフィールを編集できる
     test("should allow me to edit profile", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/profile");
@@ -142,6 +150,7 @@ test.describe("/user/profile", () => {
       await expect(flash).toContainText("プロフィールを更新しました");
     });
 
+    // API が 400 を返したとき、バリデーションエラーが見える
     test("should allow me to see validation error when API returns 400", async ({ page, msw }) => {
       msw.use(
         http.patch(`${apiUrl}/api/v1/user/profile`, () => {

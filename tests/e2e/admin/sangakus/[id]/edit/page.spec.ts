@@ -41,6 +41,7 @@ const updateResponse = {
   },
 };
 
+// /admin/sangakus/[id]/edit
 test.describe("/admin/sangakus/[id]/edit", () => {
   test.use({
     mswHandlers: [
@@ -59,7 +60,9 @@ test.describe("/admin/sangakus/[id]/edit", () => {
     ],
   });
 
+  // 未認証ユーザー
   test.describe("unauthenticated user", () => {
+    // 認証なしでは算額編集ページにアクセスできない
     test("should not allow me to access sangaku edit page without authentication", async ({
       page,
     }) => {
@@ -70,7 +73,9 @@ test.describe("/admin/sangakus/[id]/edit", () => {
     });
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーでは算額編集ページにアクセスできない
     test("should not allow me to access sangaku edit page as a general user", async ({
       page,
     }) => {
@@ -81,7 +86,9 @@ test.describe("/admin/sangakus/[id]/edit", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
+    // 管理者として、算額編集の見出しが見える
     test("should allow me to see the sangaku edit heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus/1/edit");
@@ -90,6 +97,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       ).toBeVisible();
     });
 
+    // 既存の算額タイトルが入力済みのフォームが見える
     test("should allow me to see the form pre-filled with the existing sangaku title", async ({
       page,
     }) => {
@@ -98,6 +106,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
       await expect(page.getByLabel("タイトル")).toHaveValue("管理算額テスト", { timeout: 10_000 });
     });
 
+    // 算額のタイトルを更新できる
     test("should allow me to update sangaku title", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/sangakus/1/edit");
@@ -110,6 +119,7 @@ test.describe("/admin/sangakus/[id]/edit", () => {
   });
 });
 
+// /admin/sangakus/[id]/edit（kind が reorder のとき）
 test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
   test.use({
     mswHandlers: [
@@ -170,6 +180,7 @@ test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
     ],
   });
 
+  // kind が reorder のとき、source フィールドの代わりに CodeBlockEditor が見える
   test("should allow me to see CodeBlockEditor instead of the source field when kind is reorder", async ({
     page,
   }) => {
@@ -181,6 +192,7 @@ test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
     await expect(page.getByLabel("想定回答")).not.toBeVisible();
   });
 
+  // 編集したコードブロックで並べ替え算額を更新できる
   test("should allow me to update a reorder sangaku with edited code blocks", async ({
     page,
   }) => {
@@ -201,6 +213,7 @@ test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
     await expect(flash).toContainText("算額を更新しました");
   });
 
+  // 正解ブロックが 2 個未満のとき、更新ボタンをクリックできない
   test("should not allow me to click the update button when there are fewer than two correct blocks", async ({
     page,
   }) => {
@@ -222,6 +235,7 @@ test.describe("/admin/sangakus/[id]/edit (kind: reorder)", () => {
   });
 });
 
+// /admin/sangakus/[id]/edit（存在しないとき）
 test.describe("/admin/sangakus/[id]/edit (not found)", () => {
   test.use({
     mswHandlers: [
@@ -235,6 +249,7 @@ test.describe("/admin/sangakus/[id]/edit (not found)", () => {
     ],
   });
 
+  // 算額が見つからないとき、算額編集ページが見えない
   test("should not allow me to see sangaku edit page when sangaku is not found", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/sangakus/1/edit");

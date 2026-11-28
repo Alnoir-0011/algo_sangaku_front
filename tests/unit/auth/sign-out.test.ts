@@ -30,7 +30,9 @@ beforeEach(() => {
   revokeRailsApiKeyMock.mockReset();
 });
 
+// サインアウト
 describe("signing out", () => {
+  // サインアウトして、API キーを削除できる
   test("should allow me to sign out and have my API key deleted", async () => {
     const { cookie } = await signIn("my-token");
 
@@ -40,6 +42,7 @@ describe("signing out", () => {
     expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("my-token");
   });
 
+  // サインアウトして、セッション Cookie を消去できる
   test("should allow me to sign out and have my session cookie cleared", async () => {
     const { cookie } = await signIn("my-token");
 
@@ -53,6 +56,7 @@ describe("signing out", () => {
     }
   });
 
+  // セッションがないとき、バックエンドを呼ばずにサインアウトできる
   test("should allow me to sign out without calling the backend when I have no session", async () => {
     const response = await post("/sign-out", {});
 
@@ -60,6 +64,7 @@ describe("signing out", () => {
     expect(revokeRailsApiKeyMock).not.toHaveBeenCalled();
   });
 
+  // 壊れたセッション Cookie で、バックエンドを呼び出せない
   test("should not allow a broken session cookie to call the backend", async () => {
     await post("/sign-out", {}, "better-auth.session_data=garbage");
 
@@ -68,7 +73,9 @@ describe("signing out", () => {
 });
 
 // ヘッダー名は、定数を import せず、リテラルで書く。定数が変わったときに、気づけるようにする
+// バックエンドに API キーを拒否されたあとのサインアウト
 describe("signing out after the backend rejected my API key", () => {
+  // サーバーは、API キーを削除せずにサインアウトさせられる
   test("should allow the server to sign me out without deleting my API key", async () => {
     const { cookie } = await signIn("my-token");
 
@@ -79,6 +86,7 @@ describe("signing out after the backend rejected my API key", () => {
     expect(revokeRailsApiKeyMock).not.toHaveBeenCalled();
   });
 
+  // サインアウト時に、ブラウザが API キーの削除を省略できない
   test("should not allow the browser to skip deleting my API key when I sign out", async () => {
     const { cookie } = await signIn("my-token");
 

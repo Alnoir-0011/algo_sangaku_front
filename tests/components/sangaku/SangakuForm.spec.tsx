@@ -1,7 +1,9 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import { SangakuFormWithHeldAction } from "./SangakuFormStories";
 
+// SangakuForm
 test.describe("SangakuForm", () => {
+  // アクション実行中に保存ボタンをダブルクリックしても、フォームを二重送信できない
   test("should not allow me to submit the form twice when I double-click the save button while the action is running", async ({
     mount,
     page,

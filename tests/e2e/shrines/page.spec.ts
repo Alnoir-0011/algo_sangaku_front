@@ -25,6 +25,7 @@ const shrinesListResponse = {
   ],
 };
 
+// /shrines ページ（429 エラー）
 test.describe("/shrines (429 error)", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
@@ -42,6 +43,7 @@ test.describe("/shrines (429 error)", () => {
     ],
   });
 
+  // エリア検索で 429 が返ると、警告フラッシュが見える
   test("should allow me to see a warning flash when 429 is returned on area search", async ({
     page,
   }) => {
@@ -59,6 +61,7 @@ test.describe("/shrines (429 error)", () => {
   });
 });
 
+// /shrines ページ（読み込み成功）
 test.describe("/shrines (successful load)", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
@@ -74,6 +77,7 @@ test.describe("/shrines (successful load)", () => {
     ],
   });
 
+  // エリア検索を実行しても、エラーフラッシュが見えない
   test("should not allow me to see an error flash when performing area search", async ({ page }) => {
     await page.goto("/shrines");
     const button = page.getByRole("button", { name: "このエリアで探す" });
@@ -83,6 +87,7 @@ test.describe("/shrines (successful load)", () => {
     await expect(page.getByTestId('flash-message')).not.toBeVisible({ timeout: 3_000 });
   });
 
+  // lat/lng クエリパラメータ付きで遷移すると、エリア検索ボタンが見える
   test("should allow me to see the area search button when navigating with lat/lng query params", async ({ page }) => {
     // lat/lng クエリパラメータ付きで遷移すると zoom=18 が設定される（Map.tsx の if (lat && lng) ブランチ）
     await page.goto("/shrines?lat=35.6809591&lng=139.7673068");
@@ -91,6 +96,7 @@ test.describe("/shrines (successful load)", () => {
   });
 });
 
+// /shrines ページ（地図の中心とズーム）
 test.describe("/shrines (map center and zoom)", () => {
   // 実装の初期値（東京駅）と異なる座標にして、現在地が使われることを区別できるようにする
   test.use({
@@ -107,6 +113,7 @@ test.describe("/shrines (map center and zoom)", () => {
     ],
   });
 
+  // クエリパラメータがないとき、現在地を中心にズーム 16 の地図が見える
   test("should allow me to see the map centered on my current location with zoom 16 when there are no query params", async ({
     page,
   }) => {
@@ -120,6 +127,7 @@ test.describe("/shrines (map center and zoom)", () => {
     await expect(map).toHaveAttribute("data-default-zoom", "16");
   });
 
+  // lat/lng クエリパラメータを指定すると、その座標を中心にズーム 18 の地図が見える
   test("should allow me to see the map centered on the lat/lng query params with zoom 18", async ({
     page,
   }) => {
@@ -134,6 +142,7 @@ test.describe("/shrines (map center and zoom)", () => {
     await expect(map).toHaveAttribute("data-default-zoom", "18");
   });
 
+  // ページを再読み込みせずに lat/lng クエリパラメータが変わると、地図が再び中心に移動する
   test("should allow me to see the map centered again when the lat/lng query params change without a page reload", async ({
     page,
   }) => {
@@ -157,12 +166,14 @@ test.describe("/shrines (map center and zoom)", () => {
   });
 });
 
+// /shrines ページ（エリア検索中）
 test.describe("/shrines (area search in progress)", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
     permissions: ["geolocation"],
   });
 
+  // 検索中は、エリア検索ボタンをクリックできない
   test("should not allow me to click the area search button while the search is in progress", async ({
     page,
     msw,
@@ -199,6 +210,7 @@ test.describe("/shrines (area search in progress)", () => {
   });
 });
 
+// /shrines の検索タブ（位置情報の取得に成功、近くに神社あり）
 test.describe("/shrines search tab (geolocation success, nearby shrine)", () => {
   const nearShrine = {
     id: "1",
@@ -246,6 +258,7 @@ test.describe("/shrines search tab (geolocation success, nearby shrine)", () => 
     ],
   });
 
+  // 検索タブへ切り替えると、現在いる神社ブロックが見え、一覧には重複して表示されない
   test("should allow me to switch to the search tab and see the 現在いる神社 block without duplicating it in the list", async ({
     page,
   }) => {
@@ -263,6 +276,7 @@ test.describe("/shrines search tab (geolocation success, nearby shrine)", () => 
     await expect(farCard).toHaveCount(1);
   });
 
+  // 100m のジオフェンス内にある神社にだけ、アクションリンクが見える
   test("should allow me to see action links only for the shrine within the 100m geofence", async ({
     page,
   }) => {
@@ -281,6 +295,7 @@ test.describe("/shrines search tab (geolocation success, nearby shrine)", () => 
   });
 });
 
+// /shrines の検索タブ（位置情報の取得に成功、近くに神社なし）
 test.describe("/shrines search tab (geolocation success, no nearby shrine)", () => {
   const farShrine = {
     id: "2",
@@ -313,6 +328,7 @@ test.describe("/shrines search tab (geolocation success, no nearby shrine)", () 
     ],
   });
 
+  // 100m 以内に神社がないとき、現在いる神社ブロックが見えない
   test("should not allow me to see the 現在いる神社 block when no shrine is within 100m", async ({
     page,
   }) => {
@@ -325,11 +341,13 @@ test.describe("/shrines search tab (geolocation success, no nearby shrine)", () 
   });
 });
 
+// /shrines の検索タブ（位置情報の取得を拒否）
 test.describe("/shrines search tab (geolocation denied)", () => {
   test.use({
     permissions: [],
   });
 
+  // 位置情報の取得を拒否すると、位置情報のエラーメッセージが見える
   test("should allow me to see a location error message when geolocation is denied", async ({
     page,
   }) => {
@@ -341,6 +359,7 @@ test.describe("/shrines search tab (geolocation denied)", () => {
   });
 });
 
+// /shrines の検索タブ（429 エラー）
 test.describe("/shrines search tab (429 error)", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
@@ -360,6 +379,7 @@ test.describe("/shrines search tab (429 error)", () => {
     ],
   });
 
+  // 検索タブの読み込みで 429 が返ると、警告フラッシュが見える
   test("should allow me to see a warning flash when 429 is returned on search tab load", async ({
     page,
   }) => {

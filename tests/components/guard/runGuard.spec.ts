@@ -51,7 +51,9 @@ function serverAction(userAgent = CHROME_UA) {
   };
 }
 
+// runGuard（ガードの実行）
 test.describe("runGuard", () => {
+  // ガードがオフの間は、評価が一切行われない
   test("should not allow me to see any evaluation happen while the guard is off", async () => {
     // Arrange
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 1, windowMs: 60_000 }));
@@ -71,6 +73,7 @@ test.describe("runGuard", () => {
     });
   });
 
+  // 悪意のある User-Agent では、アプリに到達できない
   test("should not allow me to reach the app with a malicious user agent", async () => {
     // Arrange
     const request = publicGet("curl/8.4.0");
@@ -91,6 +94,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", status: 403, reason: "bot-ua" });
   });
 
+  // 名乗りのあるクローラーとして、公開ページをクロールできる
   test("should allow me to crawl a public page as a claimed crawler", async () => {
     // Arrange
     const request = publicGet(GOOGLEBOT_UA);
@@ -107,6 +111,7 @@ test.describe("runGuard", () => {
     expect(decision.action).toBe("allow");
   });
 
+  // 名乗りのあるクローラーとして、Server Action を呼び出せない
   test("should not allow me to invoke a server action as a claimed crawler", async () => {
     // Arrange
     const request = serverAction(GOOGLEBOT_UA);
@@ -127,6 +132,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", status: 403, reason: "crawler-scope" });
   });
 
+  // SEO クローラーとして、Server Action を呼び出せない
   test("should not allow me to invoke a server action as an seo crawler", async () => {
     // Arrange
     const request = serverAction(AHREFS_UA);
@@ -146,6 +152,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", reason: "crawler-scope" });
   });
 
+  // プリフェッチを名乗っても、レート制限を回避できない
   test("should not allow me to skip the rate limit by claiming to be a prefetch", async () => {
     // Arrange
     // Next.js は proxy の手前で Next-Router-Prefetch を削除するため、
@@ -167,6 +174,7 @@ test.describe("runGuard", () => {
     expect(spy.calls).toHaveLength(1);
   });
 
+  // 変わったメソッドでは、レート制限を回避できない
   test("should not allow me to skip the rate limit with an unusual method", async () => {
     // Arrange
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 60, windowMs: 60_000 }));
@@ -191,6 +199,7 @@ test.describe("runGuard", () => {
     expect(spy.calls).toEqual(["guard:server-action:ip:198.51.100.20"]);
   });
 
+  // ガード自体が例外を投げても、閲覧を続けられる
   test("should allow me to keep browsing when the guard itself throws", async () => {
     // Arrange
     // fail-open を Upstash 呼び出しの例外（checkLimit が捕捉する）だけでなく、
@@ -215,6 +224,7 @@ test.describe("runGuard", () => {
     });
   });
 
+  // 許可されたリクエストで、レート制限の残り予算が見える
   test("should allow me to see the rate limit budget on an allowed request", async () => {
     // Arrange
     const request = publicGet();
@@ -235,6 +245,7 @@ test.describe("runGuard", () => {
     }).toEqual({ limit: 60, remaining: 59, resetSec: 60 });
   });
 
+  // 同じ IP からは、レート制限を超えられない
   test("should not allow me to exceed the rate limit for my ip", async () => {
     // Arrange
     const limiter = createMemoryLimiter({ limit: 1, windowMs: 60_000 });
@@ -257,6 +268,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "block", status: 429, reason: "rate-limited" });
   });
 
+  // レート制限のストアが落ちている間も、閲覧を続けられる
   test("should allow me to keep browsing while the rate limit store is down", async () => {
     // Arrange
     const brokenLimiter: Limiter = {
@@ -278,6 +290,7 @@ test.describe("runGuard", () => {
     }).toEqual({ action: "allow", unavailable: true });
   });
 
+  // サインイン済みのとき、IP ではなくアカウント単位で数えられる
   test("should allow me to be counted by my account rather than my ip when signed in", async () => {
     // Arrange
     const spy = createSpyLimiter(createMemoryLimiter({ limit: 20, windowMs: 60_000 }));
@@ -294,6 +307,7 @@ test.describe("runGuard", () => {
     expect(spy.calls[0]).toMatch(/^guard:server-action:user:[0-9a-f]{32}$/);
   });
 
+  // shadow モードでも、ボット判定の結果（block / bot-ua）が見える
   test("should allow me to see the same verdict in shadow mode as in enforce mode", async () => {
     // Arrange
     const request = publicGet("curl/8.4.0");
@@ -315,7 +329,9 @@ test.describe("runGuard", () => {
   });
 });
 
+// RATE_LIMIT_BUCKETS（レート制限のバケット定義）
 test.describe("RATE_LIMIT_BUCKETS", () => {
+  // 仕様で定義されたしきい値を読める
   test("should allow me to read the thresholds defined in the spec", () => {
     // Arrange & Act
     const buckets = RATE_LIMIT_BUCKETS;
@@ -330,6 +346,7 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
     });
   });
 
+  // 共有ストアを、保護する価値のあるバケットにだけ使える
   test("should allow me to spend the shared store only on the buckets worth protecting", () => {
     // Arrange
     // 全リクエストの大半を占める公開 GET を Upstash で数えると
@@ -345,7 +362,9 @@ test.describe("RATE_LIMIT_BUCKETS", () => {
   });
 });
 
+// getDefaultLimiter（既定のレート制限の取得）
 test.describe("getDefaultLimiter", () => {
+  // 同じグループでは、同じレート制限を再利用できる
   test("should allow me to reuse the same limiter for a group", async () => {
     // Arrange & Act
     const first = getDefaultLimiter("public-get");
@@ -355,6 +374,7 @@ test.describe("getDefaultLimiter", () => {
     expect(first).toBe(second);
   });
 
+  // public-get のバケットを、インメモリで数えられる
   test("should allow me to count an isolated bucket without reaching the shared store", async () => {
     // Arrange
     // public-get は Upstash の設定有無に関わらずインメモリで数える。

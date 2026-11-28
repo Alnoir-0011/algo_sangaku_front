@@ -15,7 +15,9 @@ const baseShrine: Shrine = {
   },
 };
 
+// ShrineListCard（近くにあるとき）
 test.describe("ShrineListCard (nearby)", () => {
+  // 神社名と算額数が見える
   test("should allow me to see the shrine name and sangaku count", async ({
     mount,
   }) => {
@@ -27,6 +29,7 @@ test.describe("ShrineListCard (nearby)", () => {
     await expect(component.getByText("算額の数: 10")).toBeVisible();
   });
 
+  // 算額数が undefined のとき、算額数として 0 が見える
   test("should allow me to see 0 as the sangaku count when it is undefined", async ({
     mount,
   }) => {
@@ -39,6 +42,7 @@ test.describe("ShrineListCard (nearby)", () => {
     await expect(component.getByText("算額の数: 0")).toBeVisible();
   });
 
+  // 神社の算額一覧ページと奉納ページへ遷移できる
   test("should allow me to navigate to the shrine's sangakus and dedicate pages", async ({
     mount,
   }) => {
@@ -55,7 +59,9 @@ test.describe("ShrineListCard (nearby)", () => {
   });
 });
 
+// ShrineListCard（近くにないとき）
 test.describe("ShrineListCard (not nearby)", () => {
+  // 算額数は見えるが、操作リンクは見えない
   test("should allow me to see the sangaku count but not allow me to see the action links", async ({
     mount,
   }) => {

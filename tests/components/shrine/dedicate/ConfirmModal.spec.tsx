@@ -79,7 +79,9 @@ const codeSangaku: Sangaku = {
   },
 };
 
+// ConfirmModal
 test.describe("ConfirmModal", () => {
+  // kind が code のとき、Monaco エディタ（モック）でソースコードが見える
   test("should allow me to see the source code in a read-only Monaco editor when kind is code", async ({
     mount,
     page,
@@ -96,6 +98,7 @@ test.describe("ConfirmModal", () => {
     );
   });
 
+  // kind が code のとき、各入力の内容つきの 解答チェック用入力 の一覧が見える
   test("should allow me to see 解答チェック用入力 list with each input's content when kind is code", async ({
     mount,
     page,
@@ -111,6 +114,7 @@ test.describe("ConfirmModal", () => {
     await expect(page.getByLabel("result-2")).toHaveText("input_2");
   });
 
+  // kind が reorder のとき、正解のコードブロックが correct_position で番号付きで見える
   test("should allow me to see correct code blocks numbered by correct_position when kind is reorder", async ({
     mount,
     page,
@@ -137,6 +141,7 @@ test.describe("ConfirmModal", () => {
     await expect(block2).toContainText("block_content_2");
   });
 
+  // kind が reorder のとき、ダミーのコードブロックが ダミー ラベル付きで見える
   test("should allow me to see dummy code blocks labeled as ダミー when kind is reorder", async ({
     mount,
     page,
@@ -155,6 +160,7 @@ test.describe("ConfirmModal", () => {
     await expect(dummyBlock).toContainText("dummy_block_content");
   });
 
+  // kind が reorder で viewport が sm 以上のとき、説明がコードブロックの左に配置されて見える
   test("should allow me to see the description positioned to the left of the code blocks when kind is reorder and viewport is sm or wider", async ({
     mount,
     page,
@@ -187,6 +193,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // kind が reorder で viewport が sm 以上のとき、説明とコードブロックが同じ縦位置から始まって見える
   test("should allow me to see the description and code blocks start at the same vertical position when kind is reorder and viewport is sm or wider", async ({
     mount,
     page,
@@ -219,6 +226,7 @@ test.describe("ConfirmModal", () => {
       .toBeLessThan(10);
   });
 
+  // kind が reorder のとき、sm ブレークポイント（600px）で説明とコードブロックが横並びで見える
   test("should allow me to see the description and code blocks side by side at the sm breakpoint (600px) when kind is reorder", async ({
     mount,
     page,
@@ -251,6 +259,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // kind が code のとき、説明が primary.main のコンテナ内で Markdown として描画されて見える
   test("should allow me to see the description rendered as Markdown inside a primary.main container when kind is code", async ({
     mount,
     page,
@@ -278,6 +287,7 @@ test.describe("ConfirmModal", () => {
     );
   });
 
+  // kind が reorder のとき、説明が primary.main のコンテナ内で Markdown として描画されて見える
   test("should allow me to see the description rendered as Markdown inside a primary.main container when kind is reorder", async ({
     mount,
     page,
@@ -322,6 +332,7 @@ test.describe("ConfirmModal", () => {
   for (const kind of ["code", "reorder"] as const) {
     const sangaku = kind === "code" ? codeSangaku : reorderSangaku;
 
+    // kind が code と reorder のどちらでも、ダイアログの高さが viewport の高さの 85% に固定されて見える
     test(`should allow me to see the dialog height fixed to 85% of the viewport height when kind is ${kind}`, async ({
       mount,
       page,
@@ -348,6 +359,7 @@ test.describe("ConfirmModal", () => {
         .toBeLessThanOrEqual(1);
     });
 
+    // viewport が低く内容があふれるとき、kind が code と reorder のどちらでも、ボタンがダイアログの下端内に収まって見える
     test(`should allow me to see the buttons stay within the dialog bottom when content overflows in a low viewport and kind is ${kind}`, async ({
       mount,
       page,
@@ -394,6 +406,7 @@ test.describe("ConfirmModal", () => {
     });
   }
 
+  // viewport が低く内容があふれ、kind が code のとき、説明の列だけを個別にスクロールできる
   test("should allow me to scroll the description column individually when content overflows in a low viewport and kind is code", async ({
     mount,
     page,
@@ -419,6 +432,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // viewport が低く内容があふれ、kind が reorder のとき、説明の列だけを個別にスクロールできる
   test("should allow me to scroll the description column individually when content overflows in a low viewport and kind is reorder", async ({
     mount,
     page,
@@ -444,6 +458,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // viewport が低く内容があふれ、kind が reorder のとき、コードブロックの列だけを個別にスクロールできる
   test("should allow me to scroll the code blocks column individually when content overflows in a low viewport and kind is reorder", async ({
     mount,
     page,
@@ -470,6 +485,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // kind が reorder のとき、説明のコンテナが列の高さいっぱいに広がって見える
   test("should allow me to see the description container fill the column height when kind is reorder", async ({
     mount,
     page,
@@ -502,6 +518,7 @@ test.describe("ConfirmModal", () => {
       .toBe(true);
   });
 
+  // kind が reorder でコードブロックの読み込み中は、ローディングテキストの代わりにスケルトン 3 行が見える
   test("should allow me to see three skeleton rows instead of loading text while code blocks are loading when kind is reorder", async ({
     mount,
     page,
@@ -527,6 +544,7 @@ test.describe("ConfirmModal", () => {
     await expect(page.getByText("読み込み中")).toHaveCount(0);
   });
 
+  // kind が reorder でコードブロックの取得が失敗したとき、エラーメッセージと再試行ボタンが見える
   test("should allow me to see an error message and a retry button when fetching code blocks fails and kind is reorder", async ({
     mount,
     page,
@@ -545,6 +563,7 @@ test.describe("ConfirmModal", () => {
     await expect(page.getByTestId("confirm-modal-code-block-1")).toHaveCount(0);
   });
 
+  // kind が reorder でコードブロックの取得が失敗した後、再試行ボタンをクリックすると、コードブロックが見える
   test("should allow me to see the code blocks after I click the retry button when fetching code blocks failed and kind is reorder", async ({
     mount,
     page,
@@ -569,11 +588,13 @@ test.describe("ConfirmModal", () => {
   });
 });
 
+// 位置情報の許可が拒否されたとき
 test.describe("when the location permission is denied", () => {
   test.use({ permissions: [] });
 
   // 位置情報の許可が拒否されると getLocation が reject される。捕まえないと
   // 未処理の reject になるため、ログに残して握ることを確認する。
+  // 位置情報の許可が拒否されたとき、未処理の reject が発生しない
   test("should not allow an unhandled rejection when the location permission is denied", async ({
     mount,
     page,
@@ -603,9 +624,11 @@ test.describe("when the location permission is denied", () => {
   });
 });
 
+// 位置情報が利用できないとき
 test.describe("when the location is not available", () => {
   test.use({ permissions: [] });
 
+  // 位置情報の許可が拒否されたとき、奉納できない
   test("should not allow me to dedicate when the location permission is denied", async ({
     mount,
     page,
@@ -631,12 +654,14 @@ test.describe("when the location is not available", () => {
   });
 });
 
+// 位置情報が許可されているとき
 test.describe("when the location is being fetched", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
     permissions: ["geolocation"],
   });
 
+  // 位置情報を取得した後、奉納できる
   test("should allow me to dedicate after the location is obtained", async ({
     mount,
     page,
@@ -654,12 +679,14 @@ test.describe("when the location is being fetched", () => {
   });
 });
 
+// 奉納を送信するとき
 test.describe("when I submit the dedication", () => {
   test.use({
     geolocation: { latitude: 35.6809591, longitude: 139.7673068 },
     permissions: ["geolocation"],
   });
 
+  // 奉納中に奉納ボタンをダブルクリックしても、二重に奉納できない
   test("should not allow me to dedicate twice when I double-click the dedicate button while dedicating", async ({
     mount,
     page,
@@ -686,6 +713,7 @@ test.describe("when I submit the dedication", () => {
     expect(calls).toBe(1);
   });
 
+  // 奉納中にフォームが再送信されても、二重に奉納できない
   test("should not allow me to dedicate twice when the form is submitted again while dedicating", async ({
     mount,
     page,
@@ -714,6 +742,7 @@ test.describe("when I submit the dedication", () => {
     expect(calls).toBe(1);
   });
 
+  // 奉納中は、戻るボタンが無効で、Escape キーでもモーダルを閉じられない
   test("should not allow me to close the modal when I click the back button while dedicating", async ({
     mount,
     page,
@@ -737,6 +766,7 @@ test.describe("when I submit the dedication", () => {
     await expect(submitButton).toBeHidden();
   });
 
+  // リクエストが失敗したとき、ページが保たれ、再度送信できる
   test("should allow me to keep the page and submit again when the request fails", async ({
     mount,
     page,
@@ -760,6 +790,7 @@ test.describe("when I submit the dedication", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // リクエストが失敗したとき、モーダルの上に失敗メッセージが見える
   test("should allow me to see the failure message above the modal when the request fails", async ({
     mount,
     page,

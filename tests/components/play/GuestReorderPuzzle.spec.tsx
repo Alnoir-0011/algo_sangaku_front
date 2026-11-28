@@ -33,7 +33,9 @@ async function setGuestAnswerResponses(
   }, responses);
 }
 
+// GuestReorderPuzzle コンポーネント
 test.describe("GuestReorderPuzzle", () => {
+  // コンポーネントの初期表示時、結果エリアもサインイン導線（CTA）も見えない
   test("should not allow me to see the result area or the sign-in CTA when the component is initially rendered", async ({
     mount,
   }) => {
@@ -60,6 +62,7 @@ test.describe("GuestReorderPuzzle", () => {
     );
   });
 
+  // 解答終了ボタンをクリックしたとき、sangakuId と解答エリア順の block_ids で submitGuestReorderAnswer を呼べる
   test("should allow me to call submitGuestReorderAnswer with sangakuId and block_ids in answer area order when clicking the end-answer button", async ({
     mount,
     page,
@@ -89,6 +92,7 @@ test.describe("GuestReorderPuzzle", () => {
     expect(calls?.[0]).toEqual({ sangakuId: "1", blockIds: [2, 3, 1] });
   });
 
+  // 解答終了ボタンをクリックしても、確認ダイアログが見えない
   test("should not allow me to see a confirm dialog when clicking the end-answer button", async ({
     mount,
     page,
@@ -121,6 +125,7 @@ test.describe("GuestReorderPuzzle", () => {
     expect(dialogMessages).toEqual([]);
   });
 
+  // 正解かつ未サインインのとき、正解メッセージと /signin へのサインイン導線（CTA）が見える
   test("should allow me to see the correct message and the sign-in CTA linking to /signin when the answer is correct and I am not logged in", async ({
     mount,
     page,
@@ -151,6 +156,7 @@ test.describe("GuestReorderPuzzle", () => {
     await expect(cta).toHaveAttribute("href", "/signin");
   });
 
+  // shrineId が渡され正解のとき、その神社の算額一覧を callbackUrl に持つ /signin?callbackUrl= へのサインイン導線（CTA）が見える
   test("should allow me to see the sign-in CTA linking to /signin?callbackUrl= with the shrine's sangaku list when shrineId is provided and the answer is correct", async ({
     mount,
     page,
@@ -181,6 +187,7 @@ test.describe("GuestReorderPuzzle", () => {
     );
   });
 
+  // shrineId が明示的に null で正解のとき、/signin へのサインイン導線（CTA）が見える
   test("should allow me to see the sign-in CTA linking to /signin when shrineId is explicitly null and the answer is correct", async ({
     mount,
     page,
@@ -208,6 +215,7 @@ test.describe("GuestReorderPuzzle", () => {
     await expect(cta).toHaveAttribute("href", "/signin");
   });
 
+  // 正解かつサインイン済みのとき、サインイン導線（CTA）が見えない
   test("should not allow me to see the sign-in CTA when the answer is correct and I am logged in", async ({
     mount,
     page,
@@ -239,6 +247,7 @@ test.describe("GuestReorderPuzzle", () => {
   });
 
   for (const isLoggedIn of [false, true]) {
+    // 不正解のとき、サインイン済みかどうかによらず、サインイン導線（CTA）なしで不正解メッセージが見える
     test(`should allow me to see the incorrect message without the sign-in CTA when the answer is incorrect and isLoggedIn is ${isLoggedIn}`, async ({
       mount,
       page,
@@ -271,6 +280,7 @@ test.describe("GuestReorderPuzzle", () => {
   }
 
   for (const status of ["correct", "incorrect"] as const) {
+    // 解答が正解・不正解のどちらでも、解答エリアの移動ボタンをクリックできない
     test(`should not allow me to click any move button in the answer area when the answer is ${status}`, async ({
       mount,
       page,
@@ -312,6 +322,7 @@ test.describe("GuestReorderPuzzle", () => {
       }
     });
 
+    // 解答が正解・不正解のどちらでも、解答終了ボタンをクリックできない
     test(`should not allow me to click the end-answer button when the answer is ${status}`, async ({
       mount,
       page,
@@ -347,6 +358,7 @@ test.describe("GuestReorderPuzzle", () => {
     });
   }
 
+  // 最初の送信がエラーだったとき、順序を変えて再送信できる
   test("should allow me to resubmit with the changed order when the first submission returned an error", async ({
     mount,
     page,
@@ -392,6 +404,7 @@ test.describe("GuestReorderPuzzle", () => {
     expect(calls?.[1].blockIds).toEqual([2, 1, 3]);
   });
 
+  // サーバーアクションがエラーを返したとき、サインイン導線（CTA）なしでアラートエリアにエラーメッセージが見える
   test("should allow me to see the error message in the alert area without the sign-in CTA when the server action returns an error", async ({
     mount,
     page,

@@ -9,8 +9,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /saved_sangakus/[id]/answer ページ
 test.describe("/saved_sangakus/[id]/answer", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに解答を見られない
     test("should not allow me to see answer without signing in", async ({ page }) => {
       await page.goto("/saved_sangakus/1/answer");
       await expect(page).toHaveURL("/signin");
@@ -20,6 +23,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -186,6 +190,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       ],
     });
 
+    // 解答が正解のとき、解答結果が見える
     test("should allow me to see answer result when the answer is correct", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus/1/answer");
@@ -196,6 +201,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       await expect(output).toContainText("test");
     });
 
+    // kind が code のとき、読み取り専用のコードエディターが見える
     test("should allow me to see the read-only code editor when kind is code", async ({
       page,
     }) => {
@@ -219,6 +225,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
     });
   });
 
+  // サインイン後（kind: reorder）
   test.describe("after signin (kind: reorder)", () => {
     test.use({
       mswHandlers: [
@@ -381,6 +388,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       ],
     });
 
+    // 並べ替え算額を解答済みのとき、正解のコードが読み取り専用エディターに見える
     test("should allow me to see the correct answer code in a read-only editor when the reorder sangaku has been answered", async ({
       page,
       msw,
@@ -435,6 +443,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       await expect(editorLines).not.toContainText("puts 999");
     });
 
+    // 並べ替え算額の code_blocks に correct_position が含まれないとき、読み取り専用のコードエディターが見えない
     test("should not allow me to see the read-only code editor when the reorder sangaku's code_blocks contain no correct_position", async ({
       page,
     }) => {
@@ -460,6 +469,7 @@ test.describe("/saved_sangakus/[id]/answer", () => {
       await expect(codeEditor).toHaveCount(0);
     });
 
+    // kind が reorder のとき、結果テーブルが見えない
     test("should not allow me to see the results table when kind is reorder", async ({
       page,
     }) => {

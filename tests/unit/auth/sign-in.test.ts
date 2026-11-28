@@ -48,7 +48,9 @@ const tokenOf = async (cookie: string, instance = auth) =>
     }
   ).railsAccessToken;
 
+// 再サインイン
 describe("signing in again", () => {
+  // 再サインインすると、API キーを置き換えられる
   test("should allow me to replace my API key when I sign in again", async () => {
     const first = await signIn("first-token");
 
@@ -58,6 +60,7 @@ describe("signing in again", () => {
     expect(revokeRailsApiKeyMock).toHaveBeenCalledWith("first-token");
   });
 
+  // 新しいセッションが、新しい API キーを持つ
   test("should allow my new session to carry the new API key", async () => {
     const first = await signIn("first-token");
 
@@ -66,6 +69,7 @@ describe("signing in again", () => {
     expect(await tokenOf(second.cookie)).toBe("second-token");
   });
 
+  // 持っていない API キーを失うことがない
   test("should not allow me to lose an API key I never had", async () => {
     await signIn("first-token");
 
@@ -73,6 +77,7 @@ describe("signing in again", () => {
   });
 
   // GET で踏ませるだけで、サインイン中の利用者の ApiKey を失効させられてはならない
+  // サインインに至らなかったコールバックが、API キーを削除しない
   test("should not allow a callback that did not sign me in to delete my API key", async () => {
     const { cookie } = await signIn("my-token");
 
@@ -85,7 +90,9 @@ describe("signing in again", () => {
 });
 
 // 同じ利用者の別の端末のサインインで、自分の端末のトークンが変わってはならない
+// 複数のデバイスでのサインイン
 describe("signing in on more than one device", () => {
+  // デバイスごとのアクセストークンを保持できる
   test("should allow me to keep the access token of each device", async () => {
     const pc = await signIn("token-of-pc");
     const phone = await signIn("token-of-phone");
@@ -94,6 +101,7 @@ describe("signing in on more than one device", () => {
     expect(await tokenOf(phone.cookie)).toBe("token-of-phone");
   });
 
+  // 別のデバイスでサインインしたあとにニックネームを更新しても、アクセストークンを保持できる
   test("should allow me to keep my access token when I update my nickname after signing in on another device", async () => {
     const pc = await signIn("token-of-pc");
     await signIn("token-of-phone");
@@ -111,6 +119,7 @@ describe("signing in on more than one device", () => {
     });
   });
 
+  // セッション Cookie がサーバーから再構築されても、アクセストークンを保持できる
   test("should allow me to keep my access token when my session cookie is rebuilt from the server", async () => {
     const pc = await signIn("token-of-pc");
     await signIn("token-of-phone");
@@ -126,6 +135,7 @@ describe("signing in on more than one device", () => {
     );
   });
 
+  // 自分のセッションを一度も見ていないサーバーでも、Cookie でサインインしたままでいられる
   test("should allow me to stay signed in with my cookie on a server that has never seen my session", async () => {
     const { cookie } = await signIn("token-of-pc");
     vi.resetModules();
@@ -135,7 +145,9 @@ describe("signing in on more than one device", () => {
   });
 });
 
+// サインインのメッセージ
 describe("sign-in message", () => {
+  // サインインできたら、サインインのメッセージが見える
   test("should allow me to see the sign-in message once I have signed in", async () => {
     await signIn("my-token");
 
@@ -146,6 +158,7 @@ describe("sign-in message", () => {
     });
   });
 
+  // サインインに成功しなかったとき、サインインのメッセージが見えない
   test("should not allow me to see the sign-in message when the sign-in did not succeed", async () => {
     const response = await get("/callback/google?error=access_denied");
 
@@ -155,6 +168,7 @@ describe("sign-in message", () => {
 
   // getUserInfo は成功を返しても、Better Auth がこのあと、リンクの拒否で失敗しうる。
   // 同じメールの別の sub は、メールが未確認だと、既存の利用者にリンクされない
+  // バックエンドに受け入れられたあとでサインインに失敗したとき、サインインのメッセージが見えない
   test("should not allow me to see the sign-in message when the sign-in failed after the backend accepted me", async () => {
     const identity = { email: "refused-link@example.com" };
     await signIn("first-token", { ...identity, sub: "sub-of-first" });
@@ -172,7 +186,9 @@ describe("sign-in message", () => {
   });
 });
 
+// サインインの失敗
 describe("sign-in failure", () => {
+  // サーバー側に存在しない state が渡されたとき、エラー付きでサインインページへ遷移する
   test("should allow me to be sent to the sign-in page with the error when the state is missing", async () => {
     const response = await get("/callback/google?code=code&state=unknown");
 

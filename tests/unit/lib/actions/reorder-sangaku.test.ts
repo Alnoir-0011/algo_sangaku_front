@@ -19,6 +19,7 @@ function mockValidationErrorResponse() {
   return new Response(JSON.stringify({ errors: [] }), { status: 400 });
 }
 
+// createReorderSangaku（並べ替え問題の作成）
 describe("createReorderSangaku", () => {
   beforeEach(() => {
     getSessionMock.mockReset();
@@ -26,6 +27,7 @@ describe("createReorderSangaku", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // 呼び出したとき、POST /api/v1/user/reorder_sangakus にリクエストを送る
   test("should send a POST request to /api/v1/user/reorder_sangakus when called", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -57,6 +59,7 @@ describe("createReorderSangaku", () => {
     expect(options).toMatchObject({ method: "POST" });
   });
 
+  // 呼び出したとき、リクエストボディに sangaku と code_blocks が含まれる
   test("should send a request body containing sangaku and code_blocks when called", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -95,6 +98,7 @@ describe("createReorderSangaku", () => {
     });
   });
 
+  // difficulty が有効な値でないとき、fetch を呼ばない
   test("should not call fetch when difficulty is not a valid value", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -122,6 +126,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // codeBlocks が空配列のとき、fetch を呼ばない
   test("should not call fetch when codeBlocks is an empty array", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -141,6 +146,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // codeBlocks が最大件数を超えるとき、fetch を呼ばない
   test("should not call fetch when codeBlocks exceeds the maximum count", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -164,6 +170,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // title が文字列でないとき、fetch を呼ばない
   test("should not call fetch when title is not a string", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -184,6 +191,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // title が空のとき、back のフィールドエラーを表示するために fetch を呼ぶ
   test("should call fetch when title is empty so that back's field error is shown", async () => {
     // Arrange: title の空文字チェック（presence）は back のフィールドエラーに委ねる。
     // front で弾いてしまうと serverFetch 自体が呼ばれなくなり、back が返す
@@ -202,6 +210,7 @@ describe("createReorderSangaku", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  // title が最大長を超えるとき、fetch を呼ばない
   test("should not call fetch when title exceeds the maximum length", async () => {
     // Arrange: back の Sangaku#title の length validator（maximum: 255）と同値
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -222,6 +231,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // description が最大長を超えるとき、fetch を呼ばない
   test("should not call fetch when description exceeds the maximum length", async () => {
     // Arrange: back の Sangakuable#description の length validator（maximum: 65_535）と同値
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -248,6 +258,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // correct_position が正解ブロック数の最大値を超えるとき、fetch を呼ばない
   test("should not call fetch when correct_position exceeds the maximum block count", async () => {
     // Arrange: correct_position はダミーを除く正解ブロック数（MAX_CODE_BLOCKS）を
     // 超える値を取り得ない
@@ -269,6 +280,7 @@ describe("createReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // correct_position が 0 以下のとき、fetch を呼ばない
   test("should not call fetch when correct_position is zero or negative", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -290,6 +302,7 @@ describe("createReorderSangaku", () => {
   });
 });
 
+// updateReorderSangaku（並べ替え問題の更新）
 describe("updateReorderSangaku", () => {
   beforeEach(() => {
     getSessionMock.mockReset();
@@ -297,6 +310,7 @@ describe("updateReorderSangaku", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // 呼び出したとき、PATCH /api/v1/user/reorder_sangakus/:id にリクエストを送る
   test("should send a PATCH request to /api/v1/user/reorder_sangakus/:id when called", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -329,6 +343,7 @@ describe("updateReorderSangaku", () => {
     expect(options).toMatchObject({ method: "PATCH" });
   });
 
+  // 呼び出したとき、リクエストボディに sangaku と code_blocks が含まれる
   test("should send a request body containing sangaku and code_blocks when called", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -368,6 +383,7 @@ describe("updateReorderSangaku", () => {
     });
   });
 
+  // codeBlocks が空配列のとき、fetch を呼ばない
   test("should not call fetch when codeBlocks is an empty array", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -387,6 +403,7 @@ describe("updateReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // difficulty が有効な値でないとき、fetch を呼ばない
   test("should not call fetch when difficulty is not a valid value", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -418,6 +435,7 @@ describe("updateReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // codeBlocks が最大件数を超えるとき、fetch を呼ばない
   test("should not call fetch when codeBlocks exceeds the maximum count", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });
@@ -448,6 +466,7 @@ describe("updateReorderSangaku", () => {
     expect(result).toEqual({});
   });
 
+  // title が文字列でないとき、fetch を呼ばない
   test("should not call fetch when title is not a string", async () => {
     // Arrange
     getSessionMock.mockResolvedValue({ accessToken: "token" });

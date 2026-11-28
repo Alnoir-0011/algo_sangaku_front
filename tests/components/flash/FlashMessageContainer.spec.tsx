@@ -5,7 +5,9 @@ import FlashMessageContainer from "@/app/ui/flash/FlashMessageContainer";
 // tests/__mocks__/actions/flash.ts に差し替えられる。返すフラッシュと reject する回数は、
 // hooksConfig（playwright/index.tsx）から設定する。
 
+// FlashMessageContainer（フラッシュメッセージの取得と表示）
 test.describe("FlashMessageContainer", () => {
+  // 消費したフラッシュメッセージが見える
   test("should allow me to see the flash message that is consumed", async ({
     mount,
     page,
@@ -19,6 +21,7 @@ test.describe("FlashMessageContainer", () => {
     await expect(page.getByTestId("flash-message")).toContainText("保存しました");
   });
 
+  // 消費するものがないとき、フラッシュメッセージが見えない
   test("should not allow me to see a flash message when there is nothing to consume", async ({
     mount,
     page,
@@ -28,6 +31,7 @@ test.describe("FlashMessageContainer", () => {
     await expect(page.getByTestId("flash-message")).toHaveCount(0);
   });
 
+  // 消費に失敗したとき、フラッシュメッセージが見えず、エラーがログに出力される
   test("should not allow me to see a flash message and should allow the error to be logged when consuming fails", async ({
     mount,
     page,
@@ -51,6 +55,7 @@ test.describe("FlashMessageContainer", () => {
     await expect(page.getByTestId("flash-message")).toHaveCount(0);
   });
 
+  // refresh key が変わったとき、次のフラッシュメッセージが見える
   test("should allow me to see the next flash message when the refresh key changes", async ({
     mount,
     page,
@@ -72,6 +77,7 @@ test.describe("FlashMessageContainer", () => {
   });
 
   // 同じ文言が続けて来ても、前のものを閉じていれば、新しいものが表示される（key で作り直す）。
+  // refresh key が変わったとき、閉じたあとでも同じフラッシュメッセージがもう一度見える
   test("should allow me to see the same flash message again after I closed it when the refresh key changes", async ({
     mount,
     page,
@@ -91,6 +97,7 @@ test.describe("FlashMessageContainer", () => {
   // consumeFlash は cookie を消す破壊的な読み出しで、結果を捨てると二度と取り戻せない。
   // 応答が届く前に refreshKey が変わっても（Server Action が cookie を消すと、サーバー描画が
   // やり直されて Date.now() が変わる）、先に消費されたフラッシュは表示される。
+  // refresh key が変わる前に消費したフラッシュメッセージが見える
   test("should allow me to see the flash message that was consumed before the refresh key changed", async ({
     mount,
     page,

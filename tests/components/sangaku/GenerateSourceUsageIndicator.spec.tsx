@@ -1,7 +1,9 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import GenerateSourceUsageIndicator from "@/app/ui/sangaku/GenerateSourceUsageIndicator";
 
+// GenerateSourceUsageIndicator
 test.describe("GenerateSourceUsageIndicator", () => {
+  // usage が undefined のとき、プレースホルダーが見える
   test("should allow me to see placeholder when usage is undefined", async ({ mount }) => {
     const component = await mount(
       <GenerateSourceUsageIndicator usage={undefined} />,
@@ -11,6 +13,7 @@ test.describe("GenerateSourceUsageIndicator", () => {
     ).toBeVisible();
   });
 
+  // usage が渡されたとき、残り回数が見える
   test("should allow me to see remaining count when usage is provided", async ({ mount }) => {
     const component = await mount(
       <GenerateSourceUsageIndicator
@@ -22,6 +25,7 @@ test.describe("GenerateSourceUsageIndicator", () => {
     ).toBeVisible();
   });
 
+  // 使い切ったとき、残り 0 回が見える
   test("should allow me to see zero remaining when exhausted", async ({ mount }) => {
     const component = await mount(
       <GenerateSourceUsageIndicator

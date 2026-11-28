@@ -16,27 +16,33 @@ const user = {
   },
 };
 
+// AdminUserForm
 test.describe("AdminUserForm", () => {
+  // 既存のユーザーデータで名前が入力済みで見える
   test("should allow me to see pre-filled name with existing user data", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByLabel("名前")).toHaveValue("Test User");
   });
 
+  // 既存のユーザーデータでニックネームが入力済みで見える
   test("should allow me to see pre-filled nickname with existing user data", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByLabel("ニックネーム")).toHaveValue("testuser");
   });
 
+  // 現在の値が選択されたロールのセレクトが見える
   test("should allow me to see role select with current value", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByRole("combobox")).toHaveValue("general");
   });
 
+  // 更新ボタンが見える
   test("should allow me to see update button", async ({ mount }) => {
     const component = await mount(<AdminUserForm user={user} />);
     await expect(component.getByRole("button", { name: "更新" })).toBeVisible();
   });
 
+  // 送信中に 更新 ボタンをダブルクリックしても、二重送信できない
   test("should not allow me to submit twice when I double-click the 更新 button while sending", async ({
     mount,
     page,
@@ -60,6 +66,7 @@ test.describe("AdminUserForm", () => {
     expect(calls).toBe(1);
   });
 
+  // リクエストが失敗したとき、失敗メッセージが見える
   test("should allow me to see the failure message when the request fails", async ({
     mount,
     page,

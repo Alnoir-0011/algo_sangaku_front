@@ -15,6 +15,7 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /shrines/[id]/dedicate ページ
 test.describe("/shrines/[id]/dedicate", () => {
   test.use({
     geolocation: { latitude: 35.70204829610801, longitude: 139.76789333814216 },
@@ -124,7 +125,9 @@ test.describe("/shrines/[id]/dedicate", () => {
     ],
   });
 
+  // サインイン前
   test.describe("before signin", () => {
+    // 認証なしで奉納ページへアクセスできない
     test("should not allow me to access dedicate page without authentication", async ({
       page,
     }) => {
@@ -138,6 +141,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       ).toBeVisible();
     });
 
+    // ページを再読み込みした後、ナビにサインインボタンが見える
     test("should allow me to see sign in button in nav after page reload", async ({
       page,
     }) => {
@@ -150,7 +154,9 @@ test.describe("/shrines/[id]/dedicate", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
+    // 自分の算額の取得に失敗すると、エラーメッセージが見える
     test("should allow me to see an error message when fetching my sangakus fails", async ({
       page,
       msw,
@@ -173,6 +179,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       ).toBeVisible();
     });
 
+    // 自分の算額の読み込み中、スケルトンが見える
     test("should allow me to see skeleton items while my sangakus are loading", async ({
       page,
       msw,
@@ -211,6 +218,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(page.getByTestId("skeleton-item")).toHaveCount(0);
     });
 
+    // ページネーションをクリックすると、次ページの算額が見える
     test("should allow me to see the sangakus of the next page when clicking the pagination", async ({
       page,
       msw,
@@ -236,6 +244,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(page).toHaveURL(/[?&]page=2/);
     });
 
+    // 前のページへ戻った後、確認モーダルが開いたままにならない
     test("should not allow me to see the confirm modal left open after going back to the previous page", async ({
       page,
       msw,
@@ -261,6 +270,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(page.getByRole("dialog")).toHaveCount(0);
     });
 
+    // 奉納すると、奉納した算額が一覧から消える
     test("should allow me to see the dedicated sangaku removed from the list after dedicating", async ({
       page,
       msw,
@@ -305,6 +315,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       ).toHaveCount(0);
     });
 
+    // 自分の算額ページが共有キャッシュに保存されない
     test("should not allow my sangakus page to be stored in shared caches", async ({
       page,
     }) => {
@@ -316,6 +327,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       expect(response!.headers()["cache-control"]).toContain("no-store");
     });
 
+    // 最初のリクエストが失敗した後、並べ替え算額のコードブロックの取得を再試行できる
     test("should allow me to retry fetching the code blocks of a reorder sangaku after the first request fails", async ({
       page,
       msw,
@@ -375,6 +387,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       ).not.toBeVisible();
     });
 
+    // 並べ替え算額のコードブロックの取得中にセッションが切れると、再試行ボタンなしでサインインを促すメッセージが見える
     test("should allow me to see a sign-in message without a retry button when the session has expired while fetching the code blocks of a reorder sangaku", async ({
       page,
       msw,
@@ -410,6 +423,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(modal.getByRole("button", { name: "再試行" })).toHaveCount(0);
     });
 
+    // 自分の算額を神社に奉納できる
     test("should allow me to dedicate own sangaku to shrine", async ({
       page,
     }) => {
@@ -432,6 +446,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       await expect(shareButton).toBeVisible();
     });
 
+    // 算額を神社に奉納した後、正しい形式の共有リンクが見える
     test("should allow me to see a correctly formatted share link after dedicating sangaku to shrine", async ({
       page,
     }) => {
@@ -471,6 +486,7 @@ test.describe("/shrines/[id]/dedicate", () => {
       expect(sharedUrl.searchParams.get("lng")).toBe("139.76789333814216");
     });
 
+    // 存在しない神社では not found ページが見える
     test("should allow me to see not found page for a non-existent shrine", async ({
       page,
     }) => {

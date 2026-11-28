@@ -12,12 +12,14 @@ vi.mock("@/app/lib/set-flash", () => ({ setFlash: setFlashMock }));
 
 import { customSignOut } from "@/app/lib/actions/auth";
 
+// customSignOut（サインアウト処理）
 describe("customSignOut", () => {
   beforeEach(() => {
     signOutAndRedirectMock.mockReset();
     setFlashMock.mockReset();
   });
 
+  // サインアウト完了のメッセージを表示し、サインインページへ遷移する
   test("should show the sign-out message and send me to the sign-in page", async () => {
     await customSignOut();
 
@@ -28,6 +30,7 @@ describe("customSignOut", () => {
     expect(signOutAndRedirectMock).toHaveBeenCalledWith("/signin");
   });
 
+  // サインアウトする前に、サインアウト完了のメッセージを表示する
   test("should show the sign-out message before signing me out", async () => {
     await customSignOut();
 
@@ -36,6 +39,7 @@ describe("customSignOut", () => {
     );
   });
 
+  // サインアウト時のリダイレクトが伝播する
   test("should allow the sign-out redirect to propagate", async () => {
     const redirect = Object.assign(new Error("NEXT_REDIRECT"), {
       digest: "NEXT_REDIRECT;replace;/signin;307;",

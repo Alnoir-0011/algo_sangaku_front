@@ -61,6 +61,7 @@ const baSession = {
   },
 };
 
+// getSession（セッションの取得）
 describe("getSession", () => {
   beforeEach(() => {
     getSessionApiMock.mockReset().mockResolvedValue(baSession);
@@ -69,6 +70,7 @@ describe("getSession", () => {
     );
   });
 
+  // ユーザー・ロール・アクセストークンを取得できる
   test("should allow me to get my user, role and access token", async () => {
     const session = await getSession();
 
@@ -79,12 +81,14 @@ describe("getSession", () => {
     });
   });
 
+  // 認証ライブラリのセッションがなければ、サインイン状態にならない
   test("should not allow me to be signed in without a session of the auth library", async () => {
     getSessionApiMock.mockResolvedValue(null);
 
     expect(await getSession()).toBeNull();
   });
 
+  // セッションにバックエンド用のアクセストークンがなければ、サインイン状態にならない
   test("should not allow me to be signed in when my session has no access token for the backend", async () => {
     getSessionApiMock.mockResolvedValue({
       ...baSession,
@@ -94,6 +98,7 @@ describe("getSession", () => {
     expect(await getSession()).toBeNull();
   });
 
+  // フレームワークが渡した cookie から、サインイン状態を認識できる
   test("should allow me to be recognized from the cookies that the framework gave", async () => {
     await getSession();
 
@@ -103,6 +108,7 @@ describe("getSession", () => {
   });
 });
 
+// updateSessionNickname（セッションのニックネーム更新）
 describe("updateSessionNickname", () => {
   beforeEach(() => {
     updateUserApiMock.mockReset();
@@ -111,6 +117,7 @@ describe("updateSessionNickname", () => {
     );
   });
 
+  // セッションのニックネームを更新できる
   test("should allow me to update my nickname in my session", async () => {
     await updateSessionNickname("new nick");
 
@@ -121,6 +128,7 @@ describe("updateSessionNickname", () => {
   });
 
   // 握ると、呼び出し元（プロフィールの更新）が、失敗を判断できない
+  // セッションのニックネーム更新の失敗を、呼び出し元から隠さない
   test("should not allow my failure to update my nickname in my session to be hidden from the caller", async () => {
     updateUserApiMock.mockRejectedValue(new Error("cookie is broken"));
 
@@ -130,6 +138,7 @@ describe("updateSessionNickname", () => {
   });
 });
 
+// signOutAndRedirect（サインアウトとリダイレクト）
 describe("signOutAndRedirect", () => {
   beforeEach(() => {
     signOutApiMock.mockReset();
@@ -139,6 +148,7 @@ describe("signOutAndRedirect", () => {
     headersMock.mockReset().mockResolvedValue(new ReadonlyHeadersLike());
   });
 
+  // サインアウトして、指定したページへ遷移する
   test("should allow me to be signed out and sent to the given page", async () => {
     await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 
@@ -146,6 +156,7 @@ describe("signOutAndRedirect", () => {
     expect(redirectMock).toHaveBeenCalledWith("/signin");
   });
 
+  // サインアウト時、デフォルトで API キーを削除する
   test("should allow my API key to be deleted by default when I sign out", async () => {
     await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 
@@ -153,6 +164,7 @@ describe("signOutAndRedirect", () => {
     expect(headers.get(SKIP_API_KEY_REVOCATION_HEADER)).toBeNull();
   });
 
+  // すでに期限切れのとき、バックエンドに API キーの削除を依頼しない
   test("should not ask the backend to delete my API key when it has already expired", async () => {
     await expect(
       signOutAndRedirect("/signin", { revokeApiKey: false }),
@@ -162,6 +174,7 @@ describe("signOutAndRedirect", () => {
     expect(headers.get(SKIP_API_KEY_REVOCATION_HEADER)).toBe("1");
   });
 
+  // サインアウトする前に、別のページへ遷移させない
   test("should not allow me to be sent away before I am signed out", async () => {
     await expect(signOutAndRedirect("/signin")).rejects.toThrow("NEXT_REDIRECT");
 

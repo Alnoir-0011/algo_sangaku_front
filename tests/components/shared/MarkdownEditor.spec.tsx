@@ -1,7 +1,9 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import { ControlledMarkdownEditor } from "./MarkdownEditorStories";
 
+// MarkdownEditor（Markdown エディター）
 test.describe("MarkdownEditor", () => {
+  // Tab を押すと、テキストの先頭にインデントを挿入できる
   test("should allow me to insert an indent at the beginning of the text when pressing Tab", async ({
     mount,
   }) => {
@@ -26,6 +28,7 @@ test.describe("MarkdownEditor", () => {
     await expect(textbox).toHaveValue("  puts 1\nputs 2");
   });
 
+  // Tab を押すと、テキストの途中にインデントを挿入できる
   test("should allow me to insert an indent in the middle of the text when pressing Tab", async ({
     mount,
   }) => {
@@ -48,6 +51,7 @@ test.describe("MarkdownEditor", () => {
     await expect(textbox).toHaveValue("puts 1\n  puts 2");
   });
 
+  // Shift+Tab を押しても、インデントを挿入できない
   test("should not allow me to insert an indent when pressing Shift+Tab", async ({
     mount,
   }) => {
@@ -68,6 +72,7 @@ test.describe("MarkdownEditor", () => {
     await expect(textbox).toHaveValue("puts 1\nputs 2");
   });
 
+  // Tab を押しても、エディターからフォーカスが外れない
   test("should not allow me to move focus away from the editor when pressing Tab", async ({
     mount,
   }) => {

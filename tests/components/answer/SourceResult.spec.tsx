@@ -32,7 +32,9 @@ const reorderAnswerWithNullSource: Answer = {
   },
 };
 
+// SourceResult コンポーネント
 test.describe("SourceResult", () => {
+  // 解答が正解のとき、見出しに「察」を含む結果が見える
   test("should allow me to see 明察 when answer is correct", async ({ mount }) => {
     // モックが "correct" を返すため isCorrect() が呼ばれて true になる
     const component = await mount(<SourceResult answer={correctAnswer} />);
@@ -41,6 +43,7 @@ test.describe("SourceResult", () => {
     await expect(heading).toContainText("察");
   });
 
+  // 解答が reorder 形式で source が null のとき、見出しに「察」を含む結果が見える
   test("should allow me to see 明察 when answer is a reorder kind with a null source", async ({
     mount,
   }) => {

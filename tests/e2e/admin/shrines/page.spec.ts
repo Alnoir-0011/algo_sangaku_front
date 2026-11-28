@@ -39,6 +39,7 @@ const createResponse = {
   },
 };
 
+// /admin/shrines
 test.describe("/admin/shrines", () => {
   test.use({
     mswHandlers: [
@@ -66,7 +67,9 @@ test.describe("/admin/shrines", () => {
     ],
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーでは神社一覧にアクセスできない
     test("should not allow me to access shrine list as a general user", async ({
       page,
     }) => {
@@ -77,38 +80,45 @@ test.describe("/admin/shrines", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
     test.beforeEach(async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines");
     });
 
+    // 管理者として、神社一覧の見出しが見える
     test("should allow me to see the shrines list heading as admin", async ({ page }) => {
       await expect(
         page.getByRole("heading", { name: "神社管理" }),
       ).toBeVisible();
     });
 
+    // API から取得した神社名が見える
     test("should allow me to see shrine names from API", async ({ page }) => {
       await expect(page.getByText("管理神社テスト")).toBeVisible();
     });
 
+    // API から取得した神社の住所が見える
     test("should allow me to see shrine address from API", async ({ page }) => {
       await expect(page.getByText("東京都千代田区1-1")).toBeVisible();
     });
 
+    // 神社作成ボタンが見える
     test("should allow me to see the create shrine button", async ({ page }) => {
       await expect(
         page.getByRole("link", { name: "神社を追加" }),
       ).toBeVisible({ timeout: 10_000 });
     });
 
+    // 各神社の編集リンクが見える
     test("should allow me to see the edit link for each shrine", async ({ page }) => {
       await expect(page.getByRole("link", { name: "編集" })).toBeVisible();
     });
   });
 });
 
+// /admin/shrines（API エラー時）
 test.describe("/admin/shrines (API error)", () => {
   test.use({
     mswHandlers: [
@@ -122,6 +132,7 @@ test.describe("/admin/shrines (API error)", () => {
     ],
   });
 
+  // API がエラーを返したとき、神社一覧が見えない
   test("should not allow me to see shrine list when API returns error", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/shrines");

@@ -24,6 +24,7 @@ const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60;
 
 // 設定値（authCookies）を見るだけだと、発行の経路（setSessionCookie の overrides など）で
 // 属性が変わっても、気づけない。実際にサインインして、応答の Set-Cookie を確かめる
+// https での認証ライブラリの Cookie
 describe("cookies of the auth library on https", () => {
   const setCookieOf = async (name: string) => {
     const { response } = await signIn("my-token");
@@ -32,6 +33,7 @@ describe("cookies of the auth library on https", () => {
       .find((setCookie) => setCookie.startsWith(`__Secure-better-auth.${name}=`));
   };
 
+  // スクリプトや他のサイトが、Cookie（%s）を使えない
   test.each(["session_token", "session_data"])(
     "should not allow scripts or other sites to use my cookie (%s)",
     async (name) => {
@@ -43,6 +45,7 @@ describe("cookies of the auth library on https", () => {
     },
   );
 
+  // Cookie（%s）は 7 日間だけ有効で、それより長くは続かない
   test.each(["session_token", "session_data"])(
     "should allow my cookie (%s) to last for 7 days and no longer",
     async (name) => {

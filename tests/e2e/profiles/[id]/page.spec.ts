@@ -40,6 +40,7 @@ const profileWithoutAnswerCount = {
   },
 };
 
+// /profiles/[id] ページ
 test.describe("/profiles/[id]", () => {
   test.use({
     mswHandlers: [
@@ -59,7 +60,9 @@ test.describe("/profiles/[id]", () => {
     ],
   });
 
+  // サインインなし（公開ルート）
   test.describe("without signin (public route)", () => {
+    // ニックネームと登録日が見える
     test("should allow me to see nickname and registration date", async ({ page }) => {
       await page.goto("/profiles/1");
       await expect(page.getByRole("heading", { name: "プロフィール" })).toBeVisible();
@@ -68,6 +71,7 @@ test.describe("/profiles/[id]", () => {
       await expect(page.getByText(/登録日.*2026/)).toBeVisible();
     });
 
+    // 活動サマリーが見える
     test("should allow me to see activity summary", async ({ page }) => {
       await page.goto("/profiles/1");
       // subtitle1 renders as <h6>
@@ -80,6 +84,7 @@ test.describe("/profiles/[id]", () => {
       ).toBeVisible();
     });
 
+    // show_answer_count が true のとき、解答数が数値で見える
     test("should allow me to see answer count as a number when show_answer_count is true", async ({
       page,
     }) => {
@@ -88,6 +93,7 @@ test.describe("/profiles/[id]", () => {
       await expect(page.getByTestId("stat-card-answer").getByText("5")).toBeVisible();
     });
 
+    // answer_count が null のとき、ダッシュが見える
     test("should allow me to see a dash when answer_count is null", async ({
       page,
     }) => {
@@ -96,6 +102,7 @@ test.describe("/profiles/[id]", () => {
       await expect(page.getByTestId("stat-card-answer").getByText("—")).toBeVisible();
     });
 
+    // 奉納した算額の一覧に、タイトルと神社名が見える
     test("should allow me to see dedicated sangaku list with title and shrine name", async ({
       page,
     }) => {
@@ -107,6 +114,7 @@ test.describe("/profiles/[id]", () => {
       await expect(page.getByText("test_shrine")).toBeVisible();
     });
 
+    // 奉納した算額がないとき、空メッセージが見える
     test("should allow me to see empty message when there are no dedicated sangakus", async ({
       page,
     }) => {
@@ -116,6 +124,7 @@ test.describe("/profiles/[id]", () => {
       ).toBeVisible();
     });
 
+    // 存在しない id では not found ページが見える
     test("should allow me to see not found page for a non-existent id", async ({
       page,
     }) => {

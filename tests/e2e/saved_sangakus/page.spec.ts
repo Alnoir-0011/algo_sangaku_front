@@ -9,8 +9,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /saved_sangakus ページ
 test.describe("/saved_sangakus", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // /saved_sangakus を訪問できない
     test("should not allow me to visit /saved_sangakus", async ({ page }) => {
       await page.goto("/saved_sangakus");
       await expect(page).toHaveURL("/signin");
@@ -20,6 +23,7 @@ test.describe("/saved_sangakus", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -130,6 +134,7 @@ test.describe("/saved_sangakus", () => {
       ],
     });
 
+    // 保存した算額の一覧が見える
     test("should allow me to see saved sangakus list", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus");
@@ -141,6 +146,7 @@ test.describe("/saved_sangakus", () => {
       ).toBeVisible();
     });
 
+    // 保存した算額の kind が reorder のとき、「並べ替え」の kind バッジが見える
     test("should allow me to see 並べ替え kind badge when a saved sangaku has kind reorder", async ({
       page,
       msw,
@@ -194,6 +200,7 @@ test.describe("/saved_sangakus", () => {
       await expect(main.getByText("並べ替え", { exact: true })).toBeVisible();
     });
 
+    // 解答済みの算額の一覧が見える
     test("should allow me to see answered sangakus list", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus?tab=answered");
@@ -202,6 +209,7 @@ test.describe("/saved_sangakus", () => {
       await expect(sangakuTitle).toBeVisible({ timeout: 10_000 });
     });
 
+    // easy の難易度ラベルが見える
     test("should allow me to see easy difficulty label", async ({ page, msw }) => {
       msw.use(
         http.get(`${apiUrl}/api/v1/user/saved_sangakus`, () => {
@@ -249,6 +257,7 @@ test.describe("/saved_sangakus", () => {
       });
     });
 
+    // difficult と very_difficult の難易度ラベルが見える
     test("should allow me to see difficult and very_difficult difficulty labels", async ({
       page,
       msw,
@@ -318,6 +327,7 @@ test.describe("/saved_sangakus", () => {
       });
     });
 
+    // 検索テキストで算額を絞り込める
     test("should allow me to filter sangakus by search text", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus");
@@ -333,6 +343,7 @@ test.describe("/saved_sangakus", () => {
       await expect(page).not.toHaveURL(/query=/, { timeout: 3_000 });
     });
 
+    // 難易度で算額を絞り込める
     test("should allow me to filter sangakus by difficulty", async ({ page }) => {
       await setSession(page);
       await page.goto("/saved_sangakus");
@@ -348,6 +359,7 @@ test.describe("/saved_sangakus", () => {
       await expect(page).not.toHaveURL(/difficulty=/, { timeout: 3_000 });
     });
 
+    // 作者名のリンクをクリックすると、作者のプロフィールページへ遷移できる
     test("should allow me to navigate to author profile page when clicking author name link", async ({
       page,
       msw,
@@ -386,6 +398,7 @@ test.describe("/saved_sangakus", () => {
       await expect(page).toHaveURL("/profiles/1", { timeout: 10_000 });
     });
 
+    // before_answer タブで kind クエリパラメータがあるとき、保存した算額の一覧を kind で絞り込める
     test("should allow me to filter saved sangaku list by kind when the kind query param is present on before_answer tab", async ({
       page,
       msw,
@@ -441,6 +454,7 @@ test.describe("/saved_sangakus", () => {
       expect(capturedKind).toBe("reorder");
     });
 
+    // answered タブで kind クエリパラメータがあるとき、保存した算額の一覧を kind で絞り込める
     test("should allow me to filter saved sangaku list by kind when the kind query param is present on answered tab", async ({
       page,
       msw,

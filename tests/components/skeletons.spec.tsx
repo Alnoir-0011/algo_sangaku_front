@@ -5,7 +5,9 @@ import {
   MapSkeleton,
 } from "@/app/ui/skeletons";
 
+// SangakuListSkeleton コンポーネント
 test.describe("SangakuListSkeleton", () => {
+  // スケルトン項目が 9 個見える
   test("should allow me to see 9 skeleton items", async ({ mount, page }) => {
     await mount(<SangakuListSkeleton />);
     const skeletons = page.getByTestId("skeleton-item");
@@ -13,7 +15,9 @@ test.describe("SangakuListSkeleton", () => {
   });
 });
 
+// SangakuWithButtonListSkeleton コンポーネント
 test.describe("SangakuWithButtonListSkeleton", () => {
+  // ボタンのスケルトン付きのスケルトン項目が見える
   test("should allow me to see skeleton items with button skeletons", async ({
     mount,
     page,
@@ -25,7 +29,9 @@ test.describe("SangakuWithButtonListSkeleton", () => {
   });
 });
 
+// MapSkeleton コンポーネント
 test.describe("MapSkeleton", () => {
+  // 地図のスケルトンが見える
   test("should allow me to see map skeleton", async ({ mount, page }) => {
     await mount(<MapSkeleton />);
     const skeletons = page.getByTestId("skeleton-item");

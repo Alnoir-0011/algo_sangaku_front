@@ -9,7 +9,9 @@ import { CodeBlockEditorWrapper } from "./CodeBlockEditorStories";
 // （tests/e2e/sangakus/create/page.spec.ts）で検証し、CT では
 // Monaco に依存しない範囲（ブロックがある場合の編集操作等）のみを扱う。
 
+// CodeBlockEditor
 test.describe("CodeBlockEditor", () => {
+  // blocks が空のとき、分割ボタンが見える
   test("should allow me to see split button when blocks is empty", async ({
     mount,
   }) => {
@@ -22,6 +24,7 @@ test.describe("CodeBlockEditor", () => {
     ).toBeVisible();
   });
 
+  // blocks が空のとき、ブロック一覧が見えない
   test("should not allow me to see block list when blocks is empty", async ({
     mount,
   }) => {
@@ -32,6 +35,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(component.getByText("puts")).not.toBeVisible();
   });
 
+  // blocks に要素があるとき、ブロックの内容が見える
   test("should allow me to see block contents when blocks has elements", async ({
     mount,
   }) => {
@@ -57,6 +61,7 @@ test.describe("CodeBlockEditor", () => {
     );
   });
 
+  // blocks に要素があるとき、テキスト入力欄と分割ボタンが見えない
   test("should not allow me to see text input and split button when blocks has elements", async ({
     mount,
   }) => {
@@ -84,6 +89,7 @@ test.describe("CodeBlockEditor", () => {
   // ブロックが生成される挙動、空行除去を含む）は、上記の理由により
   // tests/e2e/sangakus/create/page.spec.ts の E2E テストで検証する。
 
+  // blocks に要素があるとき、ブロックの内容を編集できる
   test("should allow me to edit a block content when blocks has elements", async ({
     mount,
   }) => {
@@ -109,6 +115,7 @@ test.describe("CodeBlockEditor", () => {
     );
   });
 
+  // blocks に要素があるとき、各ブロックの削除ボタンが見える
   test("should allow me to see delete buttons for each block when blocks has elements", async ({
     mount,
   }) => {
@@ -128,6 +135,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(deleteButtons).toHaveCount(3);
   });
 
+  // blocks に要素があるとき、削除ボタンをクリックしてブロックを削除できる
   test("should allow me to remove a block by clicking its delete button when blocks has elements", async ({
     mount,
     page,
@@ -154,6 +162,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByRole("textbox")).toHaveCount(2);
   });
 
+  // blocks に要素があるとき、最後以外の各ブロックに結合ボタンが見える
   test("should allow me to see merge buttons for each block except the last one when blocks has elements", async ({
     mount,
   }) => {
@@ -173,6 +182,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(mergeButtons).toHaveCount(2);
   });
 
+  // blocks に要素があるとき、結合ボタンをクリックしてブロックを次のブロックと結合できる
   test("should allow me to merge a block with the next block by clicking its merge button when blocks has elements", async ({
     mount,
     page,
@@ -201,6 +211,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByRole("textbox")).toHaveCount(2);
   });
 
+  // blocks に要素があるとき、各ブロックの分割ボタンが見える
   test("should allow me to see split buttons for each block when blocks has elements", async ({
     mount,
   }) => {
@@ -219,6 +230,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(splitButtons).toHaveCount(2);
   });
 
+  // blocks に要素があるとき、分割ボタンをクリックしてブロックを改行ごとに複数のブロックへ分割できる
   test("should allow me to split a block by its newlines into multiple blocks by clicking its split button when blocks has elements", async ({
     mount,
     page,
@@ -246,6 +258,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByRole("textbox")).toHaveCount(3);
   });
 
+  // ダミーブロックと正解ブロックを結合したとき、isDummy が true のままになる
   test("should keep isDummy true when merging a dummy block with a correct block", async ({
     mount,
     page,
@@ -269,6 +282,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByTestId("debug-is-dummy")).toHaveText("[true]");
   });
 
+  // 正解ブロック同士を結合したとき、isDummy が false のままになる
   test("should keep isDummy false when merging two correct blocks", async ({
     mount,
     page,
@@ -290,6 +304,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByTestId("debug-is-dummy")).toHaveText("[false]");
   });
 
+  // ダミーブロックを分割したとき、分割後のすべてのブロックで isDummy が true のままになる
   test("should keep isDummy true for every resulting block when splitting a dummy block", async ({
     mount,
     page,
@@ -312,6 +327,7 @@ test.describe("CodeBlockEditor", () => {
     );
   });
 
+  // blocks に要素があるとき、各ブロックの上へ移動・下へ移動ボタンが見える
   test("should allow me to see move-up and move-down buttons for each block when blocks has elements", async ({
     mount,
   }) => {
@@ -334,6 +350,7 @@ test.describe("CodeBlockEditor", () => {
     ).toHaveCount(2);
   });
 
+  // ブロックが先頭にあるとき、上へ移動ボタンをクリックできない
   test("should not allow me to click the move-up button when the block is at the top of the list", async ({
     mount,
   }) => {
@@ -353,6 +370,7 @@ test.describe("CodeBlockEditor", () => {
     ).toBeDisabled();
   });
 
+  // ブロックが末尾にあるとき、下へ移動ボタンをクリックできない
   test("should not allow me to click the move-down button when the block is at the bottom of the list", async ({
     mount,
   }) => {
@@ -372,6 +390,7 @@ test.describe("CodeBlockEditor", () => {
     ).toBeDisabled();
   });
 
+  // ブロックが先頭でないとき、上へ移動ボタンをクリックしてブロックを上へ移動できる
   test("should allow me to move a block up by clicking its move-up button when the block is not at the top", async ({
     mount,
     page,
@@ -396,6 +415,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByLabel("block-content-2")).toHaveValue("puts 3");
   });
 
+  // ブロックが末尾でないとき、下へ移動ボタンをクリックしてブロックを下へ移動できる
   test("should allow me to move a block down by clicking its move-down button when the block is not at the bottom", async ({
     mount,
     page,
@@ -420,6 +440,7 @@ test.describe("CodeBlockEditor", () => {
     await expect(page.getByLabel("block-content-2")).toHaveValue("puts 3");
   });
 
+  // ダミーブロック追加ボタンをクリックしたとき、空のブロックを一覧の末尾に追加できる
   test("should allow me to add an empty dummy block to the end of the list when I click add dummy block button", async ({
     mount,
     page,

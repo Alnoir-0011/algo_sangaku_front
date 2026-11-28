@@ -10,6 +10,7 @@ vi.mock("next/headers", () => ({
 
 import { setFlash } from "@/app/lib/set-flash";
 
+// setFlash（フラッシュの設定）
 describe("setFlash", () => {
   beforeEach(() => {
     cookieSetMock.mockReset();
@@ -19,6 +20,7 @@ describe("setFlash", () => {
     vi.unstubAllEnvs();
   });
 
+  // フラッシュを JSON として flash cookie に保存する
   test("should store the flash as JSON in the flash cookie", async () => {
     // Act
     await setFlash({ type: "success", message: "保存しました" });
@@ -33,6 +35,7 @@ describe("setFlash", () => {
     });
   });
 
+  // flash cookie を httpOnly・sameSite lax・サイト全体・有効期間 60 秒で設定する
   test("should set the flash cookie as httpOnly, sameSite lax, site-wide and valid for 60 seconds", async () => {
     // Act
     await setFlash({ type: "info", message: "お知らせ" });
@@ -47,6 +50,7 @@ describe("setFlash", () => {
     });
   });
 
+  // APP_ENV が test でないとき、secure 属性を付ける
   test("should set the secure attribute when APP_ENV is not test", async () => {
     // Arrange
     vi.stubEnv("APP_ENV", "production");
@@ -58,6 +62,7 @@ describe("setFlash", () => {
     expect(cookieSetMock.mock.calls[0][2].secure).toBe(true);
   });
 
+  // APP_ENV が未設定のとき、secure 属性を付ける
   test("should set the secure attribute when APP_ENV is unset", async () => {
     // Arrange
     vi.stubEnv("APP_ENV", undefined);
@@ -69,6 +74,7 @@ describe("setFlash", () => {
     expect(cookieSetMock.mock.calls[0][2].secure).toBe(true);
   });
 
+  // APP_ENV が test のとき、secure 属性を付けない
   test("should not set the secure attribute when APP_ENV is test", async () => {
     // Arrange
     vi.stubEnv("APP_ENV", "test");

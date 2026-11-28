@@ -55,6 +55,7 @@ const sangakus = [
   buildSangaku("2", "title_2", "difficult", "puts 'second'"),
 ];
 
+// SangakuList
 test.describe("SangakuList", () => {
   // 位置情報が取れるまで奉納ボタンは押せない
   test.use({
@@ -62,6 +63,7 @@ test.describe("SangakuList", () => {
     permissions: ["geolocation"],
   });
 
+  // 各算額のタイトルと説明が見える
   test("should allow me to see the title and description of each sangaku", async ({
     mount,
   }) => {
@@ -75,6 +77,7 @@ test.describe("SangakuList", () => {
     await expect(component.getByText("title_2_desc")).toBeVisible();
   });
 
+  // 各算額の難易度ラベルが見える
   test("should allow me to see the difficulty label of each sangaku", async ({
     mount,
   }) => {
@@ -86,6 +89,7 @@ test.describe("SangakuList", () => {
     await expect(component.getByText("難しい", { exact: true })).toBeVisible();
   });
 
+  // 総ページ数が 3 のとき、ページネーションのボタンが見える
   test("should allow me to see pagination buttons when total page is 3", async ({
     mount,
   }) => {
@@ -97,6 +101,7 @@ test.describe("SangakuList", () => {
     await expect(component.getByRole("button", { name: "3ページ目" })).toBeVisible();
   });
 
+  // 算額を選択する前は、確認モーダルが見えない
   test("should not allow me to see the confirm modal before I select a sangaku", async ({
     mount,
     page,
@@ -108,6 +113,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByTestId("monaco-editor")).toHaveCount(0);
   });
 
+  // 選択した算額の確認モーダルを開ける
   test("should allow me to open the confirm modal of the sangaku I select", async ({
     mount,
     page,
@@ -121,6 +127,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByTestId("monaco-editor")).toHaveText("puts 'second'");
   });
 
+  // 並べ替えの算額を選択したとき、コードブロックが見える
   test("should allow me to see the code blocks when I select a reorder sangaku", async ({
     mount,
     page,
@@ -141,6 +148,7 @@ test.describe("SangakuList", () => {
     );
   });
 
+  // 並べ替えの算額を選択して取得が失敗した後、コードブロックの取得を再試行できる
   test("should allow me to retry fetching the code blocks after a failure when I select a reorder sangaku", async ({
     mount,
     page,
@@ -169,6 +177,7 @@ test.describe("SangakuList", () => {
   // 再試行の取得は fetchUserSangakuDelayMs だけ遅れて解決する（最初の取得は reject される）。
   // 取得の完了を待ってから state を更新する実装だと、完了でモーダルが開き直る。
   // 「開き直らない」という起きないことの確認なので、解決を待つ時間を固定で置く。
+  // 再試行中に確認モーダルを閉じたとき、確認モーダルが再び開いて見えることはない
   test("should not allow me to see the confirm modal reopened when I close it while the retry is in progress", async ({
     mount,
     page,
@@ -200,6 +209,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
+  // 再試行の直後に、Escape キーで確認モーダルを閉じられる
   test("should allow me to close the confirm modal with the Escape key right after retrying", async ({
     mount,
     page,
@@ -229,6 +239,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
+  // 別の算額を選択したとき、前の算額の奉納画面が見えない
   test("should not allow me to see the dedicated screen of the previous sangaku when I select another sangaku", async ({
     mount,
     page,
@@ -250,6 +261,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByText("算額を奉納しました")).toHaveCount(0);
   });
 
+  // 選択中の算額が一覧から消えても、確認モーダルが見え続ける
   test("should allow me to keep seeing the confirm modal when the selected sangaku is removed from the list", async ({
     mount,
     page,
@@ -272,6 +284,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByTestId("monaco-editor")).toHaveText("puts 'first'");
   });
 
+  // 算額一覧の取得が失敗したとき、メッセージが見える
   test("should allow me to see the message when fetching the sangakus fails", async ({
     mount,
   }) => {
@@ -287,6 +300,7 @@ test.describe("SangakuList", () => {
     await expect(component.getByText("リクエストに失敗しました")).toBeVisible();
   });
 
+  // Escape キーで確認モーダルを閉じられる
   test("should allow me to close the confirm modal with the Escape key", async ({
     mount,
     page,
@@ -302,6 +316,7 @@ test.describe("SangakuList", () => {
     await expect(page.getByTestId("monaco-editor")).toHaveCount(0);
   });
 
+  // 奉納の直後に、Escape キーで奉納画面を閉じられる
   test("should allow me to close the dedicated screen with the Escape key right after dedicating", async ({
     mount,
     page,

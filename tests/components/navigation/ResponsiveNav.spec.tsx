@@ -1,10 +1,13 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import ResponsiveNav from "@/app/ui/navigation/ResponsiveNav";
 
+// ResponsiveNav（レスポンシブなナビゲーション）
 test.describe("ResponsiveNav", () => {
+  // デスクトップ
   test.describe("Desktop", () => {
     test.use({ viewport: { width: 1024, height: 720 } });
 
+    // デスクトップでは、ハンバーガーメニューのボタンが見えない
     test("should not allow me to see hamburger menu button on desktop", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
@@ -13,6 +16,7 @@ test.describe("ResponsiveNav", () => {
       await expect(button).not.toBeVisible();
     });
 
+    // サイドナビが開いているとき、アプリ名のリンクが見える
     test("should allow me to see app name link when sidenav is open", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
@@ -22,10 +26,12 @@ test.describe("ResponsiveNav", () => {
     });
   });
 
+  // モバイル
   test.describe("Mobile", () => {
     test.use({ viewport: { width: 430, height: 932 } });
 
     // 画面上には表示されるがコンポーネントテストで要素を取得できないためexample.spec.tsxに代替のテストを記載
+    // ボタンをクリックすると、ドロワーを開ける
     test.skip("should allow me to open drawer when click button", async ({ mount }) => {
       const component = await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },
@@ -40,6 +46,7 @@ test.describe("ResponsiveNav", () => {
       ).toBeVisible();
     });
 
+    // Escape キーを押すと、ドロワーを閉じられる
     test("should allow me to close the drawer by pressing Escape", async ({ mount, page }) => {
       await mount(<ResponsiveNav drawerWidth={240} />, {
         hooksConfig: { session: null },

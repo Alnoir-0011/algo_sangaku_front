@@ -2,7 +2,9 @@ import { test, expect } from "@/tests/fixtures.ct";
 import { SangakuSaveButton } from "@/app/ui/shrine/sangakus/SangakuSaveButton";
 import { SUBMIT_FAILURE_MESSAGE_TEXT } from "@/tests/__helpers__/submit-failure";
 
+// SangakuSaveButton
 test.describe("SangakuSaveButton", () => {
+  // saved が false のとき、有効な 算額を写す ボタンが見える
   test("should allow me to see an enabled 算額を写す button when saved is false", async ({
     mount,
     page,
@@ -15,6 +17,7 @@ test.describe("SangakuSaveButton", () => {
     await expect(button).toBeEnabled();
   });
 
+  // saved が true のとき、無効な 保存済み ボタンが見える
   test("should allow me to see a disabled 保存済み button when saved is true", async ({
     mount,
     page,
@@ -26,6 +29,7 @@ test.describe("SangakuSaveButton", () => {
     await expect(button).toBeDisabled();
   });
 
+  // 保存に成功した後、ボタンが 保存済み に切り替わる
   test("should allow me to see the button switch to 保存済み after a successful save", async ({
     mount,
     page,
@@ -39,6 +43,7 @@ test.describe("SangakuSaveButton", () => {
     await expect(savedButton).toBeDisabled();
   });
 
+  // 保存中にボタンをダブルクリックしても、二重に保存できない
   test("should not allow me to save twice when I double-click the button while saving", async ({
     mount,
     page,
@@ -62,6 +67,7 @@ test.describe("SangakuSaveButton", () => {
     expect(calls).toBe(1);
   });
 
+  // リクエストが失敗したとき、ページが保たれ、ボタンを再度クリックできる
   test("should allow me to keep the page and click the button again when the request fails", async ({
     mount,
     page,
@@ -82,6 +88,7 @@ test.describe("SangakuSaveButton", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // リクエストが失敗したとき、失敗メッセージが見える
   test("should allow me to see the failure message when the request fails", async ({
     mount,
     page,

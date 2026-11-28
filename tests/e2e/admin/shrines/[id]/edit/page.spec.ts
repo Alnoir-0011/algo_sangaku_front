@@ -37,6 +37,7 @@ const updateResponse = {
   },
 };
 
+// /admin/shrines/[id]/edit
 test.describe("/admin/shrines/[id]/edit", () => {
   test.use({
     mswHandlers: [
@@ -55,7 +56,9 @@ test.describe("/admin/shrines/[id]/edit", () => {
     ],
   });
 
+  // 未認証ユーザー
   test.describe("unauthenticated user", () => {
+    // 認証なしでは神社編集ページにアクセスできない
     test("should not allow me to access shrine edit page without authentication", async ({
       page,
     }) => {
@@ -66,7 +69,9 @@ test.describe("/admin/shrines/[id]/edit", () => {
     });
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーでは神社編集ページにアクセスできない
     test("should not allow me to access shrine edit page as a general user", async ({
       page,
     }) => {
@@ -77,7 +82,9 @@ test.describe("/admin/shrines/[id]/edit", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
+    // 管理者として、神社詳細の見出しが見える
     test("should allow me to see the shrine detail heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
@@ -86,12 +93,14 @@ test.describe("/admin/shrines/[id]/edit", () => {
       ).toBeVisible();
     });
 
+    // 既存の神社名が入力済みのフォームが見える
     test("should allow me to see the form pre-filled with the existing shrine name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
       await expect(page.getByLabel("神社名")).toHaveValue("管理神社テスト");
     });
 
+    // 神社名を更新できる
     test("should allow me to update shrine name", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/1/edit");
@@ -104,6 +113,7 @@ test.describe("/admin/shrines/[id]/edit", () => {
   });
 });
 
+// /admin/shrines/[id]/edit（存在しないとき）
 test.describe("/admin/shrines/[id]/edit (not found)", () => {
   test.use({
     mswHandlers: [
@@ -117,6 +127,7 @@ test.describe("/admin/shrines/[id]/edit (not found)", () => {
     ],
   });
 
+  // 神社が見つからないとき、神社編集ページが見えない
   test("should not allow me to see shrine edit page when shrine is not found", async ({ page }) => {
     await setAdminSession(page);
     await page.goto("/admin/shrines/1/edit");

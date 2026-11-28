@@ -21,7 +21,9 @@ const pendingResponse = {
   },
 };
 
+// Result コンポーネント
 test.describe("Result", () => {
+  // ポーリング完了後に結果の出力が見える
   test("should allow me to see the result output after polling completes", async ({
     mount,
     page,
@@ -37,6 +39,7 @@ test.describe("Result", () => {
     await expect(component.getByText("42")).toBeVisible();
   });
 
+  // index prop が渡されたとき、1 始まりのインデックス番号が見える
   test("should allow me to see 1-based index number when index prop is given", async ({
     mount,
     page,
@@ -51,6 +54,7 @@ test.describe("Result", () => {
     await expect(component.getByText("3")).toBeVisible();
   });
 
+  // ポーリング中はローディング表示が見える
   test("should allow me to see loading indicator while polling is in progress", async ({
     mount,
     page,
@@ -78,6 +82,7 @@ test.describe("Result", () => {
     await expect(component.getByTestId("result-1")).toBeVisible();
   });
 
+  // ポーリングが上限を超えたとき、タイムアウトのメッセージが見える
   test("should allow me to see timeout message when polling exceeds limit", async ({
     mount,
     page,
@@ -97,6 +102,7 @@ test.describe("Result", () => {
     await expect(component.getByTestId("result-1")).toBeVisible();
   });
 
+  // サーバーが 500 エラーを返したとき、タイムアウトのメッセージが見える
   test("should allow me to see timeout message when server returns 500 error", async ({
     mount,
     page,
@@ -116,6 +122,7 @@ test.describe("Result", () => {
     await expect(component.getByText("採点タイムアウト")).toBeVisible();
   });
 
+  // id prop が変わったとき、新しい結果が見える
   test("should allow me to see new result when id prop changes", async ({
     mount,
     page,

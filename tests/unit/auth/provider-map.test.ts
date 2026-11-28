@@ -14,11 +14,14 @@ vi.mock("@/app/lib/set-flash", () => ({ setFlash: vi.fn() }));
 
 import { getProviderMap } from "@/auth";
 
+// サインインページ向けのプロバイダーマップ
 describe("provider map for the sign-in page", () => {
+  // 設定済みの各プロバイダーの id と name が得られる
   test("should allow me to see the sign-in button of each provider that is set up", async () => {
     expect(await getProviderMap()).toEqual([{ id: "google", name: "Google" }]);
   });
 
+  // プロバイダーのシークレットが、サインインページに渡らない
   test("should not allow the secrets of a provider to be passed to the sign-in page", async () => {
     const [provider] = await getProviderMap();
 

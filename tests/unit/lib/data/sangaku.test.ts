@@ -26,11 +26,13 @@ function mockSuccessResponse() {
   });
 }
 
+// fetchShrineSangakus（神社の算額一覧の取得）
 describe("fetchShrineSangakus", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // kind が 'code' のとき、リクエスト URL に kind=code が含まれる
   test("should include kind=code in the request URL when kind is 'code'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -45,6 +47,7 @@ describe("fetchShrineSangakus", () => {
     expect(params.get("kind")).toBe("code");
   });
 
+  // kind が 'reorder' のとき、リクエスト URL に kind=reorder が含まれる
   test("should include kind=reorder in the request URL when kind is 'reorder'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -59,6 +62,7 @@ describe("fetchShrineSangakus", () => {
     expect(params.get("kind")).toBe("reorder");
   });
 
+  // kind が省略されたとき、リクエスト URL に kind パラメータが含まれない
   test("should not include a kind parameter in the request URL when kind is omitted", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -73,6 +77,7 @@ describe("fetchShrineSangakus", () => {
     expect(params.has("kind")).toBe(false);
   });
 
+  // shrine_id にパストラバーサルの文字が含まれるとき、fetch を呼ばない
   test("should not call fetch when shrine_id contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -86,12 +91,14 @@ describe("fetchShrineSangakus", () => {
   });
 });
 
+// fetchUserSangaku（ユーザーの算額の取得）
 describe("fetchUserSangaku", () => {
   beforeEach(() => {
     vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // セッションのアクセストークンで、バックエンドが自分を識別できる
   test("should allow the backend to know who I am with the access token of my session", async () => {
     // Arrange
     vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);
@@ -108,6 +115,7 @@ describe("fetchUserSangaku", () => {
     expect(options.headers["Authorization"]).toBe("Bearer my-token");
   });
 
+  // id が有効な id のとき、期待する URL で fetch を呼ぶ
   test("should call fetch with the expected URL when id is a valid id", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -121,6 +129,7 @@ describe("fetchUserSangaku", () => {
     expect(calledUrl.endsWith("/api/v1/user/sangakus/1")).toBe(true);
   });
 
+  // id にパストラバーサルの文字が含まれるとき、fetch を呼ばない
   test("should not call fetch when id contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -134,11 +143,13 @@ describe("fetchUserSangaku", () => {
   });
 });
 
+// fetchSavedSangaku（保存した算額の取得）
 describe("fetchSavedSangaku", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // id が有効な id のとき、期待する URL で fetch を呼ぶ
   test("should call fetch with the expected URL when id is a valid id", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -152,6 +163,7 @@ describe("fetchSavedSangaku", () => {
     expect(calledUrl.includes("/api/v1/user/saved_sangakus/1")).toBe(true);
   });
 
+  // id にパストラバーサルの文字が含まれるとき、fetch を呼ばない
   test("should not call fetch when id contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -165,11 +177,13 @@ describe("fetchSavedSangaku", () => {
   });
 });
 
+// fetchUserSangakuResult（ユーザーの算額の結果の取得）
 describe("fetchUserSangakuResult", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // id が有効な id のとき、期待する URL で fetch を呼ぶ
   test("should call fetch with the expected URL when id is a valid id", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -183,6 +197,7 @@ describe("fetchUserSangakuResult", () => {
     expect(calledUrl.includes("/api/v1/user/sangakus/1/result")).toBe(true);
   });
 
+  // id にパストラバーサルの文字が含まれるとき、fetch を呼ばない
   test("should not call fetch when id contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -196,6 +211,7 @@ describe("fetchUserSangakuResult", () => {
   });
 });
 
+// fetchUserSangakus（ユーザーの算額一覧の取得）
 describe("fetchUserSangakus", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -205,6 +221,7 @@ describe("fetchUserSangakus", () => {
     vi.restoreAllMocks();
   });
 
+  // kind が 'code' のとき、リクエスト URL に kind=code が含まれる
   test("should include kind=code in the request URL when kind is 'code'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -219,6 +236,7 @@ describe("fetchUserSangakus", () => {
     expect(params.get("kind")).toBe("code");
   });
 
+  // kind が 'reorder' のとき、リクエスト URL に kind=reorder が含まれる
   test("should include kind=reorder in the request URL when kind is 'reorder'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -233,6 +251,7 @@ describe("fetchUserSangakus", () => {
     expect(params.get("kind")).toBe("reorder");
   });
 
+  // kind が省略されたとき、リクエスト URL に kind パラメータが含まれない
   test("should not include a kind parameter in the request URL when kind is omitted", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -247,6 +266,7 @@ describe("fetchUserSangakus", () => {
     expect(params.has("kind")).toBe(false);
   });
 
+  // セッションを読み取れないとき、予期せぬエラーのメッセージを返す
   test("should return an unexpected error message when the session cannot be read", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -272,6 +292,7 @@ describe("fetchUserSangakus", () => {
     );
   });
 
+  // レスポンスのステータスが 401 のとき、セッション切れのメッセージを返す
   test("should return a session expired message when the response status is 401", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -286,6 +307,7 @@ describe("fetchUserSangakus", () => {
     expect(result.message).toContain("セッションの有効期限が切れています");
   });
 
+  // レスポンスのステータスが 500 のとき、リクエスト失敗のメッセージを返す
   test("should return a request failed message when the response status is 500", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -302,6 +324,7 @@ describe("fetchUserSangakus", () => {
     });
   });
 
+  // リクエスト自体が失敗したとき、予期せぬエラーのメッセージを返す
   test("should return an unexpected error message when the request itself fails", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -319,6 +342,7 @@ describe("fetchUserSangakus", () => {
     });
   });
 
+  // リダイレクトエラーは、メッセージを返さずに再スローする
   test("should rethrow a redirect error instead of returning a message", async () => {
     // Arrange
     // Next.js の redirect() が投げるエラーの digest 形式
@@ -332,6 +356,7 @@ describe("fetchUserSangakus", () => {
     await expect(fetchUserSangakus("1", "", "")).rejects.toBe(redirectError);
   });
 
+  // page に %j を指定したとき、page=%j でリクエストする
   test.each([
     ["abc", "1"],
     ["0", "1"],
@@ -358,6 +383,7 @@ describe("fetchUserSangakus", () => {
     },
   );
 
+  // query が文字列のとき、リクエスト URL に title パラメータが含まれる
   test("should include the title parameter in the request URL when query is a string", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -372,6 +398,7 @@ describe("fetchUserSangakus", () => {
     expect(params.get("title")).toBe("foo");
   });
 
+  // query が文字列でないとき、title パラメータが含まれない
   test("should not include a title parameter when query is not a string", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -388,11 +415,13 @@ describe("fetchUserSangakus", () => {
   });
 });
 
+// fetchSavedSangakus（保存した算額一覧の取得）
 describe("fetchSavedSangakus", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // kind が 'code' のとき、リクエスト URL に kind=code が含まれる
   test("should include kind=code in the request URL when kind is 'code'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -407,6 +436,7 @@ describe("fetchSavedSangakus", () => {
     expect(params.get("kind")).toBe("code");
   });
 
+  // kind が 'reorder' のとき、リクエスト URL に kind=reorder が含まれる
   test("should include kind=reorder in the request URL when kind is 'reorder'", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -421,6 +451,7 @@ describe("fetchSavedSangakus", () => {
     expect(params.get("kind")).toBe("reorder");
   });
 
+  // kind が省略されたとき、リクエスト URL に kind パラメータが含まれない
   test("should not include a kind parameter in the request URL when kind is omitted", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -435,6 +466,7 @@ describe("fetchSavedSangakus", () => {
     expect(params.has("kind")).toBe(false);
   });
 
+  // type と kind の両方を指定したとき、リクエスト URL に両方が含まれる
   test("should include both type and kind in the request URL when both are specified", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -451,12 +483,14 @@ describe("fetchSavedSangakus", () => {
   });
 });
 
+// fetchPublicReorderSangaku（公開された並べ替え問題の取得）
 describe("fetchPublicReorderSangaku", () => {
   beforeEach(() => {
     vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // ステータスが 200 のとき、レスポンスのデータを返す
   test("should return the data of the response when the status is 200", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -472,6 +506,7 @@ describe("fetchPublicReorderSangaku", () => {
     expect(result).toEqual(sangaku);
   });
 
+  // ステータスが 404 のとき、null を返す
   test("should return null when the status is 404", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -484,6 +519,7 @@ describe("fetchPublicReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // id にパストラバーサルの文字が含まれるとき、fetch を呼ばずに null を返す
   test("should not call fetch and return null when id contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -496,6 +532,7 @@ describe("fetchPublicReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // ステータスが 500 のとき、例外を投げる
   test("should throw when the status is 500", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -506,6 +543,7 @@ describe("fetchPublicReorderSangaku", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  // fetch が reject されたとき、例外を投げる
   test("should throw when fetch rejects", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -516,6 +554,7 @@ describe("fetchPublicReorderSangaku", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  // id が有効な id のとき、公開された並べ替え問題の URL で fetch を呼ぶ
   test("should call fetch with the public reorder sangaku URL when id is a valid id", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -532,6 +571,7 @@ describe("fetchPublicReorderSangaku", () => {
   });
 
   // サインイン中でも、公開 API には ApiKey を送らない。session が token を持つ状態で確かめる
+  // サインイン中でも、取得時に Authorization ヘッダーを送らない
   test("should not send an Authorization header when fetching even if I am signed in", async () => {
     // Arrange
     vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);
@@ -551,12 +591,14 @@ describe("fetchPublicReorderSangaku", () => {
   });
 });
 
+// fetchRepresentativeReorderSangaku（代表の並べ替え問題の取得）
 describe("fetchRepresentativeReorderSangaku", () => {
   beforeEach(() => {
     vi.mocked(getSession).mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // ステータスが 200 のとき、レスポンスのデータを返す
   test("should return the data of the response when the status is 200", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -572,6 +614,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
     expect(result).toEqual(sangaku);
   });
 
+  // ステータスが 404 のとき、null を返す
   test("should return null when the status is 404", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -584,6 +627,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // shrineId にパストラバーサルの文字が含まれるとき、fetch を呼ばずに null を返す
   test("should not call fetch and return null when shrineId contains path traversal characters", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -596,6 +640,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // ステータスが 500 のとき、例外を投げずに null を返す
   test("should return null without throwing when the status is 500", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -608,6 +653,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // fetch が reject されたとき、例外を投げずに null を返す
   test("should return null without throwing when fetch rejects", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -620,6 +666,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
     expect(result).toBeNull();
   });
 
+  // shrineId が有効な id のとき、代表の並べ替え問題の URL で fetch を呼ぶ
   test("should call fetch with the representative reorder sangaku URL when shrineId is a valid id", async () => {
     // Arrange
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -640,6 +687,7 @@ describe("fetchRepresentativeReorderSangaku", () => {
   });
 
   // サインイン中でも、公開 API には ApiKey を送らない。session が token を持つ状態で確かめる
+  // サインイン中でも、取得時に Authorization ヘッダーを送らない
   test("should not send an Authorization header when fetching even if I am signed in", async () => {
     // Arrange
     vi.mocked(getSession).mockResolvedValue({ accessToken: "my-token" } as never);

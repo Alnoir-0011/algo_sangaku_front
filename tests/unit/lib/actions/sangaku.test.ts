@@ -21,6 +21,7 @@ const authedSession = {
   user: { email: "user@example.com" },
 };
 
+// runSource（ソースコードの実行）
 describe("runSource", () => {
   beforeEach(() => {
     getSessionMock.mockReset();
@@ -28,6 +29,7 @@ describe("runSource", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
+  // セッションがないとき、PaizaIO を呼ばない
   test("should not call PaizaIO when there is no session", async () => {
     getSessionMock.mockResolvedValue(null);
 
@@ -37,6 +39,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // source が文字列でないとき、PaizaIO を呼ばない
   test("should not call PaizaIO when source is not a string", async () => {
     getSessionMock.mockResolvedValue(authedSession);
 
@@ -47,6 +50,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // fixedInputs に文字列でない要素が含まれるとき、PaizaIO を呼ばない
   test("should not call PaizaIO when fixedInputs contains a non-string element", async () => {
     getSessionMock.mockResolvedValue(authedSession);
 
@@ -57,6 +61,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // fixedInputs の要素数が多すぎるとき、PaizaIO を呼ばない
   test("should not call PaizaIO when fixedInputs has too many elements", async () => {
     getSessionMock.mockResolvedValue(authedSession);
 
@@ -66,6 +71,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // source が長すぎるとき、PaizaIO を呼ばない
   test("should not call PaizaIO when source is too long", async () => {
     getSessionMock.mockResolvedValue(authedSession);
 
@@ -75,6 +81,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // 固定入力が長すぎるとき、PaizaIO を呼ばない
   test("should not call PaizaIO when a fixed input is too long", async () => {
     getSessionMock.mockResolvedValue(authedSession);
 
@@ -84,6 +91,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // レート制限を超えたとき、PaizaIO を呼ばない
   test("should not call PaizaIO when the rate limit is exceeded", async () => {
     getSessionMock.mockResolvedValue(authedSession);
     checkRunSourceRateLimitMock.mockResolvedValue(false);
@@ -94,6 +102,7 @@ describe("runSource", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // セッションにメールアドレスがないとき、レート制限のチェックを省略する
   test("should skip the rate limit check when the session has no email", async () => {
     getSessionMock.mockResolvedValue({ accessToken: "token" });
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -123,6 +132,7 @@ describe("runSource", () => {
     expect(checkRunSourceRateLimitMock).not.toHaveBeenCalled();
   });
 
+  // fixedInputs の件数にかかわらず、レート制限のチェックをちょうど 1 回だけ呼ぶ
   test("should call the rate limit check exactly once regardless of fixedInputs count", async () => {
     getSessionMock.mockResolvedValue(authedSession);
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
@@ -151,6 +161,7 @@ describe("runSource", () => {
     expect(checkRunSourceRateLimitMock).toHaveBeenCalledTimes(1);
   });
 
+  // 認証済みで入力が有効なとき、PaizaIO を呼ぶ
   test("should call PaizaIO when authenticated and input is valid", async () => {
     getSessionMock.mockResolvedValue(authedSession);
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;

@@ -51,18 +51,22 @@ const anchors = [
 const protectedAnchors = anchors.filter(({ href }) => !isPublicPath(href));
 const publicAnchors = anchors.filter(({ href }) => isPublicPath(href));
 
+// サインイン後の Drawer
 describe("Drawer after I sign in", () => {
+  // 保護されたリンクと公開リンクの両方を描画する
   test("should render both protected and public links", () => {
     expect(protectedAnchors.length).toBeGreaterThan(0);
     expect(publicAnchors.length).toBeGreaterThan(0);
   });
 
+  // 保護されたリンクのプリフェッチを許可しない
   test("should not allow prefetching any protected link", () => {
     expect(
       protectedAnchors.filter(({ prefetch }) => prefetch !== "false"),
     ).toEqual([]);
   });
 
+  // 公開リンクはデフォルトの挙動でプリフェッチできる
   test("should allow prefetching public links with the default behavior", () => {
     expect(
       publicAnchors.filter(({ prefetch }) => prefetch !== "default"),

@@ -6,7 +6,9 @@ const initialState = {
   values: { title: "test_title", description: "test_description" },
 };
 
+// ReorderSangakuForm
 test.describe("ReorderSangakuForm", () => {
+  // 初期 state にタイトルがあるとき、タイトルが入力済みで見える
   test("should allow me to see pre-filled title when initial state has a title", async ({
     mount,
   }) => {
@@ -23,6 +25,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect(component.getByLabel("タイトル")).toHaveValue("test_title");
   });
 
+  // 初期の説明が渡されたとき、説明が入力済みで見える
   test("should allow me to see pre-filled description when initial description is given", async ({
     mount,
   }) => {
@@ -41,6 +44,7 @@ test.describe("ReorderSangakuForm", () => {
     );
   });
 
+  // 初期の難易度が渡されたとき、選択中の難易度ラベルが見える
   test("should allow me to see selected difficulty label when initial difficulty is given", async ({
     mount,
   }) => {
@@ -59,6 +63,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect(component.getByRole("combobox")).toHaveText("普通");
   });
 
+  // 別の選択肢を選んだとき、難易度のセレクトの値を変更できる
   test("should allow me to change difficulty select value when a different option is selected", async ({
     mount,
     page,
@@ -80,6 +85,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect(component.getByRole("combobox")).toHaveText("難しい");
   });
 
+  // initialBlocks が渡されたとき、初期のコードブロックが見える
   test("should allow me to see initial code blocks when initialBlocks is given", async ({
     mount,
   }) => {
@@ -104,6 +110,7 @@ test.describe("ReorderSangakuForm", () => {
     );
   });
 
+  // state にタイトル・説明・難易度のエラーがあるとき、各フィールドのエラーが見える
   test("should allow me to see field errors when state has errors for title, description, and difficulty", async ({
     mount,
   }) => {
@@ -136,6 +143,7 @@ test.describe("ReorderSangakuForm", () => {
     );
   });
 
+  // フィールドを複数回入力したとき、最新の説明の値が保持される
   test("should allow me to keep the latest description value when the field is filled more than once", async ({
     mount,
   }) => {
@@ -164,6 +172,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect(descriptionField).toHaveValue("another description");
   });
 
+  // フォームが描画されたとき、確認ボタンが見える
   test("should allow me to see a confirm button when the form is rendered", async ({
     mount,
   }) => {
@@ -186,6 +195,7 @@ test.describe("ReorderSangakuForm", () => {
     ).toBeVisible();
   });
 
+  // ブロックがまだ生成されていないとき、コードブロック最小数の警告が見えない
   test("should not allow me to see the min code blocks warning when no blocks have been generated yet", async ({
     mount,
   }) => {
@@ -204,6 +214,7 @@ test.describe("ReorderSangakuForm", () => {
     ).not.toBeVisible();
   });
 
+  // 正解ブロックが 2 つ未満のとき、確認に進めない
   test("should not allow me to proceed to confirmation when there are fewer than two correct blocks", async ({
     mount,
   }) => {
@@ -227,6 +238,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect(component.getByLabel("minCodeBlocksWarning")).toBeVisible();
   });
 
+  // 正解ブロックが 2 つ以上あるとき、確認に進める
   test("should allow me to proceed to confirmation when there are two or more correct blocks", async ({
     mount,
   }) => {
@@ -255,6 +267,7 @@ test.describe("ReorderSangakuForm", () => {
     ).not.toBeVisible();
   });
 
+  // 確認ボタンをクリックしたとき、確認モーダルを開ける
   test("should allow me to open the confirmation modal when I click the confirm button", async ({
     mount,
     page,
@@ -287,6 +300,7 @@ test.describe("ReorderSangakuForm", () => {
     ).toBeVisible();
   });
 
+  // state に code_blocks のエラーがあるとき、code_blocks のエラーが見える
   test("should allow me to see a code_blocks error when state has a code_blocks error", async ({
     mount,
   }) => {
@@ -310,6 +324,7 @@ test.describe("ReorderSangakuForm", () => {
     );
   });
 
+  // 確認モーダル内の保存ボタンをクリックしたとき、フォームを送信できる
   test("should allow me to submit the form when I click the save button inside the confirmation modal", async ({
     mount,
     page,
@@ -345,6 +360,7 @@ test.describe("ReorderSangakuForm", () => {
     await expect.poll(() => actionCalled).toBe(true);
   });
 
+  // アクション実行中に保存ボタンをダブルクリックしても、フォームを二重送信できない
   test("should not allow me to submit the form twice when I double-click the save button while the action is running", async ({
     mount,
     page,

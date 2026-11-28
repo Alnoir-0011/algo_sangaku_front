@@ -1,7 +1,9 @@
 import { test, expect } from "@/tests/fixtures.ct";
 import Search from "@/app/ui/Search";
 
+// Search コンポーネント
 test.describe("Search", () => {
+  // kind prop が true のとき、形式フィルターのセレクトが見える
   test("should allow me to see the format filter select when kind prop is true", async ({
     mount,
   }) => {
@@ -12,6 +14,7 @@ test.describe("Search", () => {
     await expect(component.getByRole("combobox")).toBeVisible();
   });
 
+  // kind prop が渡されないとき、形式フィルターのセレクトが見えない
   test("should not allow me to see the format filter select when kind prop is not given", async ({
     mount,
   }) => {
@@ -22,6 +25,7 @@ test.describe("Search", () => {
     await expect(component.getByRole("combobox")).not.toBeVisible();
   });
 
+  // 形式フィルターのセレクトを開いたとき、all の選択肢が見える
   test("should allow me to see all option when the format filter select is opened", async ({
     mount,
     page,
@@ -39,6 +43,7 @@ test.describe("Search", () => {
     await expect(page.getByRole("option", { name: "全て" })).toBeVisible();
   });
 
+  // 形式フィルターのセレクトを開いたとき、code の選択肢が見える
   test("should allow me to see code option when the format filter select is opened", async ({
     mount,
     page,
@@ -56,6 +61,7 @@ test.describe("Search", () => {
     ).toBeVisible();
   });
 
+  // 形式フィルターのセレクトを開いたとき、reorder の選択肢が見える
   test("should allow me to see reorder option when the format filter select is opened", async ({
     mount,
     page,
@@ -73,6 +79,7 @@ test.describe("Search", () => {
     ).toBeVisible();
   });
 
+  // code の選択肢を選んだとき、選択値が更新されて見える
   test("should allow me to see updated selected value when code option is selected", async ({
     mount,
     page,
@@ -90,6 +97,7 @@ test.describe("Search", () => {
     await expect(component.getByRole("combobox")).toHaveText("コード記述");
   });
 
+  // reorder の選択肢を選んだとき、選択値が更新されて見える
   test("should allow me to see updated selected value when reorder option is selected", async ({
     mount,
     page,

@@ -10,8 +10,11 @@ import {
 
 const apiUrl = process.env.API_URL;
 
+// /user/sangakus/[id]/edit
 test.describe("/user/sangakus/[id]/edit", () => {
+  // サインイン前
   test.describe("before signin", () => {
+    // サインインせずに算額編集ページへアクセスできず、サインインページへリダイレクトされる
     test("should not allow me to visit sangaku edit page without signing in and redirect to signin", async ({ page }) => {
       await page.goto("/user/sangakus/1/edit");
       await expect(page).toHaveURL("/signin");
@@ -21,6 +24,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
     });
   });
 
+  // サインイン後
   test.describe("after signin", () => {
     test.use({
       mswHandlers: [
@@ -85,6 +89,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ],
     });
 
+    // 確認モーダルに、編集した内容が反映されて見える
     test("should allow me to see edited content reflected in the confirmation modal", async ({ page }) => {
       await setSession(page);
 
@@ -101,6 +106,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(resultText).toBeVisible();
     });
 
+    // 編集した算額を保存でき、フラッシュメッセージ付きでリダイレクトされる
     test("should allow me to save edited sangaku and be redirected with flash message", async ({ page, msw }) => {
       msw.use(
         http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
@@ -138,6 +144,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     // back issue #365: 編集画面を開いた後、保存前に別タブ等で奉納された場合、
     // 保存時に back から 403 が返る。編集画面に留まらず一覧へ戻し、理由を伝える
+    // 算額が奉納済みになったため保存が 403 を返したとき、理由付きで一覧へリダイレクトされる
     test("should redirect me to the list with a reason when saving returns 403 because the sangaku became dedicated", async ({
       page,
       msw,
@@ -167,6 +174,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toContainText("この算額は奉納済みのため更新できません");
     });
 
+    // 説明が空のとき、生成ボタンをクリックできない
     test("should not allow me to click the generate button when description is empty", async ({
       page,
       msw,
@@ -193,6 +201,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(generateButton).toBeDisabled();
     });
 
+    // 説明を入力し直した後、再び生成ボタンをクリックできる
     test("should allow me to click the generate button again after refilling description", async ({
       page,
       msw,
@@ -221,6 +230,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(generateButton).toBeEnabled({ timeout: 10_000 });
     });
 
+    // 生成されたコードが Monaco Editor に反映されて見える
     test("should allow me to see generated code reflected in Monaco Editor", async ({ page, msw }) => {
       const generatedSource =
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
@@ -253,6 +263,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByTestId("monaco-editor-source")).toContainText("対応言語: Ruby", { timeout: 10_000 });
     });
 
+    // 生成されたソースコードで算額を保存できる
     test("should allow me to save sangaku with generated source code", async ({ page, msw }) => {
       const generatedSource =
         "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum";
@@ -305,6 +316,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toContainText("算額を更新しました");
     });
 
+    // 存在しない算額の編集ページを開いて、見つからないメッセージが見える
     test("should allow me to visit non-existent sangaku edit page and see not found message", async ({ page }) => {
       await setSession(page);
 
@@ -315,6 +327,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(message).toBeVisible();
     });
 
+    // 残り回数付きの利用状況表示が見える
     test("should allow me to see usage indicator with remaining count", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
@@ -323,6 +336,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(usageIndicator).toBeVisible();
     });
 
+    // 生成成功後、更新された利用回数が見える
     test("should allow me to see updated usage count after successful generation", async ({ page, msw }) => {
       const generatedSource = "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs n";
 
@@ -351,6 +365,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(usageIndicator).toBeVisible();
     });
 
+    // 429 レスポンスのとき、エラーメッセージが見える
     test("should allow me to see an error message on 429 response", async ({ page, msw }) => {
       msw.use(
         http.post(`${apiUrl}/api/v1/user/code_sangakus/generate_source`, () => {
@@ -375,6 +390,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ).toBeDisabled();
     });
 
+    // 保存前に難易度を変更できる
     test("should allow me to change difficulty before saving", async ({ page, msw }) => {
       msw.use(
         http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
@@ -411,6 +427,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(flash).toContainText("算額を更新しました");
     });
 
+    // 更新に失敗したとき、バリデーションエラーが見える
     test("should allow me to see validation errors on failed update", async ({ page, msw }) => {
       msw.use(
         http.patch(`${apiUrl}/api/v1/user/code_sangakus/1`, () => {
@@ -440,6 +457,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByLabel("sourceError")).toHaveText("を入力してください");
     });
 
+    // 確認モーダルから編集画面へ戻れる
     test("should allow me to go back from the confirmation modal to the edit screen", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
@@ -454,6 +472,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     // issue #129: 奉納済み（relationships.shrine.data が null でない）算額は
     // 編集フォームを表示せず、編集不可メッセージ＋一覧への戻り導線を表示する
+    // 奉納済みの算額は編集できず、フォームの代わりに一覧へ戻るリンク付きのお知らせが見える
     test("should not allow me to edit a dedicated sangaku and should see a notice with a link back to the list instead of the form", async ({
       page,
       msw,
@@ -498,6 +517,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
     // back のレスポンスでは未奉納でも relationships.shrine.data: null が必ず返る
     // （キー自体が省略されることはない）。型定義どおりのこの形で通常の編集フォームが
     // 表示されることを確認する（issue #129 コードレビュー指摘）
+    // shrine.data が明示的に null のとき、編集フォームが見える
     test("should allow me to see the edit form when shrine.data is explicitly null", async ({
       page,
       msw,
@@ -536,6 +556,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ).not.toBeVisible();
     });
 
+    // 説明が 2000 文字を超えたとき、警告メッセージが見える
     test("should allow me to see a warning message when description exceeds 2000 characters", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
@@ -553,6 +574,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
     });
   });
 
+  // 1 日の上限に達したとき
   test.describe("when daily limit is reached", () => {
     test.use({
       mswHandlers: [
@@ -597,6 +619,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ],
     });
 
+    // remaining が 0 のとき、生成ボタンをクリックできない
     test("should not allow me to click the generate button when remaining is 0", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
@@ -606,6 +629,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(generateButton).toBeDisabled();
     });
 
+    // 残り 0 を示す利用状況表示が見える
     test("should allow me to see usage indicator showing 0 remaining", async ({ page }) => {
       await setSession(page);
       await page.goto("/user/sangakus/1/edit");
@@ -615,6 +639,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
     });
   });
 
+  // kind による分岐
   test.describe("kind branching", () => {
     test.use({
       mswHandlers: [
@@ -672,6 +697,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       ],
     });
 
+    // kind が reorder のとき、並べ替え算額の編集フォームが見える
     test("should allow me to see reorder sangaku edit form when kind is reorder", async ({ page }) => {
       // Arrange: kind: "reorder" の算額データを返すサインイン済みユーザーとしてセッションを準備する
       await setSession(page);
@@ -684,6 +710,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByLabel("block-content-0")).toHaveValue("puts 1");
     });
 
+    // 編集時、正しい形のペイロードで並べ替え算額を保存できる
     test("should allow me to save reorder sangaku with correctly shaped payload when editing", async ({ page, msw }) => {
       // Arrange: GET/PATCH とも msw で扱う（page.route はサーバーコンポーネントの
       // fetch を捕捉できないため、Next.js testmode 経由の msw に統一する）
@@ -757,6 +784,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       });
     });
 
+    // 何も変更せずに保存したとき、ダミーブロックが correct_position null のまま保持される
     test("should allow me to preserve a dummy block as correct_position null when editing without changes", async ({
       page,
       msw,
@@ -839,6 +867,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
 
     // issue #129: kind が reorder でも、奉納済みなら EditReorderForm の代わりに
     // 共通の編集不可メッセージが表示されることを確認する
+    // 奉納済みの並べ替え算額は編集できず、フォームの代わりにお知らせが見える
     test("should not allow me to edit a dedicated reorder sangaku and should see a notice instead of the form", async ({
       page,
       msw,
@@ -884,6 +913,7 @@ test.describe("/user/sangakus/[id]/edit", () => {
       await expect(page.getByLabel("タイトル")).not.toBeVisible();
     });
 
+    // 並べ替え算額の更新に成功したとき、フラッシュメッセージ付きでリダイレクトされる
     test("should allow me to be redirected with a flash message when reorder sangaku is updated successfully", async ({ page, msw }) => {
       // Arrange: GET/PATCH とも msw で扱う（page.route はサーバーコンポーネントの
       // fetch を捕捉できないため、Next.js testmode 経由の msw に統一する）

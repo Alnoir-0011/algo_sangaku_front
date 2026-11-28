@@ -15,7 +15,9 @@ const user = {
   },
 };
 
+// AdminUserRow
 test.describe("AdminUserRow", () => {
+  // ユーザーのニックネームが見える
   test("should allow me to see user nickname", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -23,6 +25,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("testuser")).toBeVisible();
   });
 
+  // ユーザーのメールアドレスが見える
   test("should allow me to see user email", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -30,6 +33,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("test@example.com")).toBeVisible();
   });
 
+  // 現在のロールがテキストで見える
   test("should allow me to see current role as text", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -37,6 +41,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByText("general")).toBeVisible();
   });
 
+  // 編集リンクが見える
   test("should allow me to see edit link", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -44,6 +49,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByRole("link", { name: "編集" })).toBeVisible();
   });
 
+  // 算額数が見える
   test("should allow me to see sangaku count", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -51,6 +57,7 @@ test.describe("AdminUserRow", () => {
     await expect(component.getByRole("cell", { name: "3" })).toBeVisible();
   });
 
+  // 解答数が見える
   test("should allow me to see answer count", async ({ mount }) => {
     const component = await mount(
       <table><tbody><AdminUserRow user={user} /></tbody></table>,
@@ -59,6 +66,7 @@ test.describe("AdminUserRow", () => {
   });
 
   // RED: AdminUserRow に created_at カラムが存在しない（TableCell で YYYY/MM/DD 形式の日付を表示する実装が未着手）
+  // ISO 文字列が渡されたとき、created_at が YYYY/MM/DD 形式で見える
   test("should allow me to see created_at formatted as YYYY/MM/DD when ISO string is provided", async ({ mount }) => {
     // Arrange: 上部 user 定数の created_at = "2026-01-01T00:00:00.000+09:00" を使用
     // Act
@@ -70,6 +78,7 @@ test.describe("AdminUserRow", () => {
   });
 
   // RED: AdminUserRow に created_at カラムが存在しない（TableCell で YYYY/MM/DD 形式の日付を表示する実装が未着手）
+  // 別の ISO 文字列が渡されたとき、created_at が YYYY/MM/DD 形式で見える
   test("should allow me to see created_at formatted as YYYY/MM/DD when another ISO string is provided", async ({ mount }) => {
     // Arrange
     const userWithDifferentDate = {

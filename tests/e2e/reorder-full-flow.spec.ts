@@ -50,6 +50,7 @@ async function dragLocatorTo(page: Page, source: Locator, target: Locator) {
   await page.waitForTimeout(200);
 }
 
+// 並べ替え算額の作成フロー全体
 test.describe("reorder sangaku full creation flow", () => {
   test.use({
     mswHandlers: [
@@ -74,6 +75,7 @@ test.describe("reorder sangaku full creation flow", () => {
     ],
   });
 
+  // kind 選択から始めて、並べ替え算額の作成フロー全体を完了できる
   test("should allow me to complete the full reorder sangaku creation flow when starting from kind selection", async ({
     page,
     msw,
@@ -140,12 +142,14 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(flash).toContainText("算額を作成しました。神社の100m以内で奉納すると公開されます");
   });
 
+  // 並べ替え算額の奉納
   test.describe("reorder sangaku dedication", () => {
     test.use({
       geolocation: { latitude: 35.70204829610801, longitude: 139.76789333814216 },
       permissions: ["geolocation"],
     });
 
+    // モーダルで並べ替えブロックを確認すると、保存した並べ替え算額を神社に奉納できる
     test("should allow me to dedicate a saved reorder sangaku to a shrine when confirming reorder blocks in the modal", async ({
       page,
       msw,
@@ -289,6 +293,7 @@ test.describe("reorder sangaku full creation flow", () => {
     });
   });
 
+  // 神社の算額一覧に複数の kind が混在するとき、コード算額と並べ替え算額が正しい kind バッジ付きで一緒に見え、並べ替え算額を保存できる
   test("should allow me to see code and reorder sangakus together with correct kind badges and save the reorder sangaku when the shrine sangaku list contains mixed kinds", async ({
     page,
     msw,
@@ -417,6 +422,7 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(savedButtons.first()).toBeDisabled();
   });
 
+  // 保存した並べ替え算額を正しい順序で解答すると、正解の結果が見える
   test("should allow me to see the correct result when answering a saved reorder sangaku in the correct order", async ({
     page,
     msw,
@@ -548,6 +554,7 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(page.getByText("明察")).toBeVisible();
   });
 
+  // 「上へ」「下へ」ボタンでブロックを並べ替えられる
   test("should allow me to reorder blocks with the move-up and move-down buttons before submitting an answer", async ({
     page,
     msw,
@@ -717,6 +724,7 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(page.getByText("明察")).toBeVisible();
   });
 
+  // エリア間および解答エリア内でブロックをドラッグして、保存した並べ替え算額に解答できる
   test("should allow me to answer a saved reorder sangaku by dragging blocks between areas and within the answer area", async ({
     page,
     msw,
@@ -912,6 +920,7 @@ test.describe("reorder sangaku full creation flow", () => {
     await expect(page.getByText("明察")).toBeVisible();
   });
 
+  // 解答エリアから除外されるダミーブロックを含む保存した並べ替え算額に解答すると、正解の結果が見える
   test("should allow me to see the correct result when answering a saved reorder sangaku that includes a dummy block excluded from the answer area", async ({
     page,
     msw,
@@ -1062,6 +1071,7 @@ test.describe("reorder sangaku full creation flow", () => {
     expect(body.answer?.block_ids).toEqual([1, 2]);
   });
 
+  // 保存した並べ替え算額を誤った順序で解答すると、不正解の結果が見える
   test("should allow me to see the incorrect result when answering a saved reorder sangaku in the wrong order", async ({
     page,
     msw,

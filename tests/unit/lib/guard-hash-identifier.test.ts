@@ -2,11 +2,13 @@ import { describe, test, expect, afterEach, vi } from "vitest";
 
 import { hashIdentifier } from "@/app/lib/guard";
 
+// hashIdentifier（識別子のハッシュ化）
 describe("hashIdentifier", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
+  // BETTER_AUTH_SECRET だけからレート制限のキーを導出できる
   test("should allow the key to be derived from BETTER_AUTH_SECRET alone", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "better-secret");
     vi.stubEnv("AUTH_SECRET", "");
@@ -14,6 +16,7 @@ describe("hashIdentifier", () => {
     expect(await hashIdentifier("me@example.com")).toMatch(/^[0-9a-f]{32}$/);
   });
 
+  // AUTH_SECRET だけからレート制限のキーを導出できる
   test("should allow the key to be derived from AUTH_SECRET alone", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     vi.stubEnv("AUTH_SECRET", "auth-secret");
@@ -21,6 +24,7 @@ describe("hashIdentifier", () => {
     expect(await hashIdentifier("me@example.com")).toMatch(/^[0-9a-f]{32}$/);
   });
 
+  // 同じシークレットなら、同じ人に同じレート制限のキーが得られる
   test("should allow the same secret to give the same key to the same person", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "better-secret");
 
@@ -29,6 +33,7 @@ describe("hashIdentifier", () => {
     );
   });
 
+  // 別の人とレート制限のキーが同じにならない
   test("should not allow another person to share my key", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "better-secret");
 
@@ -37,6 +42,7 @@ describe("hashIdentifier", () => {
     );
   });
 
+  // シークレットが異なれば、同じレート制限のキーにならない
   test("should not allow a different secret to give the same key", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "better-secret");
     const first = await hashIdentifier("me@example.com");
@@ -45,6 +51,7 @@ describe("hashIdentifier", () => {
     expect(await hashIdentifier("me@example.com")).not.toBe(first);
   });
 
+  // シークレットがないとき、レート制限のキーを導出できない
   test("should not allow a key to be derived without any secret", async () => {
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     vi.stubEnv("AUTH_SECRET", "");

@@ -23,6 +23,7 @@ const createResponse = {
   },
 };
 
+// /admin/shrines/new
 test.describe("/admin/shrines/new", () => {
   test.use({
     mswHandlers: [
@@ -36,7 +37,9 @@ test.describe("/admin/shrines/new", () => {
     ],
   });
 
+  // 一般ユーザー
   test.describe("general user", () => {
+    // 一般ユーザーでは神社作成ページにアクセスできない
     test("should not allow me to access shrine create page as a general user", async ({ page }) => {
       await setSession(page);
       await page.goto("/admin/shrines/new");
@@ -45,7 +48,9 @@ test.describe("/admin/shrines/new", () => {
     });
   });
 
+  // 管理者でサインインした後
   test.describe("after admin signin", () => {
+    // 管理者として、神社作成の見出しが見える
     test("should allow me to see the shrine create heading as admin", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/new");
@@ -54,6 +59,7 @@ test.describe("/admin/shrines/new", () => {
       ).toBeVisible({ timeout: 10_000 });
     });
 
+    // 住所欄を含む、作成フォームのすべての項目が見える
     test("should allow me to see all create form fields including address fields", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/new");
@@ -64,12 +70,14 @@ test.describe("/admin/shrines/new", () => {
       await expect(page.getByLabel("Place ID")).toBeVisible();
     });
 
+    // 作成 ラベルの作成ボタンが見える
     test("should allow me to see create button with 作成 label", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/new");
       await expect(page.getByRole("button", { name: "作成" })).toBeVisible({ timeout: 10_000 });
     });
 
+    // 神社を作成できる
     test("should allow me to create a shrine", async ({ page }) => {
       await setAdminSession(page);
       await page.goto("/admin/shrines/new");
